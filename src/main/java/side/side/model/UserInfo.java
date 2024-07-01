@@ -29,4 +29,6 @@ public class UserInfo {
     @Column(name = "user_birthday")
     private String userBirthday;
 
+    @Column(name = "user_phone")
+    private String userPhone;  //
 }
