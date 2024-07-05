@@ -57,7 +57,7 @@ public class EventService {
                         event.setImageUrl(node.path("IMAGE_URL").asText());
                         event.setBeginDe(node.path("BEGIN_DE").asText());
                         event.setEndDe(node.path("END_DE").asText());
-                        event.setAddr(node.path("ADDR").asText(null));
+                        event.setAddr(node.path("ADDR").asText());
                         event.setEventTmInfo(node.path("EVENT_TM_INFO").asText());
                         event.setPartcptExpnInfo(node.path("PARTCPT_EXPN_INFO").asText());
                         event.setTelnoInfo(node.path("TELNO_INFO").asText());
@@ -149,5 +149,18 @@ public class EventService {
                 moreData = false;
             }
         }
+    }
+    public List<Object> searchEvents(String date, String region, String category) {
+        List<Object> results = new ArrayList<>();
+
+        if (region == null || region.equalsIgnoreCase("경기")) {
+            results.addAll(gyeonggiEventRepository.findByCriteria(date, category));
+        }
+
+        if (region == null || region.equalsIgnoreCase("서울")) {
+            results.addAll(seoulEventRepository.findByCriteria(date, category));
+        }
+
+        return results;
     }
 }
