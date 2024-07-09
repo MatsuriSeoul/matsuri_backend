@@ -1,13 +1,19 @@
 package side.side.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+import side.side.model.TourEvent;
 import side.side.service.EventService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/events")
@@ -35,5 +41,16 @@ public class EventController {
             @RequestParam(required = false) String category
     ) {
         return eventService.searchEvents(date, region, category);
+    }
+
+    @GetMapping("/fetch")
+    public ResponseEntity<?> fetchEvents(
+            @RequestParam String serviceKey,
+            @RequestParam String numOfRows,
+            @RequestParam String pageNo,
+            @RequestParam String eventStartDate) {
+
+        List<TourEvent> events = eventService.fetchAndSaveEvents(serviceKey, numOfRows, pageNo, eventStartDate);
+        return ResponseEntity.ok(events); //
     }
 }

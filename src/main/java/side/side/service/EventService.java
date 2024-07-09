@@ -1,14 +1,18 @@
 package side.side.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.GyeonggiEvent;
 import side.side.model.SeoulEvent;
+import side.side.model.TourEvent;
 import side.side.repository.GyeonggiEventRepository;
 import side.side.repository.SeoulEventRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import side.side.repository.TourEventRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +26,15 @@ public class EventService {
     @Autowired
     private SeoulEventRepository seoulEventRepository;
 
+    @Autowired
+    private TourEventRepository tourEventRepository;
+
+    // 키 값 절대 건들이면 안됨
     private final String gyeonggiApiKey = "77b3011d245e4ca68e85caec7fd610ae";
     private final String seoulApiKey = "754578757270626739386969624e71";
+    private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
 
+    // 경기도 행사 API
     public void fetchAndSaveGyeonggiEvents() {
         int pageSize = 100;
         int startIndex = 1;
@@ -83,6 +93,7 @@ public class EventService {
         }
     }
 
+    // 서울 행사 API
     public void fetchAndSaveSeoulEvents() {
         int pageSize = 100;
         int startIndex = 1;
@@ -150,6 +161,81 @@ public class EventService {
             }
         }
     }
+
+    // 한국관광공사_국문 관광정보 서비스_GW API
+    public List<TourEvent> fetchAndSaveEvents(String serviceKey, String numOfRows, String pageNo, String eventStartDate) {
+        List<TourEvent> allEvents = new ArrayList<>();
+        boolean moreData = true;
+        RestTemplate restTemplate = new RestTemplate();
+
+        while (moreData) {
+            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/searchFestival1")
+                    .queryParam("serviceKey", serviceKey)
+                    .queryParam("numOfRows", numOfRows)
+                    .queryParam("pageNo", pageNo)
+                    .queryParam("MobileOS", "ETC")
+                    .queryParam("MobileApp", "AppTest")
+                    .queryParam("_type", "json")
+                    .queryParam("eventStartDate", eventStartDate)
+                    .build()
+                    .toUriString();
+
+            System.out.println("Request URL: " + url); // URL 로그
+
+            try {
+                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+
+                System.out.println("Response Status: " + response.getStatusCode()); // 응답 상태 로그
+                System.out.println("Response Body: " + response.getBody()); // 응답 본문 로그
+
+                if (response.getStatusCode().is2xxSuccessful()) {
+                    // JSON 응답 처리
+                    try {
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        JsonNode rootNode = objectMapper.readTree(response.getBody());
+                        JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+
+                        if (itemsNode.isArray()) {
+                            List<TourEvent> events = new ArrayList<>();
+                            for (JsonNode node : itemsNode) {
+                                TourEvent event = new TourEvent();
+                                event.setTitle(node.path("title").asText());
+                                event.setAddr1(node.path("addr1").asText());
+                                event.setEventstartdate(node.path("eventstartdate").asText());
+                                event.setEventenddate(node.path("eventenddate").asText());
+                                event.setFirstimage(node.path("firstimage").asText());
+                                events.add(event);
+                            }
+                            tourEventRepository.saveAll(events);
+                            allEvents.addAll(events);
+
+                            // 만약 현재 페이지의 이벤트 수가 요청한 numOfRows보다 적다면 더 이상 데이터가 없다고 판단
+                            if (itemsNode.size() < Integer.parseInt(numOfRows)) {
+                                moreData = false;
+                            } else {
+                                // 다음 페이지로 이동
+                                pageNo = String.valueOf(Integer.parseInt(pageNo) + 1);
+                            }
+                        } else {
+                            moreData = false;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        moreData = false;
+                    }
+                } else {
+                    moreData = false;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                moreData = false;
+            }
+        }
+
+        return allEvents;
+    }
+
+
     public List<Object> searchEvents(String date, String region, String category) {
         List<Object> results = new ArrayList<>();
 
