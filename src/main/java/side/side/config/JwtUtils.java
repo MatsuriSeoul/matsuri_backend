@@ -30,13 +30,13 @@ public class JwtUtils {
         return new SecretKeySpec(keyBytes, SignatureAlgorithm.HS512.getJcaName());
     }
 
-    public String generateToken(String userNick, Long userId) {
+    public String generateToken(String userName, Long userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMs);
 
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
-                .claim("userNick", userNick)
+                .claim("userName", userName)
                 .claim("userId", userId)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
@@ -44,14 +44,14 @@ public class JwtUtils {
                 .compact();
     }
 
-    public String extractUserNickFromToken(String token) {
+    public String extractUserNameFromToken(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token.replace("Bearer ", ""))
                     .getBody();
-            return claims.get("userNick", String.class);
+            return claims.get("userName", String.class);
         } catch (Exception e) {
             log.error("토큰에서 사용자 닉네임 추출 에러: {}", e.getMessage());
             return null;
