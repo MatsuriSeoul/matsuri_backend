@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.TourEvent;
+import side.side.model.TourEventDetail;
 import side.side.service.EventService;
 
 import java.util.List;
@@ -53,4 +54,6 @@ public class EventController {
         List<TourEvent> events = eventService.fetchAndSaveEvents(serviceKey, numOfRows, pageNo, eventStartDate);
         return ResponseEntity.ok(events); //
     }
+
+
 }

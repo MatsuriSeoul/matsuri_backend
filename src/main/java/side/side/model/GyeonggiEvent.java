@@ -1,3 +1,8 @@
+/**
+ 경기도 문화 행사 현황 api
+ */
+
+
 package side.side.model;
 
 import jakarta.persistence.*;

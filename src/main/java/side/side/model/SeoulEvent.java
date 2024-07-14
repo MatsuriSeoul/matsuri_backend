@@ -1,3 +1,7 @@
+/**
+    서울특별시 문화 행사 api
+ */
+
 package side.side.model;
 
 import jakarta.persistence.*;

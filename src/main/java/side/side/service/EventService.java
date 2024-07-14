@@ -8,17 +8,22 @@ import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.GyeonggiEvent;
 import side.side.model.SeoulEvent;
 import side.side.model.TourEvent;
+import side.side.model.TourEventDetail;
 import side.side.repository.GyeonggiEventRepository;
 import side.side.repository.SeoulEventRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import side.side.repository.TourEventDetailRepository;
 import side.side.repository.TourEventRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class EventService {
+    private static final Logger logger = Logger.getLogger(EventService.class.getName());
 
     @Autowired
     private GyeonggiEventRepository gyeonggiEventRepository;
@@ -28,6 +33,9 @@ public class EventService {
 
     @Autowired
     private TourEventRepository tourEventRepository;
+
+    @Autowired
+    private TourEventDetailRepository tourEventDetailRepository;
 
     // 키 값 절대 건들이면 안됨
     private final String gyeonggiApiKey = "77b3011d245e4ca68e85caec7fd610ae";
@@ -180,14 +188,8 @@ public class EventService {
                     .build()
                     .toUriString();
 
-            System.out.println("Request URL: " + url); // URL 로그
-
             try {
                 ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-
-                System.out.println("Response Status: " + response.getStatusCode()); // 응답 상태 로그
-                System.out.println("Response Body: " + response.getBody()); // 응답 본문 로그
-
                 if (response.getStatusCode().is2xxSuccessful()) {
                     // JSON 응답 처리
                     try {
@@ -204,6 +206,11 @@ public class EventService {
                                 event.setEventstartdate(node.path("eventstartdate").asText());
                                 event.setEventenddate(node.path("eventenddate").asText());
                                 event.setFirstimage(node.path("firstimage").asText());
+                                event.setCat1(node.path("cat1").asText());
+                                event.setCat2(node.path("cat2").asText());
+                                event.setCat3(node.path("cat3").asText());
+                                event.setContentid(node.path("contentid").asText());
+                                event.setContenttypeid(node.path("contenttypeid").asText());
                                 events.add(event);
                             }
                             tourEventRepository.saveAll(events);
@@ -235,6 +242,89 @@ public class EventService {
         return allEvents;
     }
 
+    public void fetchAndSaveEventDetail(String contentid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailCommon1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("defaultYN", "Y")
+                .queryParam("addrinfoYN", "Y")
+                .queryParam("overviewYN", "Y")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        logger.info("Fetching event detail for contentId: " + contentid);
+        logger.info("Request URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API Response: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response.getBody());
+                JsonNode itemNode = rootNode.path("response").path("body").path("items").path("item").get(0);
+
+                if (itemNode.isMissingNode()) {
+                    logger.warning("No event details found for contentId: " + contentid);
+                    return;
+                }
+
+                TourEventDetail eventDetail = new TourEventDetail();
+                eventDetail.setContentid(itemNode.path("contentid").asText());
+                eventDetail.setContenttypeid(itemNode.path("contenttypeid").asText());
+                eventDetail.setBooktour(itemNode.path("booktour").asText());
+                eventDetail.setCreatedtime(itemNode.path("createdtime").asText());
+                eventDetail.setHomepage(itemNode.path("homepage").asText());
+                eventDetail.setModifiedtime(itemNode.path("modifiedtime").asText());
+                eventDetail.setTel(itemNode.path("tel").asText());
+                eventDetail.setTelname(itemNode.path("telname").asText());
+                eventDetail.setTitle(itemNode.path("title").asText());
+                eventDetail.setFirstimage(itemNode.path("firstimage").asText());
+                eventDetail.setFirstimage2(itemNode.path("firstimage2").asText());
+                eventDetail.setCpyrhtDivCd(itemNode.path("cpyrhtDivCd").asText());
+                eventDetail.setAreacode(itemNode.path("areacode").asText());
+                eventDetail.setSigungucode(itemNode.path("sigungucode").asText());
+                eventDetail.setCat1(itemNode.path("cat1").asText());
+                eventDetail.setCat2(itemNode.path("cat2").asText());
+                eventDetail.setCat3(itemNode.path("cat3").asText());
+                eventDetail.setAddr1(itemNode.path("addr1").asText());
+                eventDetail.setAddr2(itemNode.path("addr2").asText());
+                eventDetail.setZipcode(itemNode.path("zipcode").asText());
+                eventDetail.setMapx(itemNode.path("mapx").asText());
+                eventDetail.setMapy(itemNode.path("mapy").asText());
+                eventDetail.setMlevel(itemNode.path("mlevel").asText());
+                eventDetail.setOverview(itemNode.path("overview").asText());
+
+                tourEventDetailRepository.save(eventDetail);
+                logger.info("Event detail saved for contentId: " + contentid);
+            } else {
+                logger.warning("Failed to fetch event detail for contentId: " + contentid);
+            }
+        } catch (Exception e) {
+            logger.severe("Error fetching event detail for contentId: " + contentid + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void fetchAndSaveAllEventDetails() {
+        List<String> contentIds = getAllContentIds();
+        for (String contentId : contentIds) {
+            fetchAndSaveEventDetail(contentId);
+        }
+    }
+
+    public List<String> getAllContentIds() {
+        return tourEventRepository.findAll().stream()
+                .map(event -> event.getContentid())
+                .collect(Collectors.toList());
+    }
+
+
 
     public List<Object> searchEvents(String date, String region, String category) {
         List<Object> results = new ArrayList<>();
@@ -249,4 +339,5 @@ public class EventService {
 
         return results;
     }
+
 }
