@@ -30,5 +30,9 @@ public class UserInfo {
     private String userBirthday;
 
     @Column(name = "user_phone")
-    private String userPhone;  //
+    private String userPhone;
+
+    @Column(name = "user_role")
+    private String role; // 사용자, 관리자 구분
+
 }

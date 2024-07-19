@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import side.side.config.JwtUtils;
 import side.side.model.UserInfo;
 import side.side.repository.UserRepository;
+import side.side.response.LoginResponse;
 import side.side.service.UserService;
 
 @Slf4j
@@ -20,6 +21,8 @@ import side.side.service.UserService;
 @RequestMapping("/api/users")
 public class UserController {
 
+    @Autowired
+    private UserService userService;
     @Autowired
     private JwtUtils jwtUtils;
     @Autowired
@@ -34,13 +37,30 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("유저 아이디 이미 존재");
         }
         try {
-            userRepository.save(userinfo); // 사용자 정보 저장
+            userService.saveUser(userinfo); // 사용자 정보 저장
             // IDE 로그 출력
             String successMessage = "회원가입 성공 userID: " + userinfo.getUserId();
             logger.info(successMessage);
             return ResponseEntity.ok().body(successMessage);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("사용자 저장 오류 : " + e.getMessage());
+        }
+    }
+
+    // 회원가입시 사용자 role을 'USER'로 설정하기 위한 경로
+    @PostMapping("/register")
+    public UserInfo registerUser(@RequestBody UserInfo userInfo) {
+        return userService.saveUser(userInfo);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody UserInfo loginRequest) {
+        UserInfo user = userService.findByUserId(loginRequest.getUserId());
+        if (user != null && loginRequest.getUserPassword().equals(user.getUserPassword())) { // 평문 비교
+            String token = jwtUtils.generateToken(user.getUserName(), user.getId());
+            return ResponseEntity.ok(new LoginResponse(token, user.getUserName(), user.getRole()));
+        } else {
+            return ResponseEntity.status(401).body("Invalid credentials");
         }
     }
 }

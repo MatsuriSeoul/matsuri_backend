@@ -4,11 +4,14 @@
 
 package side.side.config;
 
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import side.side.model.UserInfo;
 import side.side.service.EventService;
+import side.side.service.UserService;
 
 import java.util.List;
 
@@ -18,12 +21,30 @@ public class DataLoader implements ApplicationRunner {
     @Autowired
     private EventService eventService;
 
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private JwtUtils jwtUtils;
+
     @Override
     public void run(ApplicationArguments args) {
-        //eventService.fetchAndSaveGyeonggiEvents();
-        //eventService.fetchAndSaveSeoulEvents();
+        if (userService.findByUserName("admin") == null) {
+            UserInfo admin = new UserInfo();
+            admin.setUserId("admin");
+            admin.setUserName("admin");
+            admin.setUserPassword("1234"); // 실제 환경에서는 더 안전한 비밀번호 사용
+            userService.saveAdmin(admin);
+            // 어드민에 대한 토큰 생성
+            String token = jwtUtils.generateToken(admin.getUserName(), admin.getId());
+            System.out.println("Admin Token: " + token); // 생성된 토큰을 출력하거나 로그로 남기기
+        }
+    }
 
-        // 한국관광공사_국문 관광정보 서비스_GW API 자동 호출
+//        eventService.fetchAndSaveGyeonggiEvents();
+//        eventService.fetchAndSaveSeoulEvents();
+//
+//        // 한국관광공사_국문 관광정보 서비스_GW API 자동 호출
 //        String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
 //        String numOfRows = "100"; // 한 페이지에 가져올 이벤트 수
 //        String pageNo = "1"; // 시작 페이지 번호
@@ -34,13 +55,13 @@ public class DataLoader implements ApplicationRunner {
 //
 //        // 저장된 이벤트의 상세 정보를 업데이트
 //        eventService.fetchAndSaveAllEventDetails();
-    }
-
-//      private void updateEventDetails() {
+//    }
+//
+//    private void updateEventDetails() {
 //        // 저장된 모든 이벤트의 contentid를 가져와서 상세 정보를 업데이트합니다.
 //        List<String> contentIds = eventService.getAllContentIds();
 //        for (String contentId : contentIds) {
 //            eventService.fetchAndSaveEventDetail(contentId);
 //        }
-    }
-
+//    }
+        }
