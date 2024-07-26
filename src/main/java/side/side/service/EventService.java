@@ -171,7 +171,7 @@ public class EventService {
     }
 
     // 한국관광공사_국문 관광정보 서비스_GW API
-    public List<TourEvent> fetchAndSaveEvents(String serviceKey, String numOfRows, String pageNo, String eventStartDate) {
+        public List<TourEvent> fetchAndSaveEvents(String serviceKey, String numOfRows, String pageNo, String eventStartDate) {
         List<TourEvent> allEvents = new ArrayList<>();
         boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
@@ -257,12 +257,12 @@ public class EventService {
                 .build()
                 .toUriString();
 
-        logger.info("Fetching event detail for contentId: " + contentid);
-        logger.info("Request URL: " + url);
+     //  logger.info("Fetching event detail for contentId: " + contentid);
+       // logger.info("Request URL: " + url);
 
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            logger.info("API Response: " + response.getBody());
+          //  logger.info("API Response: " + response.getBody());
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 ObjectMapper objectMapper = new ObjectMapper();
@@ -301,14 +301,96 @@ public class EventService {
                 eventDetail.setOverview(itemNode.path("overview").asText());
 
                 tourEventDetailRepository.save(eventDetail);
-                logger.info("Event detail saved for contentId: " + contentid);
+              //  logger.info("Event detail saved for contentId: " + contentid);
             } else {
                 logger.warning("Failed to fetch event detail for contentId: " + contentid);
             }
         } catch (Exception e) {
-            logger.severe("Error fetching event detail for contentId: " + contentid + ": " + e.getMessage());
+           // logger.severe("Error fetching event detail for contentId: " + contentid + ": " + e.getMessage());
             e.printStackTrace();
         }
+    }
+    // 한국관광공사_국문 관광정보 서비스_GW API - 로컬 데이터 저장
+    // 한국관광공사_국문 관광정보 서비스_GW API - 로컬 데이터 저장
+    public List<TourEvent> fetchAndSaveEventsLocal(String numOfRows, String pageNo, String cat1, String cat2, String cat3, String modifiedtime, String areaCode, String sigunguCode) {
+        List<TourEvent> allEvents = new ArrayList<>();
+        boolean moreData = true;
+        RestTemplate restTemplate = new RestTemplate();
+
+        while (moreData) {
+            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/areaBasedList1")
+                    .queryParam("serviceKey", serviceKey)
+                    .queryParam("numOfRows", numOfRows)
+                    .queryParam("pageNo", pageNo)
+                    .queryParam("MobileOS", "ETC")
+                    .queryParam("MobileApp", "AppTest")
+                    .queryParam("_type", "json")
+                    .queryParam("listYN", "Y")  // 목록 조회 설정
+                    .queryParam("arrange", "A")  // 기본 정렬을 제목순으로 설정
+                    .queryParam("contentTypeId", "32")
+                    .queryParam("cat1", cat1)
+                    .queryParam("cat2", cat2)
+                    .queryParam("cat3", cat3)
+                    .queryParam("modifiedtime", modifiedtime)
+                    .queryParam("areaCode", areaCode)
+                    .queryParam("sigunguCode", sigunguCode)
+                    .build()
+                    .toUriString();
+
+            logger.info("Request URL: " + url);  // Request URL을 로깅
+
+            try {
+                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+                logger.info("Response Status: " + response.getStatusCode());
+                logger.info("Response Body: " + response.getBody());  // Response Body를 로깅
+
+                if (response.getStatusCode().is2xxSuccessful()) {
+                    try {
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        JsonNode rootNode = objectMapper.readTree(response.getBody());
+                        JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+
+                        if (itemsNode.isArray()) {
+                            List<TourEvent> events = new ArrayList<>();
+                            for (JsonNode node : itemsNode) {
+                                TourEvent event = new TourEvent();
+                                event.setTitle(node.path("title").asText());
+                                event.setAddr1(node.path("addr1").asText());
+                                event.setEventstartdate(node.path("eventstartdate").asText());
+                                event.setEventenddate(node.path("eventenddate").asText());
+                                event.setFirstimage(node.path("firstimage").asText());
+                                event.setCat1(node.path("cat1").asText());
+                                event.setCat2(node.path("cat2").asText());
+                                event.setCat3(node.path("cat3").asText());
+                                event.setContentid(node.path("contentid").asText());
+                                event.setContenttypeid(node.path("contenttypeid").asText());
+                                events.add(event);
+                            }
+                            tourEventRepository.saveAll(events);
+                            allEvents.addAll(events);
+
+                            if (itemsNode.size() < Integer.parseInt(numOfRows)) {
+                                moreData = false;
+                            } else {
+                                pageNo = String.valueOf(Integer.parseInt(pageNo) + 1);
+                            }
+                        } else {
+                            moreData = false;
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        moreData = false;
+                    }
+                } else {
+                    moreData = false;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                moreData = false;
+            }
+        }
+
+        return allEvents;
     }
 
     public void fetchAndSaveAllEventDetails() {
@@ -341,3 +423,7 @@ public class EventService {
     }
 
 }
+
+
+
+

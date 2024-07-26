@@ -7,6 +7,8 @@ import org.mindrot.jbcrypt.BCrypt;
 @Configuration
 public class SecurityConfig {
 
+
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new PasswordEncoder();
