@@ -310,9 +310,9 @@ public class EventService {
             e.printStackTrace();
         }
     }
-    // 한국관광공사_국문 관광정보 서비스_GW API - 로컬 데이터 저장
-    // 한국관광공사_국문 관광정보 서비스_GW API - 로컬 데이터 저장
-    public List<TourEvent> fetchAndSaveEventsLocal(String numOfRows, String pageNo, String cat1, String cat2, String cat3, String modifiedtime, String areaCode, String sigunguCode) {
+    // 지역 기반 관광 정보 API - 로컬 데이터 저장
+    // 지역 기반 관광 정보 API - 로컬 데이터 저장
+    public List<TourEvent> fetchAndSaveEventsLocal(String numOfRows, String pageNo) {
         List<TourEvent> allEvents = new ArrayList<>();
         boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
@@ -324,16 +324,9 @@ public class EventService {
                     .queryParam("pageNo", pageNo)
                     .queryParam("MobileOS", "ETC")
                     .queryParam("MobileApp", "AppTest")
-                    .queryParam("_type", "json")
-                    .queryParam("listYN", "Y")  // 목록 조회 설정
                     .queryParam("arrange", "A")  // 기본 정렬을 제목순으로 설정
                     .queryParam("contentTypeId", "32")
-                    .queryParam("cat1", cat1)
-                    .queryParam("cat2", cat2)
-                    .queryParam("cat3", cat3)
-                    .queryParam("modifiedtime", modifiedtime)
-                    .queryParam("areaCode", areaCode)
-                    .queryParam("sigunguCode", sigunguCode)
+                    .queryParam("_type", "json")
                     .build()
                     .toUriString();
 
