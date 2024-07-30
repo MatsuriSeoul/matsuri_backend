@@ -57,16 +57,10 @@ public class EventController {
     //국문관광정보 지역 데이터
     @GetMapping("/fetchAndSave")
     public ResponseEntity<List<TourEvent>> fetchAndSaveEventsLocal(
-            @RequestParam(defaultValue = "10") String numOfRows,
-            @RequestParam(defaultValue = "1") String pageNo,
-            @RequestParam(defaultValue = "B02") String cat1,
-            @RequestParam(defaultValue = "B0201") String cat2,
-            @RequestParam(defaultValue = "B02010100") String cat3,
-            @RequestParam(defaultValue = "20220101") String modifiedtime,
-            @RequestParam(defaultValue = "1") String areaCode,
-            @RequestParam(defaultValue = "1") String sigunguCode) {
-        List<TourEvent> events = eventService.fetchAndSaveEventsLocal(numOfRows, pageNo, cat1, cat2, cat3, modifiedtime, areaCode, sigunguCode);
-        return new ResponseEntity<>(events, HttpStatus.OK);
+            @RequestParam String numOfRows,
+            @RequestParam String pageNo) {
+        List<TourEvent> events = eventService.fetchAndSaveEventsLocal(numOfRows, pageNo);
+        return ResponseEntity.ok(events);
     }
 
 }
