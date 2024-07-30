@@ -23,5 +23,6 @@ public class TourEventController {
         List<TourEvent> events = tourEventService.getEventsByCategory(category);
         logger.info("Returning events: " + events);
         return events;
+        //test
     }
 }
