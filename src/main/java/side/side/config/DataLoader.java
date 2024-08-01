@@ -39,15 +39,25 @@ public class DataLoader implements ApplicationRunner {
        // eventService.fetchAndSaveGyeonggiEvents();
        // eventService.fetchAndSaveSeoulEvents();
 
-        // 한국관광공사_국문 관광정보 서비스_GW API 자동 호출
-        String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
-        String numOfRows = "100"; // 한 페이지에 가져올 이벤트 수
-        String pageNo = "1"; // 시작 페이지 번호
-        String eventStartDate = "20240101"; // 이벤트 시작 날짜 (YYYYMMDD 형식)
+//        // 한국관광공사_국문 관광정보 서비스_GW API 자동 호출
+//        String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
+//        String numOfRows = "100"; // 한 페이지에 가져올 이벤트 수
+//        String pageNo = "1"; // 시작 페이지 번호
+//        String eventStartDate = "20240101"; // 이벤트 시작 날짜 (YYYYMMDD 형식)
 
         // 이벤트 데이터를 저장
-        eventService.fetchAndSaveEvents(serviceKey, numOfRows, pageNo, eventStartDate);
+      //  eventService.fetchAndSaveEvents(serviceKey, numOfRows, pageNo, eventStartDate);
+        // 관광지 데이터 자동 호출
+       // String numOfRows = "100"; // 한 페이지에 가져올 관광지 수
+        //String pageNo = "1"; // 시작 페이지 번호
 
+        // 관광지 데이터를 저장
+        //eventService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
+        // 레포츠 데이터 저장
+        String numOfRows = "100"; // 한 페이지에 가져올 데이터 수
+        String pageNo = "1"; // 시작 페이지 번호
+        // 레포츠 데이터를 저장
+        eventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
         // 저장된 이벤트의 상세 정보를 업데이트
         updateEventDetails();
     }

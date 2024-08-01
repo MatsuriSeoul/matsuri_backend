@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import side.side.model.LocalEvent;
 import side.side.model.TourEvent;
 import side.side.model.TourEventDetail;
+import side.side.model.TouristAttraction;
 import side.side.service.EventService;
 
 import java.util.List;
@@ -56,17 +58,19 @@ public class EventController {
     }
     //국문관광정보 지역 데이터
     @GetMapping("/fetchAndSave")
-    public ResponseEntity<List<TourEvent>> fetchAndSaveEventsLocal(
-            @RequestParam(defaultValue = "10") String numOfRows,
-            @RequestParam(defaultValue = "1") String pageNo,
-            @RequestParam(defaultValue = "B02") String cat1,
-            @RequestParam(defaultValue = "B0201") String cat2,
-            @RequestParam(defaultValue = "B02010100") String cat3,
-            @RequestParam(defaultValue = "20220101") String modifiedtime,
-            @RequestParam(defaultValue = "1") String areaCode,
-            @RequestParam(defaultValue = "1") String sigunguCode) {
-        List<TourEvent> events = eventService.fetchAndSaveEventsLocal(numOfRows, pageNo, cat1, cat2, cat3, modifiedtime, areaCode, sigunguCode);
-        return new ResponseEntity<>(events, HttpStatus.OK);
+    public ResponseEntity<List<LocalEvent>> fetchAndSaveEventsLocal(
+            @RequestParam String numOfRows,
+            @RequestParam String pageNo) {
+        List<LocalEvent> events = eventService.fetchAndSaveEventsLocal(numOfRows, pageNo);
+        return ResponseEntity.ok(events);
     }
+    // 관광지 데이터 불러오기
+    @GetMapping("/fetchAndSaveTouristAttractions")
+    public ResponseEntity<List<TouristAttraction>> fetchAndSaveTouristAttractions(
+            @RequestParam String numOfRows,
+            @RequestParam String pageNo) {
 
+        List<TouristAttraction> attractions = eventService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
+        return ResponseEntity.ok(attractions);
+    }
 }
