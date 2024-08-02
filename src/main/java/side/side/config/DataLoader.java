@@ -54,10 +54,10 @@ public class DataLoader implements ApplicationRunner {
         // 관광지 데이터를 저장
         //eventService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
         // 레포츠 데이터 저장
-        String numOfRows = "100"; // 한 페이지에 가져올 데이터 수
-        String pageNo = "1"; // 시작 페이지 번호
+        //String numOfRows = "100"; // 한 페이지에 가져올 데이터 수
+        //String pageNo = "1"; // 시작 페이지 번호
         // 레포츠 데이터를 저장
-        eventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
+        //eventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
         // 저장된 이벤트의 상세 정보를 업데이트
         updateEventDetails();
     }
