@@ -30,9 +30,6 @@ public class EventController {
     private LeisureSportsEventService leisureSportsEventService;
 
     @Autowired
-    private TourCourseService tourCourseService;
-
-    @Autowired
     private TravelCourseService travelCourseService;
 
     @GetMapping("/fetchGyeonggi")
