@@ -92,17 +92,8 @@ public class EventController {
         List<?> events = leisureSportsEventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
         return ResponseEntity.ok(events);
     }
+
     // 여행 코스 데이터 불러오기
-    @GetMapping("/fetchAndSaveTourCourses")
-    public ResponseEntity<List<TourCourse>> fetchAndSaveTourCourses(
-            @RequestParam String numOfRows,
-            @RequestParam String pageNo,
-            @RequestParam String contentId) {
-
-        List<TourCourse> courses = tourCourseService.fetchAndSaveTourCourses(numOfRows, pageNo, contentId);
-        return ResponseEntity.ok(courses);
-    }
-
     @GetMapping("/fetchAndSaveTravel")
     public ResponseEntity<List<TravelCourse>> fetchAndSaveTravelCourses(
             @RequestParam String numOfRows,
