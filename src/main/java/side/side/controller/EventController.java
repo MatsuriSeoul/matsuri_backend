@@ -7,13 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
-import side.side.model.LocalEvent;
-import side.side.model.TourEvent;
-import side.side.model.TourEventDetail;
-import side.side.model.TouristAttraction;
-import side.side.service.EventService;
+import side.side.model.*;
+import side.side.service.*;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +19,18 @@ public class EventController {
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private LocalEventService localEventService;
+
+    @Autowired
+    private TouristAttractionsService touristAttractionsService;
+
+    @Autowired
+    private LeisureSportsEventService leisureSportsEventService;
+
+    @Autowired
+    private TravelCourseService travelCourseService;
 
     @GetMapping("/fetchGyeonggi")
     public String fetchGyeonggiEvents() {
@@ -61,7 +68,7 @@ public class EventController {
     public ResponseEntity<List<LocalEvent>> fetchAndSaveEventsLocal(
             @RequestParam String numOfRows,
             @RequestParam String pageNo) {
-        List<LocalEvent> events = eventService.fetchAndSaveEventsLocal(numOfRows, pageNo);
+        List<LocalEvent> events = localEventService.fetchAndSaveEventsLocal(numOfRows, pageNo);
         return ResponseEntity.ok(events);
     }
     // 관광지 데이터 불러오기
@@ -70,7 +77,26 @@ public class EventController {
             @RequestParam String numOfRows,
             @RequestParam String pageNo) {
 
-        List<TouristAttraction> attractions = eventService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
+        List<TouristAttraction> attractions = touristAttractionsService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
         return ResponseEntity.ok(attractions);
+    }
+
+    // 레포츠 데이터 불러오기
+    @GetMapping("/fetchAndSaveLeisureSports")
+    public ResponseEntity<List<?>> fetchAndSaveLeisureSports(
+            @RequestParam String numOfRows,
+            @RequestParam String pageNo) {
+        List<?> events = leisureSportsEventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
+        return ResponseEntity.ok(events);
+    }
+
+    // 여행 코스 데이터 불러오기
+    @GetMapping("/fetchAndSaveTravel")
+    public ResponseEntity<List<TravelCourse>> fetchAndSaveTravelCourses(
+            @RequestParam String numOfRows,
+            @RequestParam String pageNo) {
+
+        List<TravelCourse> courses = travelCourseService.fetchAndSaveTravelCourses(numOfRows, pageNo);
+        return ResponseEntity.ok(courses);
     }
 }

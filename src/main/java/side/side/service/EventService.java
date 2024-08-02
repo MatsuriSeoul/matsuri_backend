@@ -32,13 +32,8 @@ public class EventService {
     private TourEventDetailRepository tourEventDetailRepository;
 
     @Autowired
-    private LocalEventRepository localEventRepository;
-
-    @Autowired
     private TouristAttractionRepository touristAttractionRepository;
 
-    @Autowired
-    private LeisureSportsEventRepository leisureSportsEventRepository;
 
     // 키 값 절대 건들이면 안됨
     private final String gyeonggiApiKey = "77b3011d245e4ca68e85caec7fd610ae";
@@ -173,7 +168,7 @@ public class EventService {
         }
     }
 
-    // 한국관광공사_국문 관광정보 서비스_GW API
+    // 한국관광공사_국문 관광정보 서비스_GW API / TourEvent
         public List<TourEvent> fetchAndSaveEvents(String serviceKey, String numOfRows, String pageNo, String eventStartDate) {
         List<TourEvent> allEvents = new ArrayList<>();
         boolean moreData = true;
@@ -245,6 +240,7 @@ public class EventService {
         return allEvents;
     }
 
+    //행사의 상세 정보
     public void fetchAndSaveEventDetail(String contentid) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -313,268 +309,9 @@ public class EventService {
             e.printStackTrace();
         }
     }
-    // 지역 기반 관광 정보 API - 로컬 데이터 저장
-    public List<LocalEvent> fetchAndSaveEventsLocal(String numOfRows, String pageNo) {
-        List<LocalEvent> allEvents = new ArrayList<>();
-        boolean moreData = true;
-        RestTemplate restTemplate = new RestTemplate();
 
-        while (moreData) {
-            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/areaBasedList1")
-                    .queryParam("serviceKey", serviceKey)
-                    .queryParam("numOfRows", numOfRows)
-                    .queryParam("pageNo", pageNo)
-                    .queryParam("MobileOS", "ETC")
-                    .queryParam("MobileApp", "AppTest")
-                    .queryParam("arrange", "A")  // 기본 정렬을 제목순으로 설정
-                    .queryParam("contentTypeId", "32")
-                    .queryParam("_type", "json")
-                    .build()
-                    .toUriString();
 
-            logger.info("Request URL: " + url);  // Request URL을 로깅
 
-            try {
-                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-                logger.info("Response Status: " + response.getStatusCode());
-                logger.info("Response Body: " + response.getBody());  // Response Body를 로깅
-
-                if (response.getStatusCode().is2xxSuccessful()) {
-                    try {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        JsonNode rootNode = objectMapper.readTree(response.getBody());
-                        JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
-
-                        if (itemsNode.isArray()) {
-                            List<LocalEvent> events = new ArrayList<>();
-                            for (JsonNode node : itemsNode) {
-                                LocalEvent event = new LocalEvent();
-                                event.setTitle(node.path("title").asText());
-                                event.setAddr1(node.path("addr1").asText());
-                                event.setEventstartdate(node.path("eventstartdate").asText());
-                                event.setEventenddate(node.path("eventenddate").asText());
-                                event.setFirstimage(node.path("firstimage").asText());
-                                event.setCat1(node.path("cat1").asText());
-                                event.setCat2(node.path("cat2").asText());
-                                event.setCat3(node.path("cat3").asText());
-                                event.setContentid(node.path("contentid").asText());
-                                event.setContenttypeid(node.path("contenttypeid").asText());
-                                events.add(event);
-                            }
-                            localEventRepository.saveAll(events);  // LocalEvent로 저장
-                            allEvents.addAll(events);
-
-                            if (itemsNode.size() < Integer.parseInt(numOfRows)) {
-                                moreData = false;
-                            } else {
-                                pageNo = String.valueOf(Integer.parseInt(pageNo) + 1);
-                            }
-                        } else {
-                            moreData = false;
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        moreData = false;
-                    }
-                } else {
-                    moreData = false;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                moreData = false;
-            }
-        }
-
-        return allEvents;
-    }
-
-    // contentTypeId 12인 관광지 db 저장하기
-    public List<TouristAttraction> fetchAndSaveTouristAttractions(String numOfRows, String pageNo) {
-        List<TouristAttraction> allAttractions = new ArrayList<>();
-        boolean moreData = true;
-        RestTemplate restTemplate = new RestTemplate();
-
-        while (moreData) {
-            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/areaBasedList1")
-                    .queryParam("serviceKey", serviceKey)
-                    .queryParam("numOfRows", numOfRows)
-                    .queryParam("pageNo", pageNo)
-                    .queryParam("MobileOS", "ETC")
-                    .queryParam("MobileApp", "AppTest")
-                    .queryParam("arrange", "A")
-                    .queryParam("contentTypeId", "12")
-                    .queryParam("_type", "json")
-                    .build()
-                    .toUriString();
-
-            logger.info("Request URL: " + url);
-
-            try {
-                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-                logger.info("Response Status: " + response.getStatusCode());
-                logger.info("Response Body: " + response.getBody());
-
-                if (response.getStatusCode().is2xxSuccessful()) {
-                    try {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        JsonNode rootNode = objectMapper.readTree(response.getBody());
-                        JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
-
-                        if (itemsNode.isArray()) {
-                            List<TouristAttraction> attractions = new ArrayList<>();
-                            for (JsonNode node : itemsNode) {
-                                TouristAttraction attraction = new TouristAttraction();
-                                attraction.setTitle(node.path("title").asText());
-                                attraction.setAddr1(node.path("addr1").asText());
-                                attraction.setFirstimage(node.path("firstimage").asText());
-                                attraction.setMapx(node.path("mapx").asText());
-                                attraction.setMapy(node.path("mapy").asText());
-                                attraction.setOverview(node.path("overview").asText());
-                                attraction.setContentid(node.path("contentid").asText());
-                                attraction.setContenttypeid(node.path("contenttypeid").asText());
-                                attraction.setAreacode(node.path("areacode").asText());
-                                attraction.setSigungucode(node.path("sigungucode").asText());
-                                attraction.setZipcode(node.path("zipcode").asText());
-                                attraction.setTel(node.path("tel").asText());
-                                attraction.setModifiedtime(node.path("modifiedtime").asText());
-                                attractions.add(attraction);
-                            }
-                            touristAttractionRepository.saveAll(attractions);
-                            allAttractions.addAll(attractions);
-
-                            if (itemsNode.size() < Integer.parseInt(numOfRows)) {
-                                moreData = false;
-                            } else {
-                                pageNo = String.valueOf(Integer.parseInt(pageNo) + 1);
-                            }
-                        } else {
-                            moreData = false;
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        moreData = false;
-                    }
-                } else {
-                    moreData = false;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                moreData = false;
-            }
-        }
-
-        return allAttractions;
-    }
-    // contentTypeId가 12인 관광지의 상세 정보 디비 저장
-    public void fetchAndSaveAttractionDetail(String contentid) {
-        RestTemplate restTemplate = new RestTemplate();
-
-        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailCommon1")
-                .queryParam("serviceKey", serviceKey)
-                .queryParam("contentId", contentid)
-                .queryParam("MobileOS", "ETC")
-                .queryParam("MobileApp", "AppTest")
-                .queryParam("defaultYN", "Y")
-                .queryParam("addrinfoYN", "Y")
-                .queryParam("overviewYN", "Y")
-                .queryParam("_type", "json")
-                .build()
-                .toUriString();
-
-        try {
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-
-            if (response.getStatusCode().is2xxSuccessful()) {
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode rootNode = objectMapper.readTree(response.getBody());
-                JsonNode itemNode = rootNode.path("response").path("body").path("items").path("item").get(0);
-
-                if (!itemNode.isMissingNode()) {
-                    TouristAttraction attraction = new TouristAttraction();
-                    attraction.setContentid(itemNode.path("contentid").asText());
-                    attraction.setTitle(itemNode.path("title").asText());
-                    attraction.setAddr1(itemNode.path("addr1").asText());
-                    attraction.setOverview(itemNode.path("overview").asText());
-                    attraction.setFirstimage(itemNode.path("firstimage").asText());
-                    attraction.setMapx(itemNode.path("mapx").asText());
-                    attraction.setMapy(itemNode.path("mapy").asText());
-                    attraction.setTel(itemNode.path("tel").asText());
-                    attraction.setAreacode(itemNode.path("areacode").asText());
-                    attraction.setSigungucode(itemNode.path("sigungucode").asText());
-                    attraction.setZipcode(itemNode.path("zipcode").asText());
-                    attraction.setModifiedtime(itemNode.path("modifiedtime").asText());
-
-                    touristAttractionRepository.save(attraction);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    //ContentypeId 28인 레포츠 불러와 저장하기
-    public List<LeisureSportsEvent> fetchAndSaveLeisureSportsEvents(String numOfRows, String pageNo) {
-        List<LeisureSportsEvent> allEvents = new ArrayList<>();
-        boolean moreData = true;
-        RestTemplate restTemplate = new RestTemplate();
-
-        while (moreData) {
-            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/areaBasedList1")
-                    .queryParam("serviceKey", serviceKey)
-                    .queryParam("numOfRows", numOfRows)
-                    .queryParam("pageNo", pageNo)
-                    .queryParam("MobileOS", "ETC")
-                    .queryParam("MobileApp", "AppTest")
-                    .queryParam("contentTypeId", "28")
-                    .queryParam("_type", "json")
-                    .build()
-                    .toUriString();
-
-            try {
-                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-
-                if (response.getStatusCode().is2xxSuccessful()) {
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    JsonNode rootNode = objectMapper.readTree(response.getBody());
-                    JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
-
-                    if (itemsNode.isArray()) {
-                        List<LeisureSportsEvent> events = new ArrayList<>();
-                        for (JsonNode node : itemsNode) {
-                            LeisureSportsEvent event = new LeisureSportsEvent();
-                            event.setTitle(node.path("title").asText());
-                            event.setAddr1(node.path("addr1").asText());
-                            event.setEventstartdate(node.path("eventstartdate").asText());
-                            event.setEventenddate(node.path("eventenddate").asText());
-                            event.setFirstimage(node.path("firstimage").asText());
-                            event.setCat1(node.path("cat1").asText());
-                            event.setCat2(node.path("cat2").asText());
-                            event.setCat3(node.path("cat3").asText());
-                            event.setContentid(node.path("contentid").asText());
-                            event.setContenttypeid(node.path("contenttypeid").asText());
-                            events.add(event);
-                        }
-                        leisureSportsEventRepository.saveAll(events);
-                        allEvents.addAll(events);
-
-                        if (itemsNode.size() < Integer.parseInt(numOfRows)) {
-                            moreData = false;
-                        } else {
-                            pageNo = String.valueOf(Integer.parseInt(pageNo) + 1);
-                        }
-                    } else {
-                        moreData = false;
-                    }
-                } else {
-                    moreData = false;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                moreData = false;
-            }
-        }
-
-        return allEvents;
-    }
 
     public void fetchAndSaveAllEventDetails() {
         List<String> contentIds = getAllContentIds();
