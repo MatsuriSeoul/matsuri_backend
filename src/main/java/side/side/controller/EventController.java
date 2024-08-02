@@ -7,14 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import side.side.model.LocalEvent;
-import side.side.model.TourEvent;
-import side.side.model.TourEventDetail;
-import side.side.model.TouristAttraction;
-import side.side.service.EventService;
-import side.side.service.LeisureSportsEventService;
-import side.side.service.LocalEventService;
-import side.side.service.TouristAttractionsService;
+import side.side.model.*;
+import side.side.service.*;
 
 import java.util.List;
 import java.util.Map;
@@ -32,9 +26,14 @@ public class EventController {
     @Autowired
     private TouristAttractionsService touristAttractionsService;
 
-
     @Autowired
     private LeisureSportsEventService leisureSportsEventService;
+
+    @Autowired
+    private TourCourseService tourCourseService;
+
+    @Autowired
+    private TravelCourseService travelCourseService;
 
     @GetMapping("/fetchGyeonggi")
     public String fetchGyeonggiEvents() {
@@ -92,5 +91,24 @@ public class EventController {
             @RequestParam String pageNo) {
         List<?> events = leisureSportsEventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
         return ResponseEntity.ok(events);
+    }
+    // 여행 코스 데이터 불러오기
+    @GetMapping("/fetchAndSaveTourCourses")
+    public ResponseEntity<List<TourCourse>> fetchAndSaveTourCourses(
+            @RequestParam String numOfRows,
+            @RequestParam String pageNo,
+            @RequestParam String contentId) {
+
+        List<TourCourse> courses = tourCourseService.fetchAndSaveTourCourses(numOfRows, pageNo, contentId);
+        return ResponseEntity.ok(courses);
+    }
+
+    @GetMapping("/fetchAndSaveTravel")
+    public ResponseEntity<List<TravelCourse>> fetchAndSaveTravelCourses(
+            @RequestParam String numOfRows,
+            @RequestParam String pageNo) {
+
+        List<TravelCourse> courses = travelCourseService.fetchAndSaveTravelCourses(numOfRows, pageNo);
+        return ResponseEntity.ok(courses);
     }
 }

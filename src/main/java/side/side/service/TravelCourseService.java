@@ -1,32 +1,32 @@
 package side.side.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import side.side.model.LeisureSportsEvent;
-import side.side.repository.LeisureSportsEventRepository;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import side.side.model.TravelCourse;
+import side.side.repository.TravelCourseRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 @Service
-public class LeisureSportsEventService {
+public class TravelCourseService {
 
-    private static final Logger logger = Logger.getLogger(LeisureSportsEventService.class.getName());
+    private static final Logger logger = Logger.getLogger(TravelCourseService.class.getName());
 
     @Autowired
-    private LeisureSportsEventRepository leisureSportsEventRepository;
+    private TravelCourseRepository travelCourseRepository;  // TravelCourseRepository를 생성하여 주입합니다.
 
     private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
 
-    // ContentypeId 28인 레포츠 불러와 저장하기
-    public List<LeisureSportsEvent> fetchAndSaveLeisureSportsEvents(String numOfRows, String pageNo) {
-        List<LeisureSportsEvent> allEvents = new ArrayList<>();
+    // contenttypeid가 25인 여행 코스를 가져와서 DB에 저장하는 메소드
+    public List<TravelCourse> fetchAndSaveTravelCourses(String numOfRows, String pageNo) {
+        List<TravelCourse> allCourses = new ArrayList<>();
         boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
 
@@ -37,13 +37,18 @@ public class LeisureSportsEventService {
                     .queryParam("pageNo", pageNo)
                     .queryParam("MobileOS", "ETC")
                     .queryParam("MobileApp", "AppTest")
-                    .queryParam("contentTypeId", "28")
+                    .queryParam("arrange", "A")
+                    .queryParam("contentTypeId", "25")  // contenttypeid 25로 설정
                     .queryParam("_type", "json")
                     .build()
                     .toUriString();
 
+            logger.info("Request URL: " + url);
+
             try {
                 ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+                logger.info("Response Status: " + response.getStatusCode());
+                logger.info("Response Body: " + response.getBody());
 
                 if (response.getStatusCode().is2xxSuccessful()) {
                     ObjectMapper objectMapper = new ObjectMapper();
@@ -51,23 +56,25 @@ public class LeisureSportsEventService {
                     JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
 
                     if (itemsNode.isArray()) {
-                        List<LeisureSportsEvent> events = new ArrayList<>();
+                        List<TravelCourse> courses = new ArrayList<>();
                         for (JsonNode node : itemsNode) {
-                            LeisureSportsEvent event = new LeisureSportsEvent();
-                            event.setTitle(node.path("title").asText());
-                            event.setAddr1(node.path("addr1").asText());
-                            event.setEventstartdate(node.path("eventstartdate").asText());
-                            event.setEventenddate(node.path("eventenddate").asText());
-                            event.setFirstimage(node.path("firstimage").asText());
-                            event.setCat1(node.path("cat1").asText());
-                            event.setCat2(node.path("cat2").asText());
-                            event.setCat3(node.path("cat3").asText());
-                            event.setContentid(node.path("contentid").asText());
-                            event.setContenttypeid(node.path("contenttypeid").asText());
-                            events.add(event);
+                            TravelCourse course = new TravelCourse();
+                            course.setTitle(node.path("title").asText());
+                            course.setAddr1(node.path("addr1").asText());
+                            course.setOverview(node.path("overview").asText());
+                            course.setMapx(node.path("mapx").asText());
+                            course.setMapy(node.path("mapy").asText());
+                            course.setContentid(node.path("contentid").asText());
+                            course.setContenttypeid(node.path("contenttypeid").asText());
+                            course.setAreacode(node.path("areacode").asText());
+                            course.setSigungucode(node.path("sigungucode").asText());
+                            course.setZipcode(node.path("zipcode").asText());
+                            course.setTel(node.path("tel").asText());
+                            course.setModifiedtime(node.path("modifiedtime").asText());
+                            courses.add(course);
                         }
-                        leisureSportsEventRepository.saveAll(events);
-                        allEvents.addAll(events);
+                        travelCourseRepository.saveAll(courses);
+                        allCourses.addAll(courses);
 
                         if (itemsNode.size() < Integer.parseInt(numOfRows)) {
                             moreData = false;
@@ -86,7 +93,6 @@ public class LeisureSportsEventService {
             }
         }
 
-        return allEvents;
+        return allCourses;
     }
 }
-

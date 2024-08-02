@@ -25,6 +25,12 @@ public class DataLoader implements ApplicationRunner {
     private LeisureSportsEventService leisureSportsEventService;
 
     @Autowired
+    private TourCourseService tourCourseService;
+
+    @Autowired
+    private TravelCourseService travelCourseService;
+
+    @Autowired
     private UserService userService;
 
     @Autowired
@@ -67,6 +73,12 @@ public class DataLoader implements ApplicationRunner {
 
         // 레포츠 데이터를 저장
         //leisureSportsEventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
+
+        //여행 코스 데이터를 저장
+       // tourCourseService.fetchAndSaveTourCourses(numOfRows, pageNo, contentId);
+
+        //트레블 코스 데이터 저장
+        travelCourseService.fetchAndSaveTravelCourses(numOfRows,pageNo);
 
         // 저장된 이벤트의 상세 정보를 업데이트
         updateEventDetails();
