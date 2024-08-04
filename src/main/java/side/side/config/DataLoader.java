@@ -84,7 +84,7 @@ public class DataLoader implements ApplicationRunner {
         //leisureSportsEventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
 
         //트레블 코스 데이터 저장
-        // travelCourseService.fetchAndSaveTravelCourses(numOfRows,pageNo);
+       // travelCourseService.fetchAndSaveTravelCourses(numOfRows,pageNo);
 
         //문화시설 데이터 저장
         //culturalFacilityService.fetchAndSaveCulturalFacilities(numOfRows, pageNo);
