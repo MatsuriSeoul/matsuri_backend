@@ -74,11 +74,11 @@ public class DataLoader implements ApplicationRunner {
         String pageNo = "1"; // 시작 페이지 번호
 
         // 관광지 데이터를 저장
-//        List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
-//        //각 관광지에 대한 상세 정보를 저장
-//        for(TouristAttraction touristAttraction : touristAttractions) {
-//            touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
-//        }
+        List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
+        //각 관광지에 대한 상세 정보를 저장
+        for(TouristAttraction touristAttraction : touristAttractions) {
+            touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
+        }
 
         // 숙박 이벤트 데이터를 저장
 //        List<LocalEvent> localEvents = localEventService.fetchAndSaveEventsLocal(numOfRows, pageNo);

@@ -239,4 +239,63 @@ public class TouristAttractionsService {
             e.printStackTrace();
         }
     }
+    public List<TouristAttraction> getTouristAttractionsByCategory(String category) {
+        // 카테고리 맵핑 로직에 따라 contentTypeId를 설정하거나, cat3와 같은 필드를 사용
+        String contentTypeId = "12"; // 예시로 관광지 설정
+
+        // 카테고리에 따른 관광지 데이터 가져오기
+        return touristAttractionRepository.findByContenttypeid(contentTypeId);
+    }
+
+    // 추가 메소드: contentId로 관광지 상세 정보 가져오기
+    public TouristAttractionDetail getTouristAttractionDetail(String contentid) {
+        return touristAttractionDetailRepository.findByContentid(contentid);
+}
+    // 추가 메소드: contentId와 contentTypeId로 외부 API에서 소개 정보 가져오기
+    public JsonNode fetchIntroInfoFromApi(String contentid, String contenttypeid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailIntro1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("contentTypeId", contenttypeid)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        logger.info("소개 정보 가져오기: contentId = " + contentid + ", contentTypeId = " + contenttypeid);
+        logger.info("요청 URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API 응답: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response.getBody());
+                JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+
+                if (itemsNode.isArray() && itemsNode.size() > 0) {
+                    return itemsNode.get(0);  // Return the first item in the array
+                } else {
+                    logger.warning("소개 정보가 없습니다: contentId = " + contentid);
+                    return null;
+                }
+            } else {
+                logger.warning("소개 정보를 가져오지 못했습니다: contentId = " + contentid);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 소개 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // 추가 메소드: contentId로 데이터베이스에서 저장된 관광지 상세 정보 가져오기
+    public TouristAttractionDetail getTouristAttractionDetailFromDB(String contentid) {
+        return touristAttractionDetailRepository.findByContentid(contentid);
+    }
 }
