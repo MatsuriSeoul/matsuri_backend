@@ -4,8 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-import side.side.model.FoodEvent;
-import side.side.model.UserInfo;
+import side.side.model.*;
 import side.side.service.*;
 import side.side.config.JwtUtils;
 
@@ -75,29 +74,49 @@ public class DataLoader implements ApplicationRunner {
         String pageNo = "1"; // 시작 페이지 번호
 
         // 관광지 데이터를 저장
-        //touristAttractionsService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
+//        List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
+//        //각 관광지에 대한 상세 정보를 저장
+//        for(TouristAttraction touristAttraction : touristAttractions) {
+//            touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
+//        }
 
         // 숙박 이벤트 데이터를 저장
-        //localEventService.fetchAndSaveEventsLocal(numOfRows, pageNo);
+//        List<LocalEvent> localEvents = localEventService.fetchAndSaveEventsLocal(numOfRows, pageNo);
+//        for (LocalEvent localEvent : localEvents) {
+//            localEventService.fetchAndSaveLocalEventDetail(localEvent.getContentid());
+//        }
 
         // 레포츠 데이터를 저장
-        //leisureSportsEventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
+//        List<LeisureSportsEvent> leisureSportsEvents = leisureSportsEventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
+//        for (LeisureSportsEvent leisureSportsEvent : leisureSportsEvents) {
+//            leisureSportsEventService.fetchAndSaveLeisureSportsEventDetail(leisureSportsEvent.getContentid());
+//        }
 
-        //트레블 코스 데이터 저장
-       // travelCourseService.fetchAndSaveTravelCourses(numOfRows,pageNo);
+        // 트레블 코스 데이터 저장
+//        List<TravelCourse> travelCourses = travelCourseService.fetchAndSaveTravelCourses(numOfRows, pageNo);
+//        // 각 트래블 코스에 대한 상세 정보를 저장
+//        for (TravelCourse travelCourse : travelCourses) {
+//            travelCourseService.fetchAndSaveTravelCourseDetail(travelCourse.getContentid());
+//        }
 
         //문화시설 데이터 저장
-        //culturalFacilityService.fetchAndSaveCulturalFacilities(numOfRows, pageNo);
+//        List<CulturalFacility> culturalFacilities = culturalFacilityService.fetchAndSaveCulturalFacilities(numOfRows, pageNo);
+//        for (CulturalFacility culturalFacility : culturalFacilities) {
+//            culturalFacilityService.fetchAndSaveCulturalFacilityDetail(culturalFacility.getContentid());
+//        }
 
         //쇼핑 데이터 저장
-        //shoppingEventService.fetchAndSaveShoppingEvents(numOfRows, pageNo);
+//        List<ShoppingEvent> shoppingEvents = shoppingEventService.fetchAndSaveShoppingEvents(numOfRows, pageNo);
+//        for (ShoppingEvent shoppingEvent : shoppingEvents) {
+//            shoppingEventService.fetchAndSaveShoppingEventDetail(shoppingEvent.getContentid());
+//        }
 
         //음식 데이터 저장
-        List<FoodEvent> foodEvents = foodEventService.fetchAndSaveFoodEvents(numOfRows, pageNo);
-        // 저장된 음식 데이터의 상세 정보를 저장
-        for (FoodEvent foodEvent : foodEvents) {
-            foodEventService.fetchAndSaveFoodEventDetail(foodEvent.getContentid());
-        }
+//        List<FoodEvent> foodEvents = foodEventService.fetchAndSaveFoodEvents(numOfRows, pageNo);
+//        // 저장된 음식 데이터의 상세 정보를 저장
+//        for (FoodEvent foodEvent : foodEvents) {
+//            foodEventService.fetchAndSaveFoodEventDetail(foodEvent.getContentid());
+//        }
         // 저장된 이벤트의 상세 정보를 업데이트
         updateEventDetails();
     }
