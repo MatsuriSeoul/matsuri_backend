@@ -5,16 +5,10 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import side.side.model.GyeonggiEvent;
-import side.side.model.SeoulEvent;
-import side.side.model.TourEvent;
-import side.side.model.TourEventDetail;
-import side.side.repository.GyeonggiEventRepository;
-import side.side.repository.SeoulEventRepository;
+import side.side.model.*;
+import side.side.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import side.side.repository.TourEventDetailRepository;
-import side.side.repository.TourEventRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +30,10 @@ public class EventService {
 
     @Autowired
     private TourEventDetailRepository tourEventDetailRepository;
+
+    @Autowired
+    private TouristAttractionRepository touristAttractionRepository;
+
 
     // 키 값 절대 건들이면 안됨
     private final String gyeonggiApiKey = "77b3011d245e4ca68e85caec7fd610ae";
@@ -170,7 +168,7 @@ public class EventService {
         }
     }
 
-    // 한국관광공사_국문 관광정보 서비스_GW API
+    // 한국관광공사_국문 관광정보 서비스_GW API / TourEvent
         public List<TourEvent> fetchAndSaveEvents(String serviceKey, String numOfRows, String pageNo, String eventStartDate) {
         List<TourEvent> allEvents = new ArrayList<>();
         boolean moreData = true;
@@ -242,6 +240,7 @@ public class EventService {
         return allEvents;
     }
 
+    //행사의 상세 정보
     public void fetchAndSaveEventDetail(String contentid) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -310,81 +309,9 @@ public class EventService {
             e.printStackTrace();
         }
     }
-    // 지역 기반 관광 정보 API - 로컬 데이터 저장
-    // 지역 기반 관광 정보 API - 로컬 데이터 저장
-    public List<TourEvent> fetchAndSaveEventsLocal(String numOfRows, String pageNo) {
-        List<TourEvent> allEvents = new ArrayList<>();
-        boolean moreData = true;
-        RestTemplate restTemplate = new RestTemplate();
 
-        while (moreData) {
-            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/areaBasedList1")
-                    .queryParam("serviceKey", serviceKey)
-                    .queryParam("numOfRows", numOfRows)
-                    .queryParam("pageNo", pageNo)
-                    .queryParam("MobileOS", "ETC")
-                    .queryParam("MobileApp", "AppTest")
-                    .queryParam("arrange", "A")  // 기본 정렬을 제목순으로 설정
-                    .queryParam("contentTypeId", "32")
-                    .queryParam("_type", "json")
-                    .build()
-                    .toUriString();
 
-            logger.info("Request URL: " + url);  // Request URL을 로깅
 
-            try {
-                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-                logger.info("Response Status: " + response.getStatusCode());
-                logger.info("Response Body: " + response.getBody());  // Response Body를 로깅
-
-                if (response.getStatusCode().is2xxSuccessful()) {
-                    try {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        JsonNode rootNode = objectMapper.readTree(response.getBody());
-                        JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
-
-                        if (itemsNode.isArray()) {
-                            List<TourEvent> events = new ArrayList<>();
-                            for (JsonNode node : itemsNode) {
-                                TourEvent event = new TourEvent();
-                                event.setTitle(node.path("title").asText());
-                                event.setAddr1(node.path("addr1").asText());
-                                event.setEventstartdate(node.path("eventstartdate").asText());
-                                event.setEventenddate(node.path("eventenddate").asText());
-                                event.setFirstimage(node.path("firstimage").asText());
-                                event.setCat1(node.path("cat1").asText());
-                                event.setCat2(node.path("cat2").asText());
-                                event.setCat3(node.path("cat3").asText());
-                                event.setContentid(node.path("contentid").asText());
-                                event.setContenttypeid(node.path("contenttypeid").asText());
-                                events.add(event);
-                            }
-                            tourEventRepository.saveAll(events);
-                            allEvents.addAll(events);
-
-                            if (itemsNode.size() < Integer.parseInt(numOfRows)) {
-                                moreData = false;
-                            } else {
-                                pageNo = String.valueOf(Integer.parseInt(pageNo) + 1);
-                            }
-                        } else {
-                            moreData = false;
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        moreData = false;
-                    }
-                } else {
-                    moreData = false;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                moreData = false;
-            }
-        }
-
-        return allEvents;
-    }
 
     public void fetchAndSaveAllEventDetails() {
         List<String> contentIds = getAllContentIds();
