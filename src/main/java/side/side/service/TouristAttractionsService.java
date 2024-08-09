@@ -240,18 +240,14 @@ public class TouristAttractionsService {
         }
     }
     public List<TouristAttraction> getTouristAttractionsByCategory(String category) {
-        // 카테고리 맵핑 로직에 따라 contentTypeId를 설정하거나, cat3와 같은 필드를 사용
-        String contentTypeId = "12"; // 예시로 관광지 설정
+        // 카테고리 맵핑 로직에 따라 contentTypeId를 설정
+        String contentTypeId = "12"; // 12 관광지 설정
 
         // 카테고리에 따른 관광지 데이터 가져오기
         return touristAttractionRepository.findByContenttypeid(contentTypeId);
     }
 
-    // 추가 메소드: contentId로 관광지 상세 정보 가져오기
-    public TouristAttractionDetail getTouristAttractionDetail(String contentid) {
-        return touristAttractionDetailRepository.findByContentid(contentid);
-}
-    // 추가 메소드: contentId와 contentTypeId로 외부 API에서 소개 정보 가져오기
+    // contentId와 contentTypeId로 외부 API에서 소개 정보 가져오기
     public JsonNode fetchIntroInfoFromApi(String contentid, String contenttypeid) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -294,7 +290,7 @@ public class TouristAttractionsService {
         }
     }
 
-    // 추가 메소드: contentId로 데이터베이스에서 저장된 관광지 상세 정보 가져오기
+    // contentId로 데이터베이스에서 저장된 관광지 상세 정보 가져오기
     public TouristAttractionDetail getTouristAttractionDetailFromDB(String contentid) {
         return touristAttractionDetailRepository.findByContentid(contentid);
     }
