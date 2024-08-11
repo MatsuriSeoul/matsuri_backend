@@ -37,6 +37,15 @@ public class TouristAttractionController {
         }
         return ResponseEntity.ok(introInfo);
     }
+    // 이미지 정보 조회 불러오기 (외부 API에서)
+    @GetMapping("/{contentid}/images")
+    public ResponseEntity<?> getImages(@PathVariable String contentid) {
+        JsonNode images = touristAttractionsService.fetchImagesFromApi(contentid);
+        if (images == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(images);
+    }
 
     // contentypeid가 12인 서비스 실행
     @GetMapping("/category/{category}")
@@ -45,6 +54,5 @@ public class TouristAttractionController {
         return ResponseEntity.ok(attractions);
 
     }
-
 }
 
