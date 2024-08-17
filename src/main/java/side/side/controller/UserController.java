@@ -1,15 +1,14 @@
 package side.side.controller;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import side.side.config.JwtUtils;
 import side.side.model.UserInfo;
 import side.side.repository.UserRepository;
@@ -62,5 +61,29 @@ public class UserController {
         } else {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
+    }
+
+    @GetMapping("/check-id/{userId}")
+    public ResponseEntity<?> checkUserId(@PathVariable String userId) {
+        boolean exists = userService.checkUserIdExists(userId);
+        return ResponseEntity.ok().body(new CheckResponse(exists));
+    }
+
+    @GetMapping("/check-email/{userEmail}")
+    public ResponseEntity<?> checkUserEmail(@PathVariable String userEmail) {
+        boolean exists = userService.checkUserEmailExists(userEmail);
+        return ResponseEntity.ok().body(new CheckResponse(exists));
+    }
+
+    // CheckResponse 클래스 정의
+    @Setter
+    @Getter
+    public static class CheckResponse {
+        private boolean exists;
+
+        public CheckResponse(boolean exists) {
+            this.exists = exists;
+        }
+
     }
 }

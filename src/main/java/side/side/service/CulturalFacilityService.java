@@ -232,4 +232,95 @@ public class CulturalFacilityService {
             e.printStackTrace();
         }
     }
+    //문화시설 소개 정보 api 외부에서 호출
+    public JsonNode fetchIntroInfoFromApi(String contentid, String contenttypeid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailIntro1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("contentTypeId", contenttypeid)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        logger.info("소개 정보 가져오기: contentId = " + contentid + ", contentTypeId = " + contenttypeid);
+        logger.info("요청 URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API 응답: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response.getBody());
+                JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+
+                if (itemsNode.isArray() && itemsNode.size() > 0) {
+                    return itemsNode.get(0);
+                } else {
+                    logger.warning("소개 정보가 없습니다: contentId = " + contentid);
+                    return null;
+                }
+            } else {
+                logger.warning("소개 정보를 가져오지 못했습니다: contentId = " + contentid);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 소개 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    //문화시설 이미지 정보 api
+    public JsonNode fetchImagesFromApi(String contentid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailImage1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("imageYN", "Y")
+                .queryParam("subImageYN", "Y")
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        logger.info("이미지 데이터 가져오는 중: contentId = " + contentid);
+        logger.info("요청 URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API 응답: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response.getBody());
+                JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+
+                if (itemsNode.isArray() && itemsNode.size() > 0) {
+                    return itemsNode;
+                } else {
+                    logger.warning("해당 contentId에 대한 이미지를 찾을 수 없습니다: " + contentid);
+                    return null;
+                }
+            } else {
+                logger.warning("해당 contentId에 대한 이미지 가져오기에 실패했습니다: " + contentid);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 이미지 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    //contentid로 데이터베이스에서 저장된 문화시설 상세 정보 가져오기
+    public CulturalFacilityDetail getCulturalFacilityDetailFromDB(String contentid) {
+        return culturalFacilityDetailRepository.findByContentid(contentid);
+    }
 }

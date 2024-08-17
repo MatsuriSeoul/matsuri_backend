@@ -75,9 +75,9 @@ public class DataLoader implements ApplicationRunner {
 
         // 관광지 데이터를 저장
         List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
-        //각 관광지에 대한 상세 정보를 저장
+       // 각 관광지에 대한 상세 정보를 저장
         for(TouristAttraction touristAttraction : touristAttractions) {
-            touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
+        touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
         }
 
         // 숙박 이벤트 데이터를 저장
@@ -100,10 +100,10 @@ public class DataLoader implements ApplicationRunner {
 //        }
 
         //문화시설 데이터 저장
-//        List<CulturalFacility> culturalFacilities = culturalFacilityService.fetchAndSaveCulturalFacilities(numOfRows, pageNo);
-//        for (CulturalFacility culturalFacility : culturalFacilities) {
-//            culturalFacilityService.fetchAndSaveCulturalFacilityDetail(culturalFacility.getContentid());
-//        }
+        List<CulturalFacility> culturalFacilities = culturalFacilityService.fetchAndSaveCulturalFacilities(numOfRows, pageNo);
+        for (CulturalFacility culturalFacility : culturalFacilities) {
+            culturalFacilityService.fetchAndSaveCulturalFacilityDetail(culturalFacility.getContentid());
+        }
 
         //쇼핑 데이터 저장
 //        List<ShoppingEvent> shoppingEvents = shoppingEventService.fetchAndSaveShoppingEvents(numOfRows, pageNo);

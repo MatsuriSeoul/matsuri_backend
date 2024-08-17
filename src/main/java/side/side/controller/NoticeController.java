@@ -3,12 +3,17 @@ package side.side.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.weaver.ast.Not;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import side.side.config.JwtUtils;
 import side.side.model.Notice;
+import side.side.model.NoticeImage;
+import side.side.model.Response;
 import side.side.service.NoticeService;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -26,11 +31,37 @@ public class NoticeController {
     @Autowired
     private JwtUtils jwtUtils;
 
-    @PostMapping
-    public Notice createNotice(@RequestBody Notice notice, HttpServletRequest request) {
-        notice.setCreatedTime(LocalDateTime.now());
-        notice.setUpdatedTime(LocalDateTime.now());
-        return noticeService.createNotice(notice);
+    @PostMapping("")
+    public ResponseEntity<?> createNotice(@RequestParam("title") String title,
+                                          @RequestParam("content") String content,
+                                       @RequestParam(value= "images", required = false) List<MultipartFile> images,
+                                       HttpServletRequest request) throws IOException {
+        Notice notice = new Notice();
+        notice.setTitle(title);
+        notice.setContent(content);
+
+        Notice savedNotice = noticeService.createNotice(notice, images);
+        return ResponseEntity.ok(savedNotice);
+    }
+
+    @PutMapping(value = "/edit/{id}")
+    public ResponseEntity<?> updateNotice(@PathVariable Long id,
+                               @RequestParam("title") String title,
+                               @RequestParam("content") String content,
+                               @RequestPart(value= "images", required = false) List<MultipartFile> images,
+                               @RequestParam(value = "deletedImageIds", required = false) List<Long> deletedImageIds) throws IOException {
+
+        Notice updatedNotice = new Notice();
+        updatedNotice.setTitle(title);
+        updatedNotice.setContent(content);
+
+        Notice savedNotice = noticeService.updateNotice(id, updatedNotice, images, deletedImageIds);
+        return ResponseEntity.ok(savedNotice);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteNotice(@PathVariable Long id) {
+        noticeService.deleteNotice(id);
     }
 
     @GetMapping
@@ -39,13 +70,12 @@ public class NoticeController {
     }
 
     @GetMapping("/{id}")
-    public Notice getNoticeById(@PathVariable Long id) {
+    public ResponseEntity<?> getNoticeById(@PathVariable Long id) {
         Optional<Notice> notice = noticeService.getNoticeById(id);
         if (notice.isPresent()) {
-            noticeService.increaseViewCnt(notice.get());
-            return notice.get();
+            return ResponseEntity.ok(notice.get());
         } else {
-            throw new RuntimeException("공지사항을 찾을 수 없습니다.");
+            return ResponseEntity.notFound().build();
         }
     }
 

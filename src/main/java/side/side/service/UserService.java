@@ -68,5 +68,13 @@ public class UserService {
         }
         return user.map(UserInfo::getUserPassword); // user의 정보가 존재하면 그 비밀번호를 갖고 와서 반환함
     }
+
+    public boolean checkUserIdExists(String userId) {
+        return userRepository.existsByUserId(userId);
+    }
+
+    public boolean checkUserEmailExists(String userEmail) {
+        return userRepository.existsByUserEmail(userEmail);
+    }
 }
 
