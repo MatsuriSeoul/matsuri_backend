@@ -53,6 +53,8 @@ public class CulturalFacilityController {
         if (images == null) {
             return ResponseEntity.notFound().build();
         }
+
         return ResponseEntity.ok(images);
+
     }
 }

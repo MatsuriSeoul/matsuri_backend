@@ -321,6 +321,7 @@ public class CulturalFacilityService {
 
     //contentid로 데이터베이스에서 저장된 문화시설 상세 정보 가져오기
     public CulturalFacilityDetail getCulturalFacilityDetailFromDB(String contentid) {
-        return culturalFacilityDetailRepository.findByContentid(contentid);
+        return culturalFacilityDetailRepository.findById(Integer.valueOf(contentid))
+                .orElse(null);
     }
 }
