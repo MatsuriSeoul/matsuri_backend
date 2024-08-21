@@ -6,14 +6,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.model.CulturalFacility;
 import side.side.model.CulturalFacilityDetail;
+import side.side.model.TouristAttraction;
 import side.side.service.CulturalFacilityService;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/api/cultural-facilities")
 public class CulturalFacilityController {
 
+    private static final Logger logger = Logger.getLogger(CulturalFacilityController.class.getName());
     @Autowired
     private CulturalFacilityService culturalFacilityService;
 
@@ -31,6 +34,7 @@ public class CulturalFacilityController {
     public ResponseEntity<?> getCulturalFacilityDetail(@PathVariable String contentid) {
         CulturalFacilityDetail detail = culturalFacilityService.getCulturalFacilityDetailFromDB(contentid);
         if (detail == null) {
+            logger.warning("No detail found for contentid: " + contentid);
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(detail);
@@ -54,5 +58,12 @@ public class CulturalFacilityController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(images);
+    }
+    // contentypeid가 14인 서비스 실행
+    @GetMapping("/category/{category}")
+    public ResponseEntity<List<CulturalFacility>> getCulturalFacilityByCategory(@PathVariable String category) {
+        List<CulturalFacility> facility = culturalFacilityService.getCulturalFacilityByCategory(category);
+        return ResponseEntity.ok(facility);
+
     }
 }

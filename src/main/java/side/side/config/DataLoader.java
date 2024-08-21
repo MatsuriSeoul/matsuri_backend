@@ -122,7 +122,7 @@ public class DataLoader implements ApplicationRunner {
     }
 
     private void updateEventDetails() {
-        // 저장된 모든 이벤트의 contentid를 가져와서 상세 정보를 업데이트합니다.
+        // 저장된 모든 이벤트의 contentid를 가져와서 상세 정보를 업데이트
         List<String> contentIds = eventService.getAllContentIds();
         for (String contentId : contentIds) {
             eventService.fetchAndSaveEventDetail(contentId);

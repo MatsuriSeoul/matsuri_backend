@@ -9,6 +9,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.CulturalFacility;
 import side.side.model.CulturalFacilityDetail;
+import side.side.model.TouristAttraction;
+import side.side.model.TouristAttractionDetail;
 import side.side.repository.CulturalFacilityDetailRepository;
 import side.side.repository.CulturalFacilityRepository;
 
@@ -86,6 +88,7 @@ public class CulturalFacilityService {
 
         return culturalFacilities;
     }
+
     //        //모든 데이터 받아오기
 //        while (moreData) {
 //            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/areaBasedList1")
@@ -232,6 +235,7 @@ public class CulturalFacilityService {
             e.printStackTrace();
         }
     }
+
     //문화시설 소개 정보 api 외부에서 호출
     public JsonNode fetchIntroInfoFromApi(String contentid, String contenttypeid) {
         RestTemplate restTemplate = new RestTemplate();
@@ -259,7 +263,7 @@ public class CulturalFacilityService {
                 JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
 
                 if (itemsNode.isArray() && itemsNode.size() > 0) {
-                    return itemsNode.get(0);
+                    return itemsNode.get(0); // 첫 번째 아이템만 리턴
                 } else {
                     logger.warning("소개 정보가 없습니다: contentId = " + contentid);
                     return null;
@@ -321,6 +325,20 @@ public class CulturalFacilityService {
 
     //contentid로 데이터베이스에서 저장된 문화시설 상세 정보 가져오기
     public CulturalFacilityDetail getCulturalFacilityDetailFromDB(String contentid) {
-        return culturalFacilityDetailRepository.findByContentid(contentid);
+        CulturalFacilityDetail detail = culturalFacilityDetailRepository.findByContentid(contentid);
+        if (detail == null) {
+            logger.warning("No CulturalFacilityDetail found for contentid: " + contentid);
+        } else {
+            logger.info("CulturalFacilityDetail retrieved: " + detail.toString());
+        }
+        return detail;
+    }
+
+    public List<CulturalFacility> getCulturalFacilityByCategory(String category) {
+        // 카테고리 맵핑 로직에 따라 contentTypeId를 설정
+        String contentTypeId = "14"; // 14 관광지 설정
+
+        // 카테고리에 따른 관광지 데이터 가져오기
+        return culturalFacilityRepository.findByContenttypeid(contentTypeId);
     }
 }
