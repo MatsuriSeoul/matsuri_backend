@@ -41,7 +41,7 @@ public class Notice {
     @JsonIgnore
     private List<Comment> comments;
 
-    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<NoticeImage> images = new ArrayList<>();
 }
