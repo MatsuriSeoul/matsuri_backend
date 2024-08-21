@@ -4,16 +4,24 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import side.side.model.Notice;
+import side.side.model.NoticeFile;
 import side.side.model.NoticeImage;
+import side.side.repository.NoticeFileRepository;
 import side.side.repository.NoticeImageRepository;
 import side.side.repository.NoticeRepository;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,6 +29,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,25 +43,30 @@ public class NoticeService {
     private NoticeImageRepository noticeImageRepository;
     @Autowired
     private NoticeImageService noticeImageService;
+    @Autowired
+    private NoticeFileRepository noticeFileRepository;
 
+    @Value("${file.upload-dir}")
+    private String uploadDir;
 
-
-    public Notice createNotice(Notice notice, List<MultipartFile> images) throws IOException {
+    public Notice createNotice(Notice notice, List<MultipartFile> images, List<MultipartFile> files) throws IOException {
         notice.setCreatedTime(LocalDateTime.now());
         notice.setUpdatedTime(LocalDateTime.now());
         Notice savedNotice = noticeRepository.save(notice);
 
-        //  공지사항에 들어갈 이미지 저장
-        List<NoticeImage> noticeImages = images.stream()
-                .map(image -> saveImage(savedNotice, image))
-                .collect(Collectors.toList());
-
+        // 이미지 저장
+        List<NoticeImage> noticeImages = saveImages(savedNotice, images);
         noticeImageRepository.saveAll(noticeImages);
+
+        // 첨부파일 저장
+        List<NoticeFile> noticeFiles = saveFiles(savedNotice, files);
+        noticeFileRepository.saveAll(noticeFiles);
+
         return savedNotice;
     }
 
     // 공지사항 수정 메서드
-    public Notice updateNotice(Long id, Notice updatedNotice, List<MultipartFile> newImages, List<Long> existingImageIds) throws IOException {
+    public Notice updateNotice(Long id, Notice updatedNotice, List<MultipartFile> newImages, List<MultipartFile> newFiles, List<Long> existingImageIds, List<Long> existingFileIds) throws IOException {
         Notice existingNotice = noticeRepository.findById(id).orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다"));
 
         // 제목과 내용 업데이트
@@ -60,39 +74,50 @@ public class NoticeService {
         existingNotice.setContent(updatedNotice.getContent());
         existingNotice.setUpdatedTime(LocalDateTime.now());
 
-        // 기존 이미지를 제외한 이미지를 모두 삭제
-        existingNotice.getImages().removeIf(image -> !existingImageIds.contains(image.getId()));
+        // 기존 데이터 유지 로직
+        if (existingImageIds != null) {
+            deleteNonExistingImages(existingNotice, existingImageIds);
+        }
 
+        if (existingFileIds != null) {
+            deleteNonExistingFiles(existingNotice, existingFileIds);
+        }
 
-        // 2. 새로운 이미지 추가 처리
+        // 새로운 이미지 추가 처리
         if (newImages != null && !newImages.isEmpty()) {
-            List<NoticeImage> noticeImages = newImages.stream()
-                    .map(image -> saveImage(existingNotice, image))
-                    .collect(Collectors.toList());
-
-            // 기존 이미지에 새 이미지 추가
+            List<NoticeImage> noticeImages = saveImages(existingNotice, newImages);
             existingNotice.getImages().addAll(noticeImages);
         }
+
+        // 새로운 파일 추가 처리
+        if (newFiles != null && !newFiles.isEmpty()) {
+            List<NoticeFile> noticeFiles = saveFiles(existingNotice, newFiles);
+            existingNotice.getFiles().addAll(noticeFiles);
+        }
+
 
         // 3. 저장 후 반환
         return noticeRepository.save(existingNotice);
     }
 
 
-
+    //  모든 공지사항 조회 메소드
     public List<Notice> getAllNotices() {
         return noticeRepository.findAll();
     }
 
+    //  선택한 공지사항 조회 메소드 ( 디테일한 세부 내용 )
     public Optional<Notice> getNoticeById(Long id) {
         return noticeRepository.findById(id);
     }
 
+    //  공지사항 게시글 조회수 증가 메소드
     public void increaseViewCnt(Notice notice) {
         notice.setViewcnt(notice.getViewcnt() + 1);
         noticeRepository.save(notice);
     }
 
+    //  공지사항 삭제 메소드
     @Transactional
     public void deleteNotice(Long id) {
         Notice notice = noticeRepository.findById(id).orElseThrow(() -> new RuntimeException("Notice not found"));
@@ -121,20 +146,7 @@ public class NoticeService {
         noticeRepository.delete(notice);  // 공지사항 엔티티 삭제
     }
 
-    private NoticeImage saveImage(Notice notice, MultipartFile image) {
-
-            String imagePath = noticeImageService.uploadImage(image);
-
-            NoticeImage noticeImage = new NoticeImage();
-            noticeImage.setImgName(image.getOriginalFilename());
-            noticeImage.setImagePath(imagePath);
-            noticeImage.setNotice(notice);
-
-            return noticeImage;
-
-        }
-
-
+    //  공지사항 내의 이미지 서버에서 삭제하는 메소드
     @Transactional
     public void deleteImageById(Long imageId) throws IOException {
         NoticeImage image = noticeImageRepository.findById(imageId)
@@ -151,5 +163,177 @@ public class NoticeService {
         noticeImageRepository.delete(image);
     }
 
+    // 파일 단일 삭제
+    @Transactional
+    public void deleteFileById(Long fileId) throws IOException {
+        NoticeFile file = noticeFileRepository.findById(fileId)
+                .orElseThrow(() -> new RuntimeException("파일을 찾을 수 없습니다"));
+
+        // 파일 시스템에서 삭제
+        Path filePath = Paths.get("src/main/resources/static" + file.getFilePath());
+        if (Files.exists(filePath)) {
+            Files.delete(filePath);
+        }
+
+        // 데이터베이스에서 삭제
+        noticeFileRepository.delete(file);
+    }
+
+    public String uploadFile(MultipartFile file) throws IOException {
+        // 고유한 파일명 생성 (UUID 사용)
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        Path filePath = Paths.get(uploadDir + fileName);
+
+        // 폴더가 존재하지 않을 경우 폴더 생성
+        if (!Files.exists(filePath.getParent())) {
+            Files.createDirectories(filePath.getParent());
+        }
+
+        // 파일 저장
+        Files.write(filePath, file.getBytes());
+        return "/uploads/" + fileName;
+    }
+
+
+    // ==== PRIVATE METHODS ==== //
+
+    // 새 이미지 저장
+    private List<NoticeImage> saveImages(Notice notice, List<MultipartFile> images) throws IOException {
+        if (images == null || images.isEmpty()) return List.of();
+
+        return images.stream()
+                .map(image -> {
+                    try {
+                        return saveImage(notice, image);
+                    } catch (IOException e) {
+                        logger.error("Failed to save image", e);
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    // 단일 이미지 저장
+    private NoticeImage saveImage(Notice notice, MultipartFile image) throws IOException {
+        String imagePath = noticeImageService.uploadImage(image);
+        NoticeImage noticeImage = new NoticeImage();
+        noticeImage.setImgName(image.getOriginalFilename());
+        noticeImage.setImagePath(imagePath);
+        noticeImage.setNotice(notice);
+        return noticeImage;
+    }
+
+    // 새 첨부파일 저장
+    private List<NoticeFile> saveFiles(Notice notice, List<MultipartFile> files) throws IOException {
+        if (files == null || files.isEmpty()) return List.of();
+
+        return files.stream()
+                .map(file -> {
+                    try {
+                        return saveFile(notice, file);
+                    } catch (IOException e) {
+                        logger.error("Failed to save file", e);
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    // 단일 첨부파일 저장
+    private NoticeFile saveFile(Notice notice, MultipartFile file) throws IOException {
+        String filePath = saveFileToSystem(file);
+        NoticeFile noticeFile = new NoticeFile();
+        noticeFile.setFileName(file.getOriginalFilename());
+        noticeFile.setFilePath(filePath);
+        noticeFile.setNotice(notice);
+        return noticeFile;
+    }
+
+    // 파일 시스템에 파일 저장
+    private String saveFileToSystem(MultipartFile file) throws IOException {
+
+        //  고유 파일명 생성
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        Path filePath = Paths.get(uploadDir, fileName);
+
+        //  폴더가 존재하지 않으면 폴더 생성
+        if (!Files.exists(filePath.getParent())) {
+            Files.createDirectories(filePath.getParent());
+        }
+        Files.write(filePath, file.getBytes());
+        return fileName;  // 인코딩된 파일 이름 반환
+    }
+
+    // 파일 다운로드
+    public Resource loadFileAsResource(String fileName) {
+        try {
+            Path filePath = Paths.get(uploadDir).resolve(fileName).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (resource.exists() && resource.isReadable()) {
+                return resource;
+            } else {
+                throw new RuntimeException("파일을 찾을 수 없거나 읽을 수 없습니다.");
+            }
+        } catch (MalformedURLException ex) {
+            throw new RuntimeException("파일을 찾을 수 없습니다.", ex);
+        }
+    }
+
+    // 파일 삭제
+    private void deleteFile(String relativePath) throws IOException {
+        Path filePath = Paths.get(uploadDir + relativePath);
+        if (Files.exists(filePath)) {
+            Files.delete(filePath);
+            logger.info("File deleted successfully: " + filePath.toString());
+        } else {
+            logger.warn("File not found: " + filePath.toString());
+        }
+    }
+
+    // 이미지 전체 삭제
+    private void deleteAllImages(List<NoticeImage> images) {
+        for (NoticeImage image : images) {
+            try {
+                deleteFile(image.getImagePath());
+            } catch (IOException e) {
+                logger.error("Failed to delete image file: " + image.getImagePath(), e);
+            }
+        }
+        noticeImageRepository.deleteAll(images);
+    }
+
+    // 파일 전체 삭제
+    private void deleteAllFiles(List<NoticeFile> files) {
+        for (NoticeFile file : files) {
+            try {
+                deleteFile(file.getFilePath());
+            } catch (IOException e) {
+                logger.error("Failed to delete file: " + file.getFilePath(), e);
+            }
+        }
+        noticeFileRepository.deleteAll(files);
+    }
+
+    // 기존에 남겨둔 이미지 외에 나머지 이미지 삭제
+    private void deleteNonExistingImages(Notice notice, List<Long> existingImageIds) {
+        List<NoticeImage> imagesToDelete = notice.getImages().stream()
+                .filter(image -> !existingImageIds.contains(image.getId()))
+                .collect(Collectors.toList());
+
+        deleteAllImages(imagesToDelete);
+        notice.getImages().removeAll(imagesToDelete);
+    }
+
+    // 기존에 남겨둔 파일 외에 나머지 파일 삭제
+    private void deleteNonExistingFiles(Notice notice, List<Long> existingFileIds) {
+        List<NoticeFile> filesToDelete = notice.getFiles().stream()
+                .filter(file -> !existingFileIds.contains(file.getId()))
+                .collect(Collectors.toList());
+
+        deleteAllFiles(filesToDelete);
+        notice.getFiles().removeAll(filesToDelete);
+    }
 }
+
 
