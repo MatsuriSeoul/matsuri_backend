@@ -16,6 +16,7 @@ import side.side.service.NoticeService;
 import side.side.service.UserService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -45,15 +46,19 @@ public class CommentController {
             UserInfo user = userService.getUserById(userId)
                     .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("사용자를 찾을 수 없습니다.");
-            }
+            // 공지사항 정보 조회
+            Notice notice = noticeService.getNoticeById(commentRequest.getNoticeId())
+                    .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다."));
+
+            // 이름 마스킹 처리 (예: 홍길동 -> 홍OO)
+            String maskedName = maskName(user.getUserName());
 
             // 댓글 생성 및 저장
             Comment comment = new Comment();
             comment.setContent(commentRequest.getContent());
-            comment.setNotice(noticeService.getNoticeById(commentRequest.getNoticeId()).orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다")));
-            comment.setAuthor(maskName(user.getUserName()));  // 이름 마스킹
+            comment.setNotice(notice);
+            comment.setAuthor(user);  // 댓글 작성자 정보 저장
+            comment.setMaskedAuthor(maskedName);
 
             commentService.createComment(comment);
 
@@ -63,10 +68,44 @@ public class CommentController {
         }
     }
 
+    // 이름 마스킹
     private String maskName(String name) {
-        if (name == null || name.length() < 2) return name;
+        if (name == null || name.length() < 2) {
+            return name;  // 이름이 너무 짧거나 없는 경우 그대로 반환
+        }
+
+        // 성 뒤에 모든 글자를 O로 마스킹 처리 (홍길동 -> 홍OO)
         return name.charAt(0) + "O".repeat(name.length() - 1);
     }
+
+
+    // 댓글 수정
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateComment(@PathVariable Long id, @RequestBody Map<String, String> payload, @RequestHeader("Authorization") String token) {
+        try {
+            Long userId = jwtUtils.extractUserId(token);  // JWT에서 사용자 ID 추출
+            String newContent = payload.get("content");
+
+            // 작성자 확인 및 댓글 수정
+            Comment updatedComment = commentService.updateComment(id, newContent, userId);
+            return ResponseEntity.ok(updatedComment);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("댓글 수정 실패");
+        }
+    }
+
+    // 댓글 삭제
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteComment(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        try {
+            Long userId = jwtUtils.extractUserId(token);  // JWT에서 사용자 ID 추출
+            commentService.deleteComment(id, userId);  // 작성자 확인 후 삭제
+            return ResponseEntity.ok("댓글이 삭제되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("댓글 삭제 실패");
+        }
+    }
+
 
     // 특정 공지사항의 댓글 가져오기
     @GetMapping("/notice/{noticeId}")

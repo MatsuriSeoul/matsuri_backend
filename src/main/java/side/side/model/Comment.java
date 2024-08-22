@@ -18,6 +18,10 @@ public class Comment {
 
     private String content;
 
-    private String author;  // 가려진 작성자 이름
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserInfo author;  // 작성자 정보
+
+    private String maskedAuthor;  //  마스킹된 작성자 이름
 
 }
