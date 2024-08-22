@@ -158,15 +158,6 @@ public class CulturalFacilityService {
         }
     }
 
-    // 카테고리별 문화시설 가져오기
-    public List<CulturalFacility> getCulturalFacilitiesByCategory(String category) {
-        // 카테고리 맵핑 로직에 따라 contentTypeId를 설정
-        String contentTypeId = "14"; // 14는 문화시설을 나타냅니다.
-
-        // 카테고리에 따른 문화시설 데이터 가져오기
-        return culturalFacilityRepository.findByContenttypeid(contentTypeId);
-    }
-
     // contentId와 contentTypeId로 외부 API에서 소개 정보 가져오기
     public JsonNode fetchIntroInfoFromApi(String contentid, String contenttypeid) {
         RestTemplate restTemplate = new RestTemplate();
@@ -255,5 +246,13 @@ public class CulturalFacilityService {
     // contentId로 데이터베이스에서 저장된 문화시설 상세 정보 가져오기
     public CulturalFacilityDetail getCulturalFacilityDetailFromDB(String contentid) {
         return culturalFacilityDetailRepository.findByContentid(contentid);
+    }
+    // 카테고리별 문화시설 가져오기
+    public List<CulturalFacility> getCulturalFacilitiesByCategory(String category) {
+        // 카테고리 맵핑 로직에 따라 contentTypeId를 설정
+        String contentTypeId = "14"; // 14는 문화시설
+
+        // 카테고리에 따른 문화시설 데이터 가져오기
+        return culturalFacilityRepository.findByContenttypeid(contentTypeId);
     }
 }

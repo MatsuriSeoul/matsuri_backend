@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.model.CulturalFacility;
 import side.side.model.CulturalFacilityDetail;
+import side.side.model.TouristAttraction;
 import side.side.service.CulturalFacilityService;
 
 import java.util.List;
@@ -54,5 +55,14 @@ public class CulturalFacilityController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(facilities);
+    }
+    // 관광지 카테고리 데이터 불러오기
+    @GetMapping("/fetchAndSaveCulturalFacilities")
+    public ResponseEntity<List<CulturalFacility>> fetchAndSaveTouristAttractions(
+            @RequestParam String numOfRows,
+            @RequestParam String pageNo) {
+
+        List<CulturalFacility> attractions = culturalFacilityService.fetchAndSaveCulturalFacilities(numOfRows, pageNo);
+        return ResponseEntity.ok(attractions);
     }
 }

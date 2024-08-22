@@ -9,4 +9,5 @@ import java.util.List;
 public interface CulturalFacilityRepository extends JpaRepository<CulturalFacility, Long> {
     // 특정 contentTypeId에 따라 TouristAttraction 리스트를 가져오는 메소드
     List<CulturalFacility> findByContenttypeid(String contenttypeid);
+
 }
