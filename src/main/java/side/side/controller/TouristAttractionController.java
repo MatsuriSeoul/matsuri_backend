@@ -52,6 +52,5 @@ public class TouristAttractionController {
     public ResponseEntity<List<TouristAttraction>> getTouristAttractionsByCategory(@PathVariable String category) {
         List<TouristAttraction> attractions = touristAttractionsService.getTouristAttractionsByCategory(category);
         return ResponseEntity.ok(attractions);
-
     }
 }

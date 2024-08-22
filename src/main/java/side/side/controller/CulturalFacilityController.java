@@ -17,16 +17,7 @@ public class CulturalFacilityController {
     @Autowired
     private CulturalFacilityService culturalFacilityService;
 
-    // 문화시설 데이터 가져오기 및 저장
-    @GetMapping("/fetchAndSaveCulturalFacilities")
-    public ResponseEntity<List<CulturalFacility>> fetchAndSaveCulturalFacilities(
-            @RequestParam String numOfRows,
-            @RequestParam String pageNo) {
-        List<CulturalFacility> facilities = culturalFacilityService.fetchAndSaveCulturalFacilities(numOfRows, pageNo);
-        return ResponseEntity.ok(facilities);
-    }
-
-    // 문화시설 상세 정보 가져오기
+    // 문화시설 상세 정보 불러오기
     @GetMapping("/{contentid}/detail")
     public ResponseEntity<?> getCulturalFacilityDetail(@PathVariable String contentid) {
         CulturalFacilityDetail detail = culturalFacilityService.getCulturalFacilityDetailFromDB(contentid);
@@ -36,9 +27,9 @@ public class CulturalFacilityController {
         return ResponseEntity.ok(detail);
     }
 
-    // 외부 API에서 소개 정보 가져오기
+    // 문화시설 소개 정보 불러오기 (외부 API에서)
     @GetMapping("/{contentid}/{contenttypeid}/intro")
-    public ResponseEntity<?> fetchIntroInfo(@PathVariable String contentid, @PathVariable String contenttypeid) {
+    public ResponseEntity<?> getIntroInfo(@PathVariable String contentid, @PathVariable String contenttypeid) {
         JsonNode introInfo = culturalFacilityService.fetchIntroInfoFromApi(contentid, contenttypeid);
         if (introInfo == null) {
             return ResponseEntity.notFound().build();
@@ -46,15 +37,22 @@ public class CulturalFacilityController {
         return ResponseEntity.ok(introInfo);
     }
 
-    // 외부 API에서 이미지 정보 가져오기
+    // 이미지 정보 조회 불러오기 (외부 API에서)
     @GetMapping("/{contentid}/images")
-    public ResponseEntity<JsonNode> fetchImages(@PathVariable String contentid) {
+    public ResponseEntity<?> getImages(@PathVariable String contentid) {
         JsonNode images = culturalFacilityService.fetchImagesFromApi(contentid);
         if (images == null) {
             return ResponseEntity.notFound().build();
         }
-
         return ResponseEntity.ok(images);
-
+    }
+    // 카테고리별 문화시설 가져오기
+    @GetMapping("/category/{category}")
+    public ResponseEntity<List<CulturalFacility>> getCulturalFacilitiesByCategory(@PathVariable String category) {
+        List<CulturalFacility> facilities = culturalFacilityService.getCulturalFacilitiesByCategory(category);
+        if (facilities.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(facilities);
     }
 }
