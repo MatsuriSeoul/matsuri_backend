@@ -86,4 +86,21 @@ public class UserController {
         }
 
     }
+
+    //  로그인 한 사용자의 정보를 반환하는 메소드
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String token) {
+        try {
+            // JWT 토큰에서 사용자 ID 추출
+            Long userId = jwtUtils.extractUserId(token);
+
+            // 사용자 정보 조회
+            UserInfo user = userService.getUserById(userId)
+                    .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("사용자 정보를 가져오지 못했습니다.");
+        }
+    }
 }

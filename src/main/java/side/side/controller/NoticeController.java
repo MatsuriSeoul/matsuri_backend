@@ -69,14 +69,17 @@ public class NoticeController {
             @RequestParam("title") String title,
             @RequestParam("content") String content,
             @RequestParam(value = "images", required = false) List<MultipartFile> images,
-            @RequestParam(value = "files", required = false) List<MultipartFile> files
+            @RequestParam(value = "files", required = false) List<MultipartFile> files,
+            @RequestHeader("Authorization") String token
     ) {
         try {
+            Long userId = jwtUtils.extractUserIdFromToken(token);
+
             Notice notice = new Notice();
             notice.setTitle(title);
             notice.setContent(content);
 
-            Notice savedNotice = noticeService.createNotice(notice, images, files);
+            Notice savedNotice = noticeService.createNotice(notice, images, files, userId);
             return ResponseEntity.ok(savedNotice);
         } catch (IOException e) {
             logger.error("Failed to create notice: " + e.getMessage());
@@ -120,14 +123,27 @@ public class NoticeController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getNoticeById(@PathVariable Long id) {
-        Optional<Notice> notice = noticeService.getNoticeById(id);
-        if (notice.isPresent()) {
-            return ResponseEntity.ok(notice.get());
-        } else {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<?> getNoticeById(@PathVariable Long id, @RequestHeader("Authorization") String token) {
+        try {
+            // JWT 토큰에서 사용자 ID 추출 (jwtUtils 사용)
+            Long userId = jwtUtils.extractUserIdFromToken(token);
+
+            // 사용자 ID를 기반으로 공지사항 조회 및 조회수 증가
+            Optional<Notice> notice = noticeService.getNoticeByIdAndIncreaseViewCount(id, userId);
+
+            if (notice.isPresent()) {
+                return ResponseEntity.ok(notice.get());
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            // 예외 발생 시 500 에러 반환
+            logger.error("Error retrieving notice: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving notice");
         }
     }
+
+
 
     @DeleteMapping("/image/{imageId}")
     public ResponseEntity<?> deleteImage(@PathVariable Long imageId) {
