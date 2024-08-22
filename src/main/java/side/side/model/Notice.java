@@ -20,6 +20,11 @@ public class Notice {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 작성자 정보
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private UserInfo user;  // 작성자 정보 (user 필드)
+
     @Column(name = "title")
     private String title;
 
@@ -50,4 +55,9 @@ public class Notice {
     //  공지사항 첨부파일
     @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<NoticeFile> files = new ArrayList<>();
+
+    // Getter에서 사용자 ID를 반환하는 메소드 추가
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
 }

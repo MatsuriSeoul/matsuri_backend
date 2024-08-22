@@ -76,5 +76,9 @@ public class UserService {
     public boolean checkUserEmailExists(String userEmail) {
         return userRepository.existsByUserEmail(userEmail);
     }
+
+    public Optional<UserInfo> getUserById(Long userId) {
+        return userRepository.findById(userId);
+    }
 }
 

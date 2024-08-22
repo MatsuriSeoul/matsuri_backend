@@ -9,12 +9,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import side.side.model.Notice;
-import side.side.model.NoticeFile;
-import side.side.model.NoticeImage;
-import side.side.repository.NoticeFileRepository;
-import side.side.repository.NoticeImageRepository;
-import side.side.repository.NoticeRepository;
+import side.side.model.*;
+import side.side.repository.*;
 
 import java.awt.*;
 import java.io.File;
@@ -25,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,14 +42,23 @@ public class NoticeService {
     private NoticeImageService noticeImageService;
     @Autowired
     private NoticeFileRepository noticeFileRepository;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private UserNoticeViewRepository userNoticeViewRepository;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-    public Notice createNotice(Notice notice, List<MultipartFile> images, List<MultipartFile> files) throws IOException {
+    public Notice createNotice(Notice notice, List<MultipartFile> images, List<MultipartFile> files, Long userId) throws IOException {
+        UserInfo user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        notice.setUser(user);
         notice.setCreatedTime(LocalDateTime.now());
         notice.setUpdatedTime(LocalDateTime.now());
         Notice savedNotice = noticeRepository.save(notice);
+
 
         // 이미지 저장
         List<NoticeImage> noticeImages = saveImages(savedNotice, images);
@@ -106,22 +112,44 @@ public class NoticeService {
         return noticeRepository.findAll();
     }
 
-    //  선택한 공지사항 조회 메소드 ( 디테일한 세부 내용 )
-    public Optional<Notice> getNoticeById(Long id) {
-        return noticeRepository.findById(id);
+    //  선택한 공지사항 조회 메소드 ( 디테일한 세부 내용 및 조회수 증가 )
+    public Optional<Notice> getNoticeByIdAndIncreaseViewCount(Long noticeId, Long userId) {
+        Optional<Notice> noticeOptional = noticeRepository.findById(noticeId);
+
+        if (noticeOptional.isPresent()) {
+            Notice notice = noticeOptional.get();
+            UserInfo noticeUser = notice.getUser();
+
+            // 작성자 정보 로그 출력
+            if (noticeUser != null) {
+                logger.info("Notice User ID: " + noticeUser.getId());
+            } else {
+                logger.warn("Notice User is null");
+            }
+
+
+            increaseViewCntIfEligible(notice, userId);
+            return Optional.of(notice);
+        }
+
+        return Optional.empty();
     }
 
-    //  공지사항 게시글 조회수 증가 메소드
-    public void increaseViewCnt(Notice notice) {
-        notice.setViewcnt(notice.getViewcnt() + 1);
-        noticeRepository.save(notice);
+    //  댓글 작성관련 공지사항 조회 메소드
+    public Optional<Notice> getNoticeById(Long noticeId) {
+        // 공지사항을 ID로 조회
+        return noticeRepository.findById(noticeId);
     }
+
 
     //  공지사항 삭제 메소드
     @Transactional
     public void deleteNotice(Long id) {
         Notice notice = noticeRepository.findById(id).orElseThrow(() -> new RuntimeException("Notice not found"));
         List<NoticeImage> images = notice.getImages();
+
+        // 해당 공지사항과 연관된 UserNoticeView 레코드를 먼저 삭제
+        userNoticeViewRepository.deleteByNotice(notice);
 
         // 1. 파일 시스템에서 이미지 파일 삭제
         for (NoticeImage image : images) {
@@ -334,6 +362,38 @@ public class NoticeService {
         deleteAllFiles(filesToDelete);
         notice.getFiles().removeAll(filesToDelete);
     }
+
+    //  조회수 증가를 위한 검증 메소드
+    private void increaseViewCntIfEligible(Notice notice, Long userId) {
+        // 유저가 이미 해당 공지사항을 오늘 조회한 기록이 있는지 확인
+        boolean canIncreaseView = checkIfCanIncreaseViewCount(userId, notice.getId());
+
+        if (canIncreaseView) {
+            // 조회수를 증가시키고 저장
+            notice.setViewcnt(notice.getViewcnt() + 1);
+            noticeRepository.save(notice);
+
+            // 유저의 조회 기록을 저장
+            saveUserViewRecord(userId, notice);
+        }
+    }
+
+    private boolean checkIfCanIncreaseViewCount(Long userId, Long noticeId) {
+        // 오늘 날짜로 해당 유저가 해당 공지사항을 이미 조회했는지 확인
+        UserInfo user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+        Notice notice = noticeRepository.findById(noticeId).orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다"));
+
+        // LocalDate 사용하여 오늘 날짜 기준으로 조회 여부 확인
+        return !userNoticeViewRepository.existsByUserAndNoticeAndViewDate(user, notice, LocalDate.now());
+    }
+
+    private void saveUserViewRecord(Long userId, Notice notice) {
+        // 유저와 공지사항 정보로 새로운 조회 기록을 생성하고 저장
+        UserInfo user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+        UserNoticeView record = new UserNoticeView(user, notice, LocalDate.now());
+        userNoticeViewRepository.save(record);
+    }
+
 }
 
 
