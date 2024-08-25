@@ -1,12 +1,10 @@
 package side.side.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import side.side.model.*;
 import side.side.service.*;
 
@@ -65,12 +63,11 @@ public class EventController {
     //국문관광정보 축제/공연/행사 카테고리 데이터
     @GetMapping("/fetch")
     public ResponseEntity<?> fetchEvents(
-            @RequestParam String serviceKey,
             @RequestParam String numOfRows,
             @RequestParam String pageNo,
             @RequestParam String eventStartDate) {
 
-        List<TourEvent> events = eventService.fetchAndSaveEvents(serviceKey, numOfRows, pageNo, eventStartDate);
+        List<TourEvent> events = eventService.fetchAndSaveEvents(numOfRows, pageNo, eventStartDate);
         return ResponseEntity.ok(events);
     }
 
@@ -139,6 +136,52 @@ public class EventController {
 
         List<FoodEvent> food = foodEventService.fetchAndSaveFoodEvents(numOfRows,pageNo);
         return ResponseEntity.ok(food);
+    }
+
+
+    /* EventController의 축제/공연/행사에 대한 컨트롤러  */
+
+
+
+    // 행사 상세 정보 불러오기
+    @GetMapping("/{contentid}/detail")
+    public ResponseEntity<?> getEventDetail(@PathVariable String contentid) {
+        TourEventDetail detail = eventService.getEventDetailFromDB(contentid);
+        if (detail == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(detail);
+    }
+
+    // 행사 소개 정보 불러오기 (외부 API에서)
+    @GetMapping("/{contentid}/{contenttypeid}/intro")
+    public ResponseEntity<?> getIntroInfo(@PathVariable String contentid, @PathVariable String contenttypeid) {
+        JsonNode introInfo = eventService.fetchIntroInfoFromApi(contentid, contenttypeid);
+        if (introInfo == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(introInfo);
+    }
+
+    // 이미지 정보 조회 불러오기 (외부 API에서)
+    @GetMapping("/{contentid}/images")
+    public ResponseEntity<?> getImages(@PathVariable String contentid) {
+        JsonNode images = eventService.fetchImagesFromApi(contentid);
+        if (images == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(images);
+    }
+
+    // 행사 목록 가져오기
+    @GetMapping("/fetchAndSaveEvents")
+    public ResponseEntity<List<TourEvent>> fetchAndSaveEvents(
+            @RequestParam String numOfRows,
+            @RequestParam String pageNo,
+            @RequestParam String eventStartDate) {
+
+        List<TourEvent> events = eventService.fetchAndSaveEvents(numOfRows, pageNo, eventStartDate);
+        return ResponseEntity.ok(events);
     }
 }
 

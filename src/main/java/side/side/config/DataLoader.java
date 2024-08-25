@@ -60,25 +60,28 @@ public class DataLoader implements ApplicationRunner {
         // eventService.fetchAndSaveGyeonggiEvents();
         // eventService.fetchAndSaveSeoulEvents();
 
-//        // 한국관광공사_국문 관광정보 서비스_GW API 자동 호출
-//        String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
-//        String numOfRows = "100"; // 한 페이지에 가져올 이벤트 수
+//      // 축제/공연/행사  API 자동 호출
+//        String numOfRows = "10"; // 한 페이지에 가져올 이벤트 수
 //        String pageNo = "1"; // 시작 페이지 번호
 //        String eventStartDate = "20240101"; // 이벤트 시작 날짜 (YYYYMMDD 형식)
+//
+//          //축제/공연/행사 데이터를 저장
+//          List<TourEvent> tourEvents = eventService.fetchAndSaveEvents(numOfRows, pageNo, eventStartDate);
+//          //각 축제/공연/행사에 대한 상세 정보를 저장
+//        for (TourEvent tourEvent : tourEvents) {
+//            eventService.fetchAndSaveEventDetail(tourEvent.getContentid());
+//        }
 
-        // 이벤트 데이터를 저장
-        //  eventService.fetchAndSaveEvents(serviceKey, numOfRows, pageNo, eventStartDate);
-
-        // 관광지 데이터 자동 호출
+        // 행사 제외 데이터 호출
         String numOfRows = "10"; // 한 페이지에 가져올 관광지 수
         String pageNo = "1"; // 시작 페이지 번호
 
         // 관광지 데이터를 저장
-        List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
-       // 각 관광지에 대한 상세 정보를 저장
-        for(TouristAttraction touristAttraction : touristAttractions) {
-        touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
-        }
+//        List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
+//       // 각 관광지에 대한 상세 정보를 저장
+//        for(TouristAttraction touristAttraction : touristAttractions) {
+//        touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
+//        }
 
         // 숙박 이벤트 데이터를 저장
 //        List<LocalEvent> localEvents = localEventService.fetchAndSaveEventsLocal(numOfRows, pageNo);
@@ -87,10 +90,10 @@ public class DataLoader implements ApplicationRunner {
 //        }
 
         // 레포츠 데이터를 저장
-//        List<LeisureSportsEvent> leisureSportsEvents = leisureSportsEventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
-//        for (LeisureSportsEvent leisureSportsEvent : leisureSportsEvents) {
-//            leisureSportsEventService.fetchAndSaveLeisureSportsEventDetail(leisureSportsEvent.getContentid());
-//        }
+        List<LeisureSportsEvent> leisureSportsEvents = leisureSportsEventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
+        for (LeisureSportsEvent leisureSportsEvent : leisureSportsEvents) {
+            leisureSportsEventService.fetchAndSaveLeisureSportsEventDetail(leisureSportsEvent.getContentid());
+        }
 
         // 트레블 코스 데이터 저장
 //        List<TravelCourse> travelCourses = travelCourseService.fetchAndSaveTravelCourses(numOfRows, pageNo);
@@ -100,10 +103,10 @@ public class DataLoader implements ApplicationRunner {
 //        }
 
         //문화시설 데이터 저장
-        List<CulturalFacility> culturalFacilities = culturalFacilityService.fetchAndSaveCulturalFacilities(numOfRows, pageNo);
-        for (CulturalFacility culturalFacility : culturalFacilities) {
-            culturalFacilityService.fetchAndSaveCulturalFacilityDetail(culturalFacility.getContentid());
-        }
+//        List<CulturalFacility> culturalFacilities = culturalFacilityService.fetchAndSaveCulturalFacilities(numOfRows, pageNo);
+//        for (CulturalFacility culturalFacility : culturalFacilities) {
+//            culturalFacilityService.fetchAndSaveCulturalFacilityDetail(culturalFacility.getContentid());
+//        }
 
         //쇼핑 데이터 저장
 //        List<ShoppingEvent> shoppingEvents = shoppingEventService.fetchAndSaveShoppingEvents(numOfRows, pageNo);

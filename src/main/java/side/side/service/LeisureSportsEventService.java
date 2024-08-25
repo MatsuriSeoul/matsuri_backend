@@ -7,6 +7,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.LeisureSportsEvent;
 import side.side.model.LeisureSportsEventDetail;
+import side.side.model.TravelCourse;
+import side.side.model.TravelCourseDetail;
 import side.side.repository.LeisureSportsEventDetailRepository;
 import side.side.repository.LeisureSportsEventRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -221,5 +223,84 @@ public class LeisureSportsEventService {
             logger.severe("contentId: " + contentid + "에 대한 레저스포츠 이벤트 상세 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+    // 소개 정보 API 호출 메소드
+    public JsonNode fetchIntroInfoFromApi(String contentid, String contenttypeid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailIntro1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("contentTypeId", contenttypeid)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        logger.info("레저스포츠 이벤트 소개 정보 가져오기: contentId = " + contentid);
+        logger.info("요청 URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API 응답: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                return objectMapper.readTree(response.getBody()).path("response").path("body").path("items").path("item").get(0);
+            } else {
+                logger.warning("해당 contentId에 대한 레저스포츠 이벤트 소개 정보를 가져오지 못했습니다: " + contentid);
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 레저스포츠 이벤트 소개 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    // 이미지 정보 API 호출 메소드
+    public JsonNode fetchImagesFromApi(String contentid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailImage1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("imageYN", "Y")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        logger.info("레저스포츠 이벤트 이미지 정보 가져오기: contentId = " + contentid);
+        logger.info("요청 URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API 응답: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                return objectMapper.readTree(response.getBody()).path("response").path("body").path("items").path("item");
+            } else {
+                logger.warning("해당 contentId에 대한 레저스포츠 이벤트 이미지 정보를 가져오지 못했습니다: " + contentid);
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 레저스포츠 이벤트 이미지 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    //데이터베이스에서 여행 코스 상세 정보 추출
+    public LeisureSportsEventDetail getLeisureSportsEventDetailFromDB(String contentid) {
+        return leisureSportsEventDetailRepository.findByContentid(contentid);
+    }
+    public List<LeisureSportsEvent> getLeisureSportsEventsByCategory(String category) {
+        // 카테고리 맵핑 로직에 따라 contentTypeId를 설정
+        String contentTypeId = "28"; // 28 관광지 설정
+
+        return leisureSportsEventRepository.findByContenttypeid(contentTypeId); // 필요에 따라 로직 변경
     }
 }
