@@ -3,6 +3,10 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
   },
   "dependencies": {
-    "http-proxy-middleware": "^3.0.0"
+    "axios": "^1.7.2",
+    "http-proxy-middleware": "^3.0.0",
+    "react": "^18.3.1",
+    "react-datepicker": "^7.2.0",
+    "react-dom": "^18.3.1"
   }
 }
