@@ -189,48 +189,44 @@ public class TouristAttractionsService {
             if (response.getStatusCode().is2xxSuccessful()) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode rootNode = objectMapper.readTree(response.getBody());
-                JsonNode itemsNode = rootNode.path("response").path("body").path("items");
+                JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
 
-                if (itemsNode.isMissingNode() || !itemsNode.has("item")) {
+                if (itemsNode.isArray()) {
+                    for (JsonNode itemNode : itemsNode) {
+                        TouristAttractionDetail attractionDetail = new TouristAttractionDetail();
+                        attractionDetail.setContentid(itemNode.path("contentid").asText());
+                        attractionDetail.setContenttypeid(itemNode.path("contenttypeid").asText());
+                        attractionDetail.setBooktour(itemNode.path("booktour").asText());
+                        attractionDetail.setCreatedtime(itemNode.path("createdtime").asText());
+                        attractionDetail.setHomepage(itemNode.path("homepage").asText());
+                        attractionDetail.setModifiedtime(itemNode.path("modifiedtime").asText());
+                        attractionDetail.setTel(itemNode.path("tel").asText());
+                        attractionDetail.setTelname(itemNode.path("telname").asText());
+                        attractionDetail.setTitle(itemNode.path("title").asText());
+
+                        attractionDetail.setFirstimage(itemNode.path("firstimage").asText(null));
+                        attractionDetail.setFirstimage2(itemNode.path("firstimage2").asText(null));
+
+                        attractionDetail.setCpyrhtDivCd(itemNode.path("cpyrhtDivCd").asText());
+                        attractionDetail.setAreacode(itemNode.path("areacode").asText());
+                        attractionDetail.setSigungucode(itemNode.path("sigungucode").asText());
+                        attractionDetail.setCat1(itemNode.path("cat1").asText());
+                        attractionDetail.setCat2(itemNode.path("cat2").asText());
+                        attractionDetail.setCat3(itemNode.path("cat3").asText());
+                        attractionDetail.setAddr1(itemNode.path("addr1").asText());
+                        attractionDetail.setAddr2(itemNode.path("addr2").asText());
+                        attractionDetail.setZipcode(itemNode.path("zipcode").asText());
+                        attractionDetail.setMapx(itemNode.path("mapx").asText());
+                        attractionDetail.setMapy(itemNode.path("mapy").asText());
+                        attractionDetail.setMlevel(itemNode.path("mlevel").asText());
+                        attractionDetail.setOverview(itemNode.path("overview").asText());
+
+                        touristAttractionDetailRepository.save(attractionDetail);
+                        logger.info("관광지 상세 정보가 저장되었습니다: contentId = " + contentid);
+                    }
+                } else {
                     logger.warning("해당 contentId에 대한 관광지 상세 정보가 없습니다: " + contentid);
-                    return;
                 }
-
-                JsonNode itemNode = itemsNode.path("item").get(0);
-
-                if (itemNode == null) {
-                    logger.warning("해당 contentId에 대한 항목이 없습니다: " + contentid);
-                    return;
-                }
-
-                TouristAttractionDetail attractionDetail = new TouristAttractionDetail();
-                attractionDetail.setContentid(itemNode.path("contentid").asText());
-                attractionDetail.setContenttypeid(itemNode.path("contenttypeid").asText());
-                attractionDetail.setBooktour(itemNode.path("booktour").asText());
-                attractionDetail.setCreatedtime(itemNode.path("createdtime").asText());
-                attractionDetail.setHomepage(itemNode.path("homepage").asText());
-                attractionDetail.setModifiedtime(itemNode.path("modifiedtime").asText());
-                attractionDetail.setTel(itemNode.path("tel").asText());
-                attractionDetail.setTelname(itemNode.path("telname").asText());
-                attractionDetail.setTitle(itemNode.path("title").asText());
-                attractionDetail.setFirstimage(itemNode.path("firstimage").asText());
-                attractionDetail.setFirstimage2(itemNode.path("firstimage2").asText());
-                attractionDetail.setCpyrhtDivCd(itemNode.path("cpyrhtDivCd").asText());
-                attractionDetail.setAreacode(itemNode.path("areacode").asText());
-                attractionDetail.setSigungucode(itemNode.path("sigungucode").asText());
-                attractionDetail.setCat1(itemNode.path("cat1").asText());
-                attractionDetail.setCat2(itemNode.path("cat2").asText());
-                attractionDetail.setCat3(itemNode.path("cat3").asText());
-                attractionDetail.setAddr1(itemNode.path("addr1").asText());
-                attractionDetail.setAddr2(itemNode.path("addr2").asText());
-                attractionDetail.setZipcode(itemNode.path("zipcode").asText());
-                attractionDetail.setMapx(itemNode.path("mapx").asText());
-                attractionDetail.setMapy(itemNode.path("mapy").asText());
-                attractionDetail.setMlevel(itemNode.path("mlevel").asText());
-                attractionDetail.setOverview(itemNode.path("overview").asText());
-
-                touristAttractionDetailRepository.save(attractionDetail);
-                logger.info("관광지 상세 정보가 저장되었습니다: contentId = " + contentid);
             } else {
                 logger.warning("해당 contentId에 대한 관광지 상세 정보를 가져오지 못했습니다: " + contentid);
             }
@@ -239,19 +235,10 @@ public class TouristAttractionsService {
             e.printStackTrace();
         }
     }
-    public List<TouristAttraction> getTouristAttractionsByCategory(String category) {
-        // 카테고리 맵핑 로직에 따라 contentTypeId를 설정하거나, cat3와 같은 필드를 사용
-        String contentTypeId = "12"; // 예시로 관광지 설정
 
-        // 카테고리에 따른 관광지 데이터 가져오기
-        return touristAttractionRepository.findByContenttypeid(contentTypeId);
-    }
 
-    // 추가 메소드: contentId로 관광지 상세 정보 가져오기
-    public TouristAttractionDetail getTouristAttractionDetail(String contentid) {
-        return touristAttractionDetailRepository.findByContentid(contentid);
-}
-    // 추가 메소드: contentId와 contentTypeId로 외부 API에서 소개 정보 가져오기
+
+    // contentId와 contentTypeId로 외부 API에서 소개 정보 가져오기
     public JsonNode fetchIntroInfoFromApi(String contentid, String contenttypeid) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -278,7 +265,7 @@ public class TouristAttractionsService {
                 JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
 
                 if (itemsNode.isArray() && itemsNode.size() > 0) {
-                    return itemsNode.get(0);  // Return the first item in the array
+                    return itemsNode.get(0);
                 } else {
                     logger.warning("소개 정보가 없습니다: contentId = " + contentid);
                     return null;
@@ -294,8 +281,58 @@ public class TouristAttractionsService {
         }
     }
 
-    // 추가 메소드: contentId로 데이터베이스에서 저장된 관광지 상세 정보 가져오기
+    // 이미지 정보 조회 API 호출 contentid로 외부에서 api 호출
+    public JsonNode fetchImagesFromApi(String contentid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailImage1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("imageYN", "Y")
+                .queryParam("subImageYN", "Y")
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        logger.info("이미지 데이터 가져오는 중: contentId = " + contentid);
+        logger.info("요청 URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API 응답: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response.getBody());
+                JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+
+                if (itemsNode.isArray() && itemsNode.size() > 0) {
+                    return itemsNode;
+                } else {
+                    logger.warning("해당 contentId에 대한 이미지를 찾을 수 없습니다: " + contentid);
+                    return null;
+                }
+            } else {
+                logger.warning("해당 contentId에 대한 이미지 가져오기에 실패했습니다: " + contentid);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 이미지 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+    // contentId로 데이터베이스에서 저장된 관광지 상세 정보 가져오기
     public TouristAttractionDetail getTouristAttractionDetailFromDB(String contentid) {
         return touristAttractionDetailRepository.findByContentid(contentid);
+    }
+    public List<TouristAttraction> getTouristAttractionsByCategory(String category) {
+        // 카테고리 맵핑 로직에 따라 contentTypeId를 설정
+        String contentTypeId = "12"; // 12 관광지 설정
+
+        // 카테고리에 따른 관광지 데이터 가져오기
+        return touristAttractionRepository.findByContenttypeid(contentTypeId);
     }
 }

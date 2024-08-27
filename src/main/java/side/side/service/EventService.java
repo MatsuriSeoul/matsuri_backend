@@ -31,8 +31,6 @@ public class EventService {
     @Autowired
     private TourEventDetailRepository tourEventDetailRepository;
 
-    @Autowired
-    private TouristAttractionRepository touristAttractionRepository;
 
 
     // 키 값 절대 건들이면 안됨
@@ -169,76 +167,116 @@ public class EventService {
     }
 
     // 한국관광공사_국문 관광정보 서비스_GW API / TourEvent
-        public List<TourEvent> fetchAndSaveEvents(String serviceKey, String numOfRows, String pageNo, String eventStartDate) {
+    public List<TourEvent> fetchAndSaveEvents(String numOfRows, String pageNo, String eventStartDate) {
         List<TourEvent> allEvents = new ArrayList<>();
         boolean moreData = true;
+        numOfRows = "10";  // 호출되는 데이터의 개수를 10개로 제한
+
         RestTemplate restTemplate = new RestTemplate();
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/searchFestival1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("numOfRows", numOfRows)
+                .queryParam("pageNo", pageNo)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .queryParam("eventStartDate", eventStartDate)
+                .build()
+                .toUriString();
 
-        while (moreData) {
-            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/searchFestival1")
-                    .queryParam("serviceKey", serviceKey)
-                    .queryParam("numOfRows", numOfRows)
-                    .queryParam("pageNo", pageNo)
-                    .queryParam("MobileOS", "ETC")
-                    .queryParam("MobileApp", "AppTest")
-                    .queryParam("_type", "json")
-                    .queryParam("eventStartDate", eventStartDate)
-                    .build()
-                    .toUriString();
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response.getBody());
+                JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
 
-            try {
-                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-                if (response.getStatusCode().is2xxSuccessful()) {
-                    // JSON 응답 처리
-                    try {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        JsonNode rootNode = objectMapper.readTree(response.getBody());
-                        JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
-
-                        if (itemsNode.isArray()) {
-                            List<TourEvent> events = new ArrayList<>();
-                            for (JsonNode node : itemsNode) {
-                                TourEvent event = new TourEvent();
-                                event.setTitle(node.path("title").asText());
-                                event.setAddr1(node.path("addr1").asText());
-                                event.setEventstartdate(node.path("eventstartdate").asText());
-                                event.setEventenddate(node.path("eventenddate").asText());
-                                event.setFirstimage(node.path("firstimage").asText());
-                                event.setCat1(node.path("cat1").asText());
-                                event.setCat2(node.path("cat2").asText());
-                                event.setCat3(node.path("cat3").asText());
-                                event.setContentid(node.path("contentid").asText());
-                                event.setContenttypeid(node.path("contenttypeid").asText());
-                                events.add(event);
-                            }
-                            tourEventRepository.saveAll(events);
-                            allEvents.addAll(events);
-
-                            // 만약 현재 페이지의 이벤트 수가 요청한 numOfRows보다 적다면 더 이상 데이터가 없다고 판단
-                            if (itemsNode.size() < Integer.parseInt(numOfRows)) {
-                                moreData = false;
-                            } else {
-                                // 다음 페이지로 이동
-                                pageNo = String.valueOf(Integer.parseInt(pageNo) + 1);
-                            }
-                        } else {
-                            moreData = false;
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        moreData = false;
+                if (itemsNode.isArray()) {
+                    List<TourEvent> events = new ArrayList<>();
+                    for (JsonNode node : itemsNode) {
+                        TourEvent event = new TourEvent();
+                        event.setTitle(node.path("title").asText());
+                        event.setAddr1(node.path("addr1").asText());
+                        event.setEventstartdate(node.path("eventstartdate").asText());
+                        event.setEventenddate(node.path("eventenddate").asText());
+                        event.setFirstimage(node.path("firstimage").asText());
+                        event.setCat1(node.path("cat1").asText());
+                        event.setCat2(node.path("cat2").asText());
+                        event.setCat3(node.path("cat3").asText());
+                        event.setContentid(node.path("contentid").asText());
+                        event.setContenttypeid(node.path("contenttypeid").asText());
+                        events.add(event);
                     }
-                } else {
-                    moreData = false;
+                    tourEventRepository.saveAll(events);
+                    allEvents.addAll(events);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                moreData = false;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return allEvents;
     }
+
+        //모든 데이터 요청
+//        while (moreData) {
+//            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/searchFestival1")
+//                    .queryParam("serviceKey", serviceKey)
+//                    .queryParam("numOfRows", numOfRows)
+//                    .queryParam("pageNo", pageNo)
+//                    .queryParam("MobileOS", "ETC")
+//                    .queryParam("MobileApp", "AppTest")
+//                    .queryParam("_type", "json")
+//                    .queryParam("eventStartDate", eventStartDate)
+//                    .build()
+//                    .toUriString();
+//
+//            try {
+//                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+//                if (response.getStatusCode().is2xxSuccessful()) {
+//                    ObjectMapper objectMapper = new ObjectMapper();
+//                    JsonNode rootNode = objectMapper.readTree(response.getBody());
+//                    JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+//
+//                    if (itemsNode.isArray()) {
+//                        List<TourEvent> events = new ArrayList<>();
+//                        for (JsonNode node : itemsNode) {
+//                            TourEvent event = new TourEvent();
+//                            event.setTitle(node.path("title").asText());
+//                            event.setAddr1(node.path("addr1").asText());
+//                            event.setEventstartdate(node.path("eventstartdate").asText());
+//                            event.setEventenddate(node.path("eventenddate").asText());
+//                            event.setFirstimage(node.path("firstimage").asText());
+//                            event.setCat1(node.path("cat1").asText());
+//                            event.setCat2(node.path("cat2").asText());
+//                            event.setCat3(node.path("cat3").asText());
+//                            event.setContentid(node.path("contentid").asText());
+//                            event.setContenttypeid(node.path("contenttypeid").asText());
+//                            events.add(event);
+//                        }
+//                        tourEventRepository.saveAll(events);
+//                        allEvents.addAll(events);
+//
+//                        if (itemsNode.size() < Integer.parseInt(numOfRows)) {
+//                            moreData = false;
+//                        } else {
+//                            pageNo = String.valueOf(Integer.parseInt(pageNo) + 1);
+//                        }
+//                    } else {
+//                        moreData = false;
+//                    }
+//                } else {
+//                    moreData = false;
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                moreData = false;
+//            }
+//        }
+//
+//        return allEvents;
+//    }
+
 
     //행사의 상세 정보
     public void fetchAndSaveEventDetail(String contentid) {
@@ -310,6 +348,89 @@ public class EventService {
         }
     }
 
+    //소개 정보 API
+    public JsonNode fetchIntroInfoFromApi(String contentid, String contenttypeid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailIntro1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("contentTypeId", contenttypeid)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response.getBody());
+                JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+
+                if (itemsNode.isArray() && itemsNode.size() > 0) {
+                    return itemsNode.get(0);
+                } else {
+                    logger.warning("해당 contentId에 대한 소개 정보가 없습니다: " + contentid);
+                    return null;
+                }
+            } else {
+                logger.warning("소개 정보를 가져오지 못했습니다: contentId = " + contentid);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 소개 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    //이미지 정보 조회 API
+    public JsonNode fetchImagesFromApi(String contentid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailImage1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("imageYN", "Y")
+                .queryParam("subImageYN", "Y")
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response.getBody());
+                JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+
+                if (itemsNode.isArray() && itemsNode.size() > 0) {
+                    return itemsNode;
+                } else {
+                    logger.warning("해당 contentId에 대한 이미지를 찾을 수 없습니다: " + contentid);
+                    return null;
+                }
+            } else {
+                logger.warning("이미지 정보를 가져오지 못했습니다: contentId = " + contentid);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 이미지 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    //데이터베이스에서 행사 상세 정보 추출
+    public TourEventDetail getEventDetailFromDB(String contentid) {
+        return tourEventDetailRepository.findByContentid(contentid);
+    }
 
 
 

@@ -91,6 +91,17 @@ public class JwtUtils {
         }
         return false;
     }
+
+    public Long extractUserId(String token) {
+        String jwtToken = token.replace("Bearer ", "");  // 'Bearer ' 제거
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())  // 새 방식의 Key 설정
+                .build()
+                .parseClaimsJws(jwtToken)
+                .getBody();
+
+        return Long.parseLong(claims.get("userId").toString());  // 토큰에서 사용자 ID 추출
+    }
 }
 
 
