@@ -266,9 +266,10 @@ public class LeisureSportsEventService {
         String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailImage1")
                 .queryParam("serviceKey", serviceKey)
                 .queryParam("contentId", contentid)
+                .queryParam("imageYN", "Y")
+                .queryParam("subImageYN", "Y")
                 .queryParam("MobileOS", "ETC")
                 .queryParam("MobileApp", "AppTest")
-                .queryParam("imageYN", "Y")
                 .queryParam("_type", "json")
                 .build()
                 .toUriString();
@@ -293,6 +294,7 @@ public class LeisureSportsEventService {
 
         return null;
     }
+
     //데이터베이스에서 여행 코스 상세 정보 추출
     public LeisureSportsEventDetail getLeisureSportsEventDetailFromDB(String contentid) {
         return leisureSportsEventDetailRepository.findByContentid(contentid);

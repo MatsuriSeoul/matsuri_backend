@@ -1,8 +1,14 @@
 package side.side.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import side.side.model.CulturalFacility;
 import side.side.model.LocalEvent;
 
+import java.util.List;
+
 public interface LocalEventRepository extends JpaRepository<LocalEvent, Long> {
+    // 특정 contentTypeId에 따라 TouristAttraction 리스트를 가져오는 메소드
+    List<LocalEvent> findByContenttypeid(String contenttypeid);
+
 
 }

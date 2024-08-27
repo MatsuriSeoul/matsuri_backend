@@ -9,6 +9,7 @@ import side.side.service.*;
 import side.side.config.JwtUtils;
 
 import java.util.List;
+
 @Component
 public class DataLoader implements ApplicationRunner {
 
@@ -36,8 +37,6 @@ public class DataLoader implements ApplicationRunner {
     @Autowired
     private FoodEventService foodEventService;
 
-
-
     @Autowired
     private UserService userService;
 
@@ -57,69 +56,72 @@ public class DataLoader implements ApplicationRunner {
             System.out.println("Admin Token: " + token);
         }
 
-        // eventService.fetchAndSaveGyeonggiEvents();
-        // eventService.fetchAndSaveSeoulEvents();
+        // 축제/공연/행사 데이터 호출
+        String eventNumOfRows = "10"; // 한 페이지에 가져올 이벤트 수
+        String eventPageNo = "1"; // 시작 페이지 번호
+        String eventStartDate = "20240101"; // 이벤트 시작 날짜 (YYYYMMDD 형식)
 
-//      // 축제/공연/행사  API 자동 호출
-//        String numOfRows = "10"; // 한 페이지에 가져올 이벤트 수
-//        String pageNo = "1"; // 시작 페이지 번호
-//        String eventStartDate = "20240101"; // 이벤트 시작 날짜 (YYYYMMDD 형식)
-//
-//          //축제/공연/행사 데이터를 저장
-//          List<TourEvent> tourEvents = eventService.fetchAndSaveEvents(numOfRows, pageNo, eventStartDate);
-//          //각 축제/공연/행사에 대한 상세 정보를 저장
-//        for (TourEvent tourEvent : tourEvents) {
-//            eventService.fetchAndSaveEventDetail(tourEvent.getContentid());
-//        }
+        List<TourEvent> tourEvents = eventService.fetchAndSaveEvents(eventNumOfRows, eventPageNo, eventStartDate);
+        for (TourEvent tourEvent : tourEvents) {
+            eventService.fetchAndSaveEventDetail(tourEvent.getContentid());
+        }
 
-        // 행사 제외 데이터 호출
-        String numOfRows = "10"; // 한 페이지에 가져올 관광지 수
-        String pageNo = "1"; // 시작 페이지 번호
+        // 관광지 데이터 호출
+        String touristNumOfRows = "10";
+        String touristPageNo = "1";
+        List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(touristNumOfRows, touristPageNo);
+        for(TouristAttraction touristAttraction : touristAttractions) {
+            touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
+        }
 
-        // 관광지 데이터를 저장
-//        List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(numOfRows, pageNo);
-//       // 각 관광지에 대한 상세 정보를 저장
-//        for(TouristAttraction touristAttraction : touristAttractions) {
-//        touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
-//        }
+        // 숙박 이벤트 데이터 호출
+        String lodgingNumOfRows = "10";
+        String lodgingPageNo = "1";
+        List<LocalEvent> localEvents = localEventService.fetchAndSaveEventsLocal(lodgingNumOfRows, lodgingPageNo);
+        for (LocalEvent localEvent : localEvents) {
+            localEventService.fetchAndSaveLocalEventDetail(localEvent.getContentid());
+        }
 
-        // 숙박 이벤트 데이터를 저장
-//        List<LocalEvent> localEvents = localEventService.fetchAndSaveEventsLocal(numOfRows, pageNo);
-//        for (LocalEvent localEvent : localEvents) {
-//            localEventService.fetchAndSaveLocalEventDetail(localEvent.getContentid());
-//        }
-
-        // 레포츠 데이터를 저장
-        List<LeisureSportsEvent> leisureSportsEvents = leisureSportsEventService.fetchAndSaveLeisureSportsEvents(numOfRows, pageNo);
+        // 레포츠 데이터 호출
+        String leisureNumOfRows = "10";
+        String leisurePageNo = "1";
+        List<LeisureSportsEvent> leisureSportsEvents = leisureSportsEventService.fetchAndSaveLeisureSportsEvents(leisureNumOfRows, leisurePageNo);
         for (LeisureSportsEvent leisureSportsEvent : leisureSportsEvents) {
             leisureSportsEventService.fetchAndSaveLeisureSportsEventDetail(leisureSportsEvent.getContentid());
         }
 
-        // 트레블 코스 데이터 저장
-//        List<TravelCourse> travelCourses = travelCourseService.fetchAndSaveTravelCourses(numOfRows, pageNo);
-//        // 각 트래블 코스에 대한 상세 정보를 저장
-//        for (TravelCourse travelCourse : travelCourses) {
-//            travelCourseService.fetchAndSaveTravelCourseDetail(travelCourse.getContentid());
-//        }
+        // 여행 코스 데이터 호출
+        String travelNumOfRows = "10";
+        String travelPageNo = "1";
+        List<TravelCourse> travelCourses = travelCourseService.fetchAndSaveTravelCourses(travelNumOfRows, travelPageNo);
+        for (TravelCourse travelCourse : travelCourses) {
+            travelCourseService.fetchAndSaveTravelCourseDetail(travelCourse.getContentid());
+        }
 
-        //문화시설 데이터 저장
-//        List<CulturalFacility> culturalFacilities = culturalFacilityService.fetchAndSaveCulturalFacilities(numOfRows, pageNo);
-//        for (CulturalFacility culturalFacility : culturalFacilities) {
-//            culturalFacilityService.fetchAndSaveCulturalFacilityDetail(culturalFacility.getContentid());
-//        }
+        // 문화시설 데이터 호출
+        String culturalNumOfRows = "10";
+        String culturalPageNo = "1";
+        List<CulturalFacility> culturalFacilities = culturalFacilityService.fetchAndSaveCulturalFacilities(culturalNumOfRows, culturalPageNo);
+        for (CulturalFacility culturalFacility : culturalFacilities) {
+            culturalFacilityService.fetchAndSaveCulturalFacilityDetail(culturalFacility.getContentid());
+        }
 
-        //쇼핑 데이터 저장
-//        List<ShoppingEvent> shoppingEvents = shoppingEventService.fetchAndSaveShoppingEvents(numOfRows, pageNo);
-//        for (ShoppingEvent shoppingEvent : shoppingEvents) {
-//            shoppingEventService.fetchAndSaveShoppingEventDetail(shoppingEvent.getContentid());
-//        }
+        // 쇼핑 데이터 호출
+        String shoppingNumOfRows = "10";
+        String shoppingPageNo = "1";
+        List<ShoppingEvent> shoppingEvents = shoppingEventService.fetchAndSaveShoppingEvents(shoppingNumOfRows, shoppingPageNo);
+        for (ShoppingEvent shoppingEvent : shoppingEvents) {
+            shoppingEventService.fetchAndSaveShoppingEventDetail(shoppingEvent.getContentid());
+        }
 
-        //음식 데이터 저장
-//        List<FoodEvent> foodEvents = foodEventService.fetchAndSaveFoodEvents(numOfRows, pageNo);
-//        // 저장된 음식 데이터의 상세 정보를 저장
-//        for (FoodEvent foodEvent : foodEvents) {
-//            foodEventService.fetchAndSaveFoodEventDetail(foodEvent.getContentid());
-//        }
+        // 음식 데이터 호출
+        String foodNumOfRows = "10";
+        String foodPageNo = "1";
+        List<FoodEvent> foodEvents = foodEventService.fetchAndSaveFoodEvents(foodNumOfRows, foodPageNo);
+        for (FoodEvent foodEvent : foodEvents) {
+            foodEventService.fetchAndSaveFoodEventDetail(foodEvent.getContentid());
+        }
+
         // 저장된 이벤트의 상세 정보를 업데이트
         updateEventDetails();
     }
@@ -131,5 +133,4 @@ public class DataLoader implements ApplicationRunner {
             eventService.fetchAndSaveEventDetail(contentId);
         }
     }
-
 }

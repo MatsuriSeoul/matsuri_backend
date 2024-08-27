@@ -235,4 +235,88 @@ public class LocalEventService {
             e.printStackTrace();
         }
     }
+    // 소개 정보 API 호출 메소드
+    public JsonNode fetchIntroInfoFromApi(String contentid, String contenttypeid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailIntro1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("contentTypeId", contenttypeid)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        logger.info("숙박 시설 소개 정보 가져오기: contentId = " + contentid);
+        logger.info("요청 URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API 응답: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                return objectMapper.readTree(response.getBody()).path("response").path("body").path("items").path("item").get(0);
+            } else {
+                logger.warning("해당 contentId에 대한 숙박 시설 소개 정보를 가져오지 못했습니다: " + contentid);
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 숙박 시설 소개 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    // 이미지 정보 API 호출 메소드
+    public JsonNode fetchImagesFromApi(String contentid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailImage1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("imageYN", "Y")
+                .queryParam("subImageYN", "Y")
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+
+        logger.info("숙박 시설 이미지 정보 가져오기: contentId = " + contentid);
+        logger.info("요청 URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API 응답: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                return objectMapper.readTree(response.getBody()).path("response").path("body").path("items").path("item");
+            } else {
+                logger.warning("해당 contentId에 대한 숙박 시설 이미지 정보를 가져오지 못했습니다: " + contentid);
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 숙박 시설 이미지 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    // 데이터베이스에서 숙박 시설 상세 정보 추출
+    public LocalEventDetail getAccommodationDetailFromDB(String contentid) {
+        return localEventDetailRepository.findByContentid(contentid);
+    }
+
+    // 카테고리 기반 숙박 시설 리스트 반환
+    public List<LocalEvent> getAccommodationsByCategory(String category) {
+        // 카테고리 맵핑 로직에 따라 contentTypeId를 설정
+        String contentTypeId = "32"; // 32 숙박 시설 설정
+
+        return localEventRepository.findByContenttypeid(contentTypeId); // 필요에 따라 로직 변경
+    }
+
 }

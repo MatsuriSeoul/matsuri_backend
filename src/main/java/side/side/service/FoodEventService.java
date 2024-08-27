@@ -9,6 +9,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.FoodEvent;
 import side.side.model.FoodEventDetail;
+import side.side.model.ShoppingEvent;
+import side.side.model.ShoppingEventDetail;
 import side.side.repository.FoodEventDetailRepository;
 import side.side.repository.FoodEventRepository;
 
@@ -234,5 +236,86 @@ public class FoodEventService {
             logger.severe("contentId에 대한 음식 이벤트 세부 정보를 가져오는 중 오류가 발생했습니다." + contentid + ": " + e.getMessage());
             e.printStackTrace();
         }
+    }
+    // 이미지 정보 API 호출 메소드
+    public JsonNode fetchImagesFromApi(String contentid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailImage1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("imageYN", "Y")
+                .queryParam("subImageYN", "Y")
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        logger.info("음식 이벤트 이미지 정보 가져오기: contentId = " + contentid);
+        logger.info("요청 URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API 응답: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                return objectMapper.readTree(response.getBody()).path("response").path("body").path("items").path("item");
+            } else {
+                logger.warning("해당 contentId에 대한 음식 이벤트 이미지 정보를 가져오지 못했습니다: " + contentid);
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 음식 이벤트 이미지 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    // 소개 정보 API 호출 메소드
+    public JsonNode fetchIntroInfoFromApi(String contentid, String contenttypeid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailIntro1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("contentTypeId", contenttypeid)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        logger.info("음식 이벤트 소개 정보 가져오기: contentId = " + contentid);
+        logger.info("요청 URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API 응답: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                return objectMapper.readTree(response.getBody()).path("response").path("body").path("items").path("item").get(0);
+            } else {
+                logger.warning("해당 contentId에 대한 음식 이벤트 소개 정보를 가져오지 못했습니다: " + contentid);
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 음식 이벤트 소개 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    // 데이터베이스에서 숙박 시설 상세 정보 추출
+    public FoodEventDetail getFoodEventDetailFromDB(String contentid) {
+        return foodEventDetailRepository.findByContentid(contentid);
+    }
+
+    // 카테고리 기반 숙박 시설 리스트 반환
+    public List<FoodEvent> getFoodEventsByCategory(String category) {
+        // 카테고리 맵핑 로직에 따라 contentTypeId를 설정
+        String contentTypeId = "39"; // 39 음식 설정
+
+        return foodEventRepository.findByContenttypeid(contentTypeId); // 필요에 따라 로직 변경
     }
 }
