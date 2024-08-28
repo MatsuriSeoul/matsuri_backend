@@ -37,7 +37,7 @@ public class LeisureSportsEventController {
         }
         return ResponseEntity.ok(introInfo);
     }
-
+    // 이미지 정보 조회 불러오기 (외부 API에서)
     @GetMapping("/{contentid}/images")
     public ResponseEntity<?> getImages(@PathVariable String contentid) {
         JsonNode images = leisureSportsEventService.fetchImagesFromApi(contentid);
@@ -46,7 +46,7 @@ public class LeisureSportsEventController {
         }
         return ResponseEntity.ok(images);
     }
-
+    // contentypeid가 28인 서비스 실행
     @GetMapping("/category/{category}")
     public ResponseEntity<List<LeisureSportsEvent>> getLeisureSportsEventsByCategory(@PathVariable String category) {
         List<LeisureSportsEvent> leisureSportsEvents = leisureSportsEventService.getLeisureSportsEventsByCategory(category);

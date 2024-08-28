@@ -47,7 +47,7 @@ public class CulturalFacilityController {
         }
         return ResponseEntity.ok(images);
     }
-    // 카테고리별 문화시설 가져오기
+    // contentypeid가 14인 서비스 실행
     @GetMapping("/category/{category}")
     public ResponseEntity<List<CulturalFacility>> getCulturalFacilitiesByCategory(@PathVariable String category) {
         List<CulturalFacility> facilities = culturalFacilityService.getCulturalFacilitiesByCategory(category);
