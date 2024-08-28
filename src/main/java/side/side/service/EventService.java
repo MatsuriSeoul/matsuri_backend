@@ -99,70 +99,63 @@ public class EventService {
 
     // 서울 행사 API
     public void fetchAndSaveSeoulEvents() {
-        int pageSize = 100;
+        int pageSize = 10;  // 데이터를 10개만 가져오기 위해 pageSize를 10으로 설정
         int startIndex = 1;
-        boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
 
-        while (moreData) {
-            String url = String.format("http://openAPI.seoul.go.kr:8088/%s/json/ListPublicReservationCulture/%d/%d/",
-                    seoulApiKey, startIndex, startIndex + pageSize - 1);
-            try {
-                String response = restTemplate.getForObject(url, String.class);
-                System.out.println("서울 API 응답" + response);
+        String url = String.format("http://openAPI.seoul.go.kr:8088/%s/json/ListPublicReservationCulture/%d/%d/",
+                seoulApiKey, startIndex, startIndex + pageSize - 1);
+        try {
+            String response = restTemplate.getForObject(url, String.class);
+            System.out.println("서울 API 응답" + response);
 
-                if (response.startsWith("<")) {
-                    throw new IllegalArgumentException("JSON 응답 API 안됨");
-                }
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode rootNode = objectMapper.readTree(response);
-                JsonNode dataNode = rootNode.path("ListPublicReservationCulture").path("row");
-
-                if (dataNode.isArray()) {
-                    List<SeoulEvent> events = new ArrayList<>();
-                    for (JsonNode node : dataNode) {
-                        SeoulEvent event = new SeoulEvent();
-                        event.setGubun(node.path("GUBUN").asText());
-                        event.setSvcid(node.path("SVCID").asText());
-                        event.setMaxclassnm(node.path("MAXCLASSNM").asText());
-                        event.setMinclassnm(node.path("MINCLASSNM").asText());
-                        event.setSvcstatnm(node.path("SVCSTATNM").asText());
-                        event.setSvcnm(node.path("SVCNM").asText());
-                        event.setPayatnm(node.path("PAYATNM").asText());
-                        event.setPlacenm(node.path("PLACENM").asText());
-                        event.setUsetgtinfo(node.path("USETGTINFO").asText());
-                        event.setSvcurl(node.path("SVCURL").asText());
-                        event.setX(node.path("X").asText());
-                        event.setY(node.path("Y").asText());
-                        event.setSvcopnbgndt(node.path("SVCOPNBGNDT").asText());
-                        event.setSvcopnenddt(node.path("SVCOPNENDDT").asText());
-                        event.setRcptbgndt(node.path("RCPTBGNDT").asText());
-                        event.setRcptenddt(node.path("RCPTENDDT").asText());
-                        event.setAreanm(node.path("AREANM").asText());
-                        event.setImgurl(node.path("IMGURL").asText());
-                        event.setDtlcont(node.path("DTLCONT").asText());
-                        event.setTelno(node.path("TELNO").asText());
-                        event.setVMin(node.path("V_MIN").asText());
-                        event.setVMax(node.path("V_MAX").asText());
-                        event.setRevstddaynm(node.path("REVSTDDAYNM").asText());
-                        event.setRevstdday(node.path("REVSTDDAY").asText());
-                        events.add(event);
-                    }
-                    seoulEventRepository.saveAll(events);
-
-                    if (dataNode.size() < pageSize) {
-                        moreData = false;
-                    } else {
-                        startIndex += pageSize;
-                    }
-                } else {
-                    moreData = false;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                moreData = false;
+            if (response.startsWith("<")) {
+                throw new IllegalArgumentException("JSON 응답 API 안됨");
             }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(response);
+            JsonNode dataNode = rootNode.path("ListPublicReservationCulture").path("row");
+
+            if (dataNode.isArray()) {
+                List<SeoulEvent> events = new ArrayList<>();
+
+                // 최대 10개의 데이터를 가져오기 위해, API 호출 후 처음 10개의 데이터만 추가
+                for (JsonNode node : dataNode) {
+                    SeoulEvent event = new SeoulEvent();
+                    event.setGubun(node.path("GUBUN").asText());
+                    event.setSvcid(node.path("SVCID").asText());
+                    event.setMaxclassnm(node.path("MAXCLASSNM").asText());
+                    event.setMinclassnm(node.path("MINCLASSNM").asText());
+                    event.setSvcstatnm(node.path("SVCSTATNM").asText());
+                    event.setSvcnm(node.path("SVCNM").asText());
+                    event.setPayatnm(node.path("PAYATNM").asText());
+                    event.setPlacenm(node.path("PLACENM").asText());
+                    event.setUsetgtinfo(node.path("USETGTINFO").asText());
+                    event.setSvcurl(node.path("SVCURL").asText());
+                    event.setX(node.path("X").asText());
+                    event.setY(node.path("Y").asText());
+                    event.setSvcopnbgndt(node.path("SVCOPNBGNDT").asText());
+                    event.setSvcopnenddt(node.path("SVCOPNENDDT").asText());
+                    event.setRcptbgndt(node.path("RCPTBGNDT").asText());
+                    event.setRcptenddt(node.path("RCPTENDDT").asText());
+                    event.setAreanm(node.path("AREANM").asText());
+                    event.setImgurl(node.path("IMGURL").asText());
+                    event.setDtlcont(node.path("DTLCONT").asText());
+                    event.setTelno(node.path("TELNO").asText());
+                    event.setVMin(node.path("V_MIN").asText());
+                    event.setVMax(node.path("V_MAX").asText());
+                    event.setRevstddaynm(node.path("REVSTDDAYNM").asText());
+                    event.setRevstdday(node.path("REVSTDDAY").asText());
+                    events.add(event);
+
+                    // 데이터를 10개만 가져오기 위해 조건 추가
+                    if (events.size() >= 10) break;
+                }
+                seoulEventRepository.saveAll(events);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

@@ -3,12 +3,10 @@ package side.side.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import side.side.model.LeisureSportsEvent;
 import side.side.model.LeisureSportsEventDetail;
+import side.side.model.ShoppingEvent;
 import side.side.service.LeisureSportsEventService;
 
 import java.util.List;
@@ -54,5 +52,10 @@ public class LeisureSportsEventController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(leisureSportsEvents);
+    }
+    // 키워드 추출
+    @GetMapping("/by-region")
+    public List<LeisureSportsEvent> getLeisureSportsByRegion(@RequestParam String region) {
+        return leisureSportsEventService.getLeisureSportsByRegion(region);
     }
 }

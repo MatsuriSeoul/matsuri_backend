@@ -5,10 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import side.side.model.LeisureSportsEvent;
-import side.side.model.LeisureSportsEventDetail;
-import side.side.model.TravelCourse;
-import side.side.model.TravelCourseDetail;
+import side.side.model.*;
 import side.side.repository.LeisureSportsEventDetailRepository;
 import side.side.repository.LeisureSportsEventRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class LeisureSportsEventService {
@@ -304,5 +302,11 @@ public class LeisureSportsEventService {
         String contentTypeId = "28"; // 28 관광지 설정
 
         return leisureSportsEventRepository.findByContenttypeid(contentTypeId); // 필요에 따라 로직 변경
+    }
+    // '서울특별시'에 해당하는 레저스포츠 이벤트 가져오기
+    public List<LeisureSportsEvent> getLeisureSportsByRegion(String region) {
+        return leisureSportsEventRepository.findAll().stream()
+                .filter(event -> event.getAddr1().contains(region))
+                .collect(Collectors.toList());
     }
 }
