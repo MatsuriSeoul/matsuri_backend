@@ -17,6 +17,7 @@ import side.side.repository.ShoppingEventRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class ShoppingEventService {
@@ -315,6 +316,12 @@ public class ShoppingEventService {
         String contentTypeId = "38"; // 38 쇼핑  설정
 
         return shoppingEventRepository.findByContenttypeid(contentTypeId); // 필요에 따라 로직 변경
+    }
+    // '서울특별시'에 해당하는 쇼핑 이벤트 가져오기
+    public List<ShoppingEvent> getShoppingEventsByRegion(String region) {
+        return shoppingEventRepository.findAll().stream()
+                .filter(event -> event.getAddr1().contains(region))
+                .collect(Collectors.toList());
     }
 }
 

@@ -7,16 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import side.side.model.FoodEvent;
-import side.side.model.FoodEventDetail;
-import side.side.model.ShoppingEvent;
-import side.side.model.ShoppingEventDetail;
+import side.side.model.*;
 import side.side.repository.FoodEventDetailRepository;
 import side.side.repository.FoodEventRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class FoodEventService {
@@ -317,5 +315,11 @@ public class FoodEventService {
         String contentTypeId = "39"; // 39 음식 설정
 
         return foodEventRepository.findByContenttypeid(contentTypeId); // 필요에 따라 로직 변경
+    }
+    // '서울특별시'에 해당하는 쇼핑 이벤트 가져오기
+    public List<FoodEvent> getFoodEventsByRegion(String region) {
+        return foodEventRepository.findAll().stream()
+                .filter(event -> event.getAddr1().contains(region))
+                .collect(Collectors.toList());
     }
 }
