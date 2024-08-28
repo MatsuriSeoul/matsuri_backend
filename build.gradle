@@ -28,6 +28,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'jakarta.servlet:jakarta.servlet-api:4.0.4'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -42,6 +43,9 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
 
+	// 전화번호 인증 API
+	implementation 'com.twilio.sdk:twilio:8.32.0'
+
 	// jBCrypt 라이브러리
 	implementation 'org.mindrot:jbcrypt:0.4'
 
@@ -52,55 +56,46 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
-
 def frontendDir = "$projectDir/frontend"
 
 sourceSets {
 	main {
-		resources { srcDirs = ["$projectDir/src/main/resources"]
-		}
+		resources { srcDirs = ["$projectDir/src/main/resources"] }
 	}
 }
 
 processResources { dependsOn "copyReactBuildFiles" }
 
+
+def npmPath = "/usr/local/bin/npm"
+
 task installReact(type: Exec) {
 	workingDir "$frontendDir"
 	inputs.dir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine "npm.cmd", "install"
-	} else {
-		commandLine "npm", "install"
-	}
+	commandLine npmPath, "install"
 }
-
 
 task buildReact(type: Exec) {
 	dependsOn "installReact"
 	workingDir "$frontendDir"
 	inputs.dir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine "npm.cmd", "run-script", "build"
-	} else {
-		commandLine "npm", "run-script", "build"
-	}
+	commandLine npmPath, "run-script", "build"
 }
+
 task copyReactBuildFiles(type: Copy) {
 	dependsOn "buildReact"
 	from "$frontendDir/build"
 	into "$projectDir/src/main/resources/static"
 }
+
 task watchReact(type: Exec) {
 	workingDir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine "npm.cmd", "run", "watch"
-	} else {
-		commandLine "npm", "run", "watch"
-	}
+	commandLine npmPath, "run", "watch"
 }
+
 tasks.withType(JavaCompile) {
 	options.compilerArgs << '-parameters'
 }
