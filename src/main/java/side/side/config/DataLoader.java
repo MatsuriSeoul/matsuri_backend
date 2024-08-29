@@ -50,7 +50,7 @@ public class DataLoader implements ApplicationRunner {
             admin.setUserId("admin");
             admin.setUserName("admin");
             admin.setUserPassword("1234");
-            userService.saveAdmin(admin);
+            userService.setAdmin(admin);
             // 어드민에 대한 토큰 생성
             String token = jwtUtils.generateToken(admin.getUserName(), admin.getId());
             System.out.println("Admin Token: " + token);
