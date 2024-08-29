@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import side.side.model.FoodEvent;
 import side.side.model.LocalEvent;
 import side.side.model.LocalEventDetail;
 import side.side.repository.LocalEventDetailRepository;
@@ -15,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class LocalEventService {
@@ -317,6 +319,12 @@ public class LocalEventService {
         String contentTypeId = "32"; // 32 숙박 시설 설정
 
         return localEventRepository.findByContenttypeid(contentTypeId); // 필요에 따라 로직 변경
+    }
+    // '서울특별시'에 해당하는 숙박 이벤트 가져오기
+    public List<LocalEvent> getLocalEventsByRegion(String region) {
+        return localEventRepository.findAll().stream()
+                .filter(event -> event.getAddr1().contains(region))
+                .collect(Collectors.toList());
     }
 
 }

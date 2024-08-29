@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.model.TouristAttraction;
 import side.side.model.TouristAttractionDetail;
+import side.side.model.TravelCourse;
 import side.side.service.TouristAttractionsService;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -52,5 +53,10 @@ public class TouristAttractionController {
     public ResponseEntity<List<TouristAttraction>> getTouristAttractionsByCategory(@PathVariable String category) {
         List<TouristAttraction> attractions = touristAttractionsService.getTouristAttractionsByCategory(category);
         return ResponseEntity.ok(attractions);
+    }
+    // 키워드 추출
+    @GetMapping("/by-region")
+    public List<TouristAttraction> getTouristAttractionByRegion(@RequestParam String region) {
+        return touristAttractionsService.getTouristAttractionByRegion(region);
     }
 }

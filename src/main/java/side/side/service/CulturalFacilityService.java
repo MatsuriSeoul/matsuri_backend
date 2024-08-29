@@ -9,12 +9,14 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.CulturalFacility;
 import side.side.model.CulturalFacilityDetail;
+import side.side.model.FoodEvent;
 import side.side.repository.CulturalFacilityDetailRepository;
 import side.side.repository.CulturalFacilityRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class CulturalFacilityService {
@@ -254,5 +256,11 @@ public class CulturalFacilityService {
 
         // 카테고리에 따른 문화시설 데이터 가져오기
         return culturalFacilityRepository.findByContenttypeid(contentTypeId);
+    }
+    // '서울특별시'에 해당하는 문화시설 이벤트 가져오기
+    public List<CulturalFacility> getCulturalFacilityByRegion(String region) {
+        return culturalFacilityRepository.findAll().stream()
+                .filter(event -> event.getAddr1().contains(region))
+                .collect(Collectors.toList());
     }
 }

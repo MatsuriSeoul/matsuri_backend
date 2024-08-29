@@ -50,14 +50,14 @@ public class DataLoader implements ApplicationRunner {
             admin.setUserId("admin");
             admin.setUserName("admin");
             admin.setUserPassword("1234");
-            userService.saveAdmin(admin);
+            userService.setAdmin(admin);
             // 어드민에 대한 토큰 생성
             String token = jwtUtils.generateToken(admin.getUserName(), admin.getId());
             System.out.println("Admin Token: " + token);
         }
 
 //         eventService.fetchAndSaveGyeonggiEvents();
-         eventService.fetchAndSaveSeoulEvents();
+//         eventService.fetchAndSaveSeoulEvents();
 
         // 축제/공연/행사 데이터 호출
 //        String eventNumOfRows = "10"; // 한 페이지에 가져올 이벤트 수
@@ -108,22 +108,22 @@ public class DataLoader implements ApplicationRunner {
 //        for (CulturalFacility culturalFacility : culturalFacilities) {
 //            culturalFacilityService.fetchAndSaveCulturalFacilityDetail(culturalFacility.getContentid());
 //        }
-//
-//        // 쇼핑 데이터 호출
-        String shoppingNumOfRows = "10";
-        String shoppingPageNo = "1";
-        List<ShoppingEvent> shoppingEvents = shoppingEventService.fetchAndSaveShoppingEvents(shoppingNumOfRows, shoppingPageNo);
-        for (ShoppingEvent shoppingEvent : shoppingEvents) {
-            shoppingEventService.fetchAndSaveShoppingEventDetail(shoppingEvent.getContentid());
-        }
-//
-//        // 음식 데이터 호출
-        String foodNumOfRows = "10";
-        String foodPageNo = "1";
-        List<FoodEvent> foodEvents = foodEventService.fetchAndSaveFoodEvents(foodNumOfRows, foodPageNo);
-        for (FoodEvent foodEvent : foodEvents) {
-            foodEventService.fetchAndSaveFoodEventDetail(foodEvent.getContentid());
-        }
+////
+////        // 쇼핑 데이터 호출
+//        String shoppingNumOfRows = "10";
+//        String shoppingPageNo = "1";
+//        List<ShoppingEvent> shoppingEvents = shoppingEventService.fetchAndSaveShoppingEvents(shoppingNumOfRows, shoppingPageNo);
+//        for (ShoppingEvent shoppingEvent : shoppingEvents) {
+//            shoppingEventService.fetchAndSaveShoppingEventDetail(shoppingEvent.getContentid());
+//        }
+////
+////        // 음식 데이터 호출
+//        String foodNumOfRows = "10";
+//        String foodPageNo = "1";
+//        List<FoodEvent> foodEvents = foodEventService.fetchAndSaveFoodEvents(foodNumOfRows, foodPageNo);
+//        for (FoodEvent foodEvent : foodEvents) {
+//            foodEventService.fetchAndSaveFoodEventDetail(foodEvent.getContentid());
+//        }
 
         // 저장된 이벤트의 상세 정보를 업데이트
         updateEventDetails();
