@@ -52,6 +52,43 @@ public class UserService {
         Twilio.init(accountSid, authToken);
     }
 
+    ///////////////////////////////  회원가입 시 이메일, 전화번호 인증번호 전송 ///////////////////////////////
+
+    public boolean sendVerificationCodeByEmail(String email) {
+        String code = generateVerificationCode();
+        VerificationCode verificationCode = new VerificationCode(code, LocalDateTime.now().plusMinutes(5));
+        verificationCodeMap.put(email, verificationCode);
+
+        try {
+            sendEmailVerificationCode(email, code);
+            log.info("Verification code sent successfully to email: {}", email);
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to send verification code via email: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+
+    public boolean sendVerificationCodeByPhone(String phone) {
+        String code = generateVerificationCode();
+        VerificationCode verificationCode = new VerificationCode(code, LocalDateTime.now().plusMinutes(5));
+        verificationCodeMap.put(phone, verificationCode);
+
+        try {
+            String internationalPhone = formatPhoneNumber(phone);
+            Message.creator(new PhoneNumber(internationalPhone), new PhoneNumber(fromPhoneNumber),
+                    "인증번호 : " + code + " 유효 시간은 5분입니다.").create();
+            log.info("Verification code sent successfully to phone: {}", phone);
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to send verification code via phone: {}", e.getMessage(), e);
+            return false;
+        }
+    }
+    ///////////////////////////////  회원가입 시 이메일, 전화번호 인증번호 전송 ///////////////////////////////
+
+    ///////////////////////////////  비밀번호 찾기 로직 ///////////////////////////////
+
     // 이메일로 인증번호 생성 및 발송 (비밀번호 찾기)
     public boolean sendVerificationCodeByEmailForPassword(String userId, String email) {
         log.info("Attempting to send verification code via email for userId: {} and email: {}", userId, email);
@@ -101,7 +138,10 @@ public class UserService {
             return false;
         }
     }
+    ///////////////////////////////  비밀번호 찾기 로직 ///////////////////////////////
 
+
+    ///////////////////////////////  아이디 찾기 로직 ///////////////////////////////
 
     // 전화번호로 인증번호 생성 및 발송 (아이디 찾기 로직 : 이름 + 전화번호 조합)
     public boolean sendVerificationCodeByPhoneForUserName(String userName, String phone) {
@@ -152,7 +192,9 @@ public class UserService {
             return false;
         }
     }
+    ///////////////////////////////  아이디 찾기 로직 ///////////////////////////////
 
+    //  입력한 전화번호를 국제 전화번호 표기법으로 변환
     private String formatPhoneNumber(String phone) {
         if (phone.startsWith("0")) {
             phone = phone.substring(1);
@@ -160,6 +202,7 @@ public class UserService {
         return "+82" + phone;
     }
 
+    //  이메일로 인증번호 발송
     private void sendEmailVerificationCode(String email, String code) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -172,6 +215,7 @@ public class UserService {
         }
     }
 
+    //  인증번호 생성
     private String generateVerificationCode() {
         Random random = new Random();
         StringBuilder code = new StringBuilder(VERIFICATION_CODE_LENGTH);
@@ -182,6 +226,7 @@ public class UserService {
         return code.toString();
     }
 
+    //  인증번호 검증
     public boolean verifyCode(String identifier, String code) {
         log.info("Verifying code for identifier: {}", identifier);
         VerificationCode verificationCode = verificationCodeMap.get(identifier);
@@ -201,12 +246,13 @@ public class UserService {
     }
 
 
+    //  임시 비밀번호 발급
     public Optional<String> resetPassword(String userId, String identifier, String option) {
 
         Optional<UserInfo> user = option.equals("phone") ?
                 userRepository.findByUserIdAndUserPhone(userId, identifier) :
                 userRepository.findByUserIdAndUserEmail(userId, identifier);
-// da6cf5c7
+
         if (user.isPresent()) {
             String tempPassword = generateTemporaryPassword();
             String hashedPassword = BCrypt.hashpw(tempPassword, BCrypt.gensalt());
@@ -225,10 +271,12 @@ public class UserService {
         return Optional.empty();
     }
 
+    //  임시 비밀번호 생성
     private String generateTemporaryPassword() {
         return UUID.randomUUID().toString().substring(0, 8);
     }
 
+    //  이메일로 임시 비밀번호 전송
     private void sendEmailTempPassword(String email, String tempPassword) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
@@ -237,6 +285,7 @@ public class UserService {
         mailSender.send(message);
     }
 
+    //  문자로 임시 비밀번호 전송
     private void sendSms(String phone, String messageText) {
         try {
             String internationalPhone = formatPhoneNumber(phone);
@@ -296,10 +345,14 @@ public class UserService {
         if (userInfo.getRole() == null || userInfo.getRole().isEmpty()) {
             userInfo.setRole("USER");
         }
+        // 비밀번호를 암호화
+        String encodedPassword = BCrypt.hashpw(userInfo.getUserPassword(), BCrypt.gensalt());
+        userInfo.setUserPassword(encodedPassword);
+
         return userRepository.save(userInfo);
     }
 
-    public UserInfo saveAdmin(UserInfo userInfo) {
+    public UserInfo setAdmin(UserInfo userInfo) {
         userInfo.setRole("ADMIN");
         return userRepository.save(userInfo);
     }
@@ -320,6 +373,10 @@ public class UserService {
 
     public boolean checkUserEmailExists(String userEmail) {
         return userRepository.existsByUserEmail(userEmail);
+    }
+
+    public boolean checkUserPhoneExists(String userPhone) {
+        return userRepository.existsByUserPhone(userPhone);
     }
 
     public Optional<UserInfo> getUserById(Long userId) {
