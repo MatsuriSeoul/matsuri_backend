@@ -40,7 +40,7 @@ public class EventService {
 
     // 경기도 행사 API
     public void fetchAndSaveGyeonggiEvents() {
-        int pageSize = 100;
+        int pageSize = 10;  // 가져올 데이터 개수를 10개로 설정
         int startIndex = 1;
         boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
@@ -82,11 +82,8 @@ public class EventService {
                     }
                     gyeonggiEventRepository.saveAll(events);
 
-                    if (dataNode.size() < pageSize) {
-                        moreData = false;
-                    } else {
-                        startIndex++;
-                    }
+                    // 10개씩 가져오는 것으로 설정했으므로 한 번만 가져오고 종료
+                    moreData = false;
                 } else {
                     moreData = false;
                 }
@@ -418,6 +415,12 @@ public class EventService {
             e.printStackTrace();
             return null;
         }
+    }
+    // '서울특별시'에 해당하는 쇼핑 이벤트 가져오기
+    public List<TourEvent> getTourEventsByRegion(String region) {
+        return tourEventRepository.findAll().stream()
+                .filter(event -> event.getAddr1().contains(region))
+                .collect(Collectors.toList());
     }
 
     //데이터베이스에서 행사 상세 정보 추출

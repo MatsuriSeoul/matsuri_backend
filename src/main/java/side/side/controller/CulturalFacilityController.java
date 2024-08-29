@@ -65,4 +65,9 @@ public class CulturalFacilityController {
         List<CulturalFacility> attractions = culturalFacilityService.fetchAndSaveCulturalFacilities(numOfRows, pageNo);
         return ResponseEntity.ok(attractions);
     }
+    // 키워드 추출
+    @GetMapping("/by-region")
+    public List<CulturalFacility> getCulturalFacilityByRegion(@RequestParam String region) {
+        return culturalFacilityService.getCulturalFacilityByRegion(region);
+    }
 }

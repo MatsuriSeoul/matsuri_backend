@@ -38,6 +38,8 @@ public class EventController {
 
     @Autowired
     private FoodEventService foodEventService;
+    @Autowired
+    private TourEventService tourEventService;
 
     @GetMapping("/fetchGyeonggi")
     public String fetchGyeonggiEvents() {
@@ -182,6 +184,11 @@ public class EventController {
 
         List<TourEvent> events = eventService.fetchAndSaveEvents(numOfRows, pageNo, eventStartDate);
         return ResponseEntity.ok(events);
+    }
+    // 키워드 추출
+    @GetMapping("/by-region")
+    public List<TourEvent> getTourEventsByRegion(@RequestParam String region) {
+        return eventService.getTourEventsByRegion(region);
     }
 }
 

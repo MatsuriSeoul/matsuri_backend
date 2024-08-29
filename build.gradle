@@ -17,6 +17,9 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+	all {
+		exclude group: 'commons-logging', module: 'commons-logging'
+	}
 }
 
 repositories {
@@ -30,15 +33,15 @@ dependencies {
 	implementation 'jakarta.servlet:jakarta.servlet-api:4.0.4'
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.mysql:mysql-connector-j:8.0.33' // 명시적으로 MySQL 드라이버 추가
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'jakarta.servlet:jakarta.servlet-api:4.0.4'
 	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.3'
-	//JWT
+
+	// JWT
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
@@ -56,6 +59,7 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
 def frontendDir = "$projectDir/frontend"
 
 sourceSets {
@@ -66,14 +70,15 @@ sourceSets {
 
 processResources { dependsOn "copyReactBuildFiles" }
 
-
-def npmPath = "/usr/local/bin/npm"
-
 task installReact(type: Exec) {
 	workingDir "$frontendDir"
 	inputs.dir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	commandLine npmPath, "install"
+	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+		commandLine "npm.cmd", "install"
+	} else {
+		commandLine "npm", "install"
+	}
 }
 
 task buildReact(type: Exec) {
@@ -81,7 +86,11 @@ task buildReact(type: Exec) {
 	workingDir "$frontendDir"
 	inputs.dir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	commandLine npmPath, "run-script", "build"
+	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+		commandLine "npm.cmd", "run-script", "build"
+	} else {
+		commandLine "npm", "run-script", "build"
+	}
 }
 
 task copyReactBuildFiles(type: Copy) {
@@ -93,7 +102,11 @@ task copyReactBuildFiles(type: Copy) {
 task watchReact(type: Exec) {
 	workingDir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	commandLine npmPath, "run", "watch"
+	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+		commandLine "npm.cmd", "run", "watch"
+	} else {
+		commandLine "npm", "run", "watch"
+	}
 }
 
 tasks.withType(JavaCompile) {

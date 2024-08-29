@@ -3,11 +3,9 @@ package side.side.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import side.side.model.CulturalFacility;
+import side.side.model.ShoppingEvent;
 import side.side.model.TravelCourse;
 import side.side.model.TravelCourseDetail;
 import side.side.service.TravelCourseService;
@@ -54,5 +52,10 @@ public class TravelCourseController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(travelCourses);
+    }
+    // 키워드 추출
+    @GetMapping("/by-region")
+    public List<TravelCourse> getTravelCourseByRegion(@RequestParam String region) {
+        return travelCourseService.getTravelCourseByRegion(region);
     }
 }

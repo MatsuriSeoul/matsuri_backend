@@ -3,12 +3,10 @@ package side.side.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import side.side.model.LocalEvent;
 import side.side.model.LocalEventDetail;
+import side.side.model.TouristAttraction;
 import side.side.service.LocalEventService;
 
 import java.util.List;
@@ -54,5 +52,10 @@ public class LocalEventController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(localEvents);
+    }
+    // 키워드 추출
+    @GetMapping("/by-region")
+    public List<LocalEvent> getLocalEventsByRegion(@RequestParam String region) {
+        return localEventService.getLocalEventsByRegion(region);
     }
 }
