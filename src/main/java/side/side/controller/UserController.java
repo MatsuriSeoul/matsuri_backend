@@ -59,7 +59,7 @@ public class UserController {
     public ResponseEntity<?> loginUser(@RequestBody UserInfo loginRequest) {
         UserInfo user = userService.findByUserId(loginRequest.getUserId());
         if (user != null && loginRequest.getUserPassword().equals(user.getUserPassword())) { // 평문 비교
-            String token = jwtUtils.generateToken(user.getUserName(), user.getId());
+            String token = jwtUtils.generateToken(user.getUserName(), user.getId(), user.getRole());
             return ResponseEntity.ok(new LoginResponse(token, user.getUserName(), user.getRole()));
         } else {
             return ResponseEntity.status(401).body("Invalid credentials");

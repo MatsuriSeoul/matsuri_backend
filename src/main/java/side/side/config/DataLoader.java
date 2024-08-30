@@ -1,5 +1,6 @@
 package side.side.config;
 
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -49,10 +50,16 @@ public class DataLoader implements ApplicationRunner {
             UserInfo admin = new UserInfo();
             admin.setUserId("admin");
             admin.setUserName("admin");
-            admin.setUserPassword("1234");
+
+            // 비밀번호를 암호화 (JBCrypt 사용)
+            String hashedPassword = BCrypt.hashpw("1234", BCrypt.gensalt());
+            admin.setUserPassword(hashedPassword);
+
+            userService.setAdmin(admin);
+
             userService.setAdmin(admin);
             // 어드민에 대한 토큰 생성
-            String token = jwtUtils.generateToken(admin.getUserName(), admin.getId());
+            String token = jwtUtils.generateToken(admin.getUserName(), admin.getId(), admin.getRole());
             System.out.println("Admin Token: " + token);
         }
 

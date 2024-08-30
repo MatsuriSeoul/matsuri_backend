@@ -42,7 +42,7 @@ public class LoginController {
         }
 
         // 비밀번호가 일치하면 JWT 토큰 생성
-        String token = jwtUtils.generateToken(storedUser.getUserName(), storedUser.getId());
+        String token = jwtUtils.generateToken(storedUser.getUserName(), storedUser.getId(), storedUser.getRole());
 
         // 로그인 성공 로그 출력 (로그 레벨을 debug로 설정)
         logger.debug("로그인 성공: ID {}", storedUser.getId());

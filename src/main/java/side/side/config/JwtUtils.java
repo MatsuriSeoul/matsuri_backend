@@ -30,7 +30,7 @@ public class JwtUtils {
         return new SecretKeySpec(keyBytes, SignatureAlgorithm.HS512.getJcaName());
     }
 
-    public String generateToken(String userName, Long userId) {
+    public String generateToken(String userName, Long userId, String userRole) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMs);
 
@@ -38,6 +38,7 @@ public class JwtUtils {
                 .setSubject(String.valueOf(userId))
                 .claim("userName", userName)
                 .claim("userId", userId)
+                .claim("role", userRole)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
                 .signWith(getSigningKey())
