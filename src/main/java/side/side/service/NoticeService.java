@@ -243,7 +243,7 @@ public class NoticeService {
 
     // 단일 이미지 저장
     private NoticeImage saveImage(Notice notice, MultipartFile image) throws IOException {
-        String imagePath = noticeImageService.uploadImage(image);
+        String imagePath = noticeImageService.uploadNoticeImage(image);
         NoticeImage noticeImage = new NoticeImage();
         noticeImage.setImgName(image.getOriginalFilename());
         noticeImage.setImagePath(imagePath);

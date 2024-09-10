@@ -9,9 +9,16 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/images/**")
-                .addResourceLocations("file:src/main/resources/static/images/");
+        // 프로필 이미지 서빙
+        registry.addResourceHandler("/uploads/userProfileImg/**")
+                .addResourceLocations("file:" + System.getProperty("user.home") + "/Desktop/uploads/userProfileImg/");
+
+        // 공지사항 이미지 서빙
+        registry.addResourceHandler("/uploads/noticeImage/**")
+                .addResourceLocations("file:" + System.getProperty("user.home") + "/Desktop/uploads/noticeImage/");
     }
+
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
