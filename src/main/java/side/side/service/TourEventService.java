@@ -7,6 +7,7 @@ import side.side.model.TourEvent;
 import side.side.repository.TourEventRepository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -31,5 +32,4 @@ public class TourEventService {
 
         return events;
     }
-    
 }

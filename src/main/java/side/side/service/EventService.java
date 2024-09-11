@@ -31,6 +31,22 @@ public class EventService {
     @Autowired
     private TourEventDetailRepository tourEventDetailRepository;
 
+    @Autowired
+    private ShoppingEventService shoppingEventService;
+    @Autowired
+    private FoodEventService foodEventService;
+    @Autowired
+    private LocalEventService localEventService;
+    @Autowired
+    private CulturalFacilityService culturalFacilityService;
+    @Autowired
+    private TravelCourseService travelCourseService;
+    @Autowired
+    private LeisureSportsEventService leisureSportsEventService;
+    @Autowired
+    private TouristAttractionsService touristAttractionsService;
+    @Autowired
+    private TourEventService tourEventService;
 
 
     // 키 값 절대 건들이면 안됨
@@ -458,7 +474,31 @@ public class EventService {
 
         return results;
     }
+    // 서울 특정 카테고리별 이벤트 조회
+    public List<?> fetchEventsByCategory(String region, String category) {
+        if (region.equals("서울특별시")) {
+            switch (category) {
+                case "쇼핑":
+                    return shoppingEventService.getShoppingEventsByCategory(region);
+                case "음식":
+                    return foodEventService.getFoodEventsByCategory(region);
+                case "숙박":
+                    return localEventService.getLocalEventsByRegion(region);
+                case "문화시설":
+                    return culturalFacilityService.getCulturalFacilityByRegion(region);
+                case "여행코스":
+                    return travelCourseService.getTravelCourseByRegion(region);
+                case "레포츠":
+                    return leisureSportsEventService.getLeisureSportsByRegion(region);
+                case "관광지":
+                    return touristAttractionsService.getTouristAttractionByRegion(region);
 
+                default:
+                    return new ArrayList<>();
+            }
+        }
+        return new ArrayList<>();
+    }
 }
 
 
