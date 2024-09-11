@@ -50,6 +50,7 @@ public class DataLoader implements ApplicationRunner {
             UserInfo admin = new UserInfo();
             admin.setUserId("admin");
             admin.setUserName("admin");
+            admin.setProfileImage("default-profile-image.png");
 
             // 비밀번호를 암호화 (JBCrypt 사용)
             String hashedPassword = BCrypt.hashpw("1234", BCrypt.gensalt());
