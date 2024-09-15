@@ -28,6 +28,9 @@ public class TravelCourse {
     private String zipcode;
     private String tel;
     private String modifiedtime;
-
+    private String beginDe;
+    private String endDe;
+    private String regionNm;
+    private String imageUrl;
     // Getter 및 Setter 메소드
 }

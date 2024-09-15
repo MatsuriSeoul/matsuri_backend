@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import side.side.model.LeisureSportsEvent;
 import side.side.model.LeisureSportsEventDetail;
 import side.side.model.ShoppingEvent;
+import side.side.repository.LeisureSportsEventRepository;
 import side.side.service.LeisureSportsEventService;
 
 import java.util.List;
@@ -17,6 +18,8 @@ public class LeisureSportsEventController {
 
     @Autowired
     private LeisureSportsEventService leisureSportsEventService;
+    @Autowired
+    private LeisureSportsEventRepository leisureSportsEventRepository;
 
     @GetMapping("/{contentid}/detail")
     public ResponseEntity<?> getLeisureSportsEventDetail(@PathVariable String contentid) {
@@ -58,4 +61,5 @@ public class LeisureSportsEventController {
     public List<LeisureSportsEvent> getLeisureSportsByRegion(@RequestParam String region) {
         return leisureSportsEventService.getLeisureSportsByRegion(region);
     }
+
 }

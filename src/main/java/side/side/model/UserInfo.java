@@ -35,4 +35,7 @@ public class UserInfo {
     @Column(name = "user_role")
     private String role; // 사용자, 관리자 구분
 
+    @Column(name = "profile_image")
+    private String profileImage;
+
 }

@@ -12,14 +12,14 @@ import java.nio.file.Paths;
 import java.util.UUID;
 
 @Service
-public class NoticeImageService {
+public class ProfileImageService {
 
-    private static final Logger logger = LoggerFactory.getLogger(NoticeImageService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ProfileImageService.class);
 
-    // 공지사항 이미지 파일이 저장될 디렉토리 경로
-    private final String uploadDir = System.getProperty("user.home") + "/Desktop/uploads/noticeImage/";
+    // 프로필 이미지 파일이 저장될 디렉토리 경로
+    private final String uploadDir = System.getProperty("user.home") + "/Desktop/uploads/userProfileImg/";
 
-    public String uploadNoticeImage(MultipartFile image) {
+    public String uploadProfileImage(MultipartFile image) {
         // 파일 이름 생성
         String fileName = UUID.randomUUID().toString() + "_" + image.getOriginalFilename();
         // 파일 경로 생성
@@ -30,11 +30,11 @@ public class NoticeImageService {
             Files.createDirectories(filePath.getParent());
             // 파일 저장
             Files.write(filePath, image.getBytes());
-            logger.info("Notice Image saved at: " + filePath.toString()); // 저장된 경로 로그 출력
+            logger.info("Profile Image saved at: " + filePath.toString()); // 저장된 경로 로그 출력
         } catch (IOException e) {
-            throw new RuntimeException("공지사항 이미지 업로드 실패", e);
+            throw new RuntimeException("프로필 이미지 업로드 실패", e);
         }
         // 웹 접근 경로 반환
-        return "/uploads/noticeImage/" + fileName;
+        return "/uploads/userProfileImg/" + fileName;
     }
 }

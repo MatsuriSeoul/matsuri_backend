@@ -12,6 +12,7 @@ import side.side.repository.FoodEventDetailRepository;
 import side.side.repository.FoodEventRepository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -31,7 +32,7 @@ public class FoodEventService {
 
     // 음식 API 호출 및 데이터 저장
     public List<FoodEvent> fetchAndSaveFoodEvents(String numOfRows, String pageNo) {
-        numOfRows = "0";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "10";  // 호출되는 데이터의 개수를 10개로 제한
         List<FoodEvent> allFoodEvents = new ArrayList<>();
         boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
@@ -322,4 +323,6 @@ public class FoodEventService {
                 .filter(event -> event.getAddr1().contains(region))
                 .collect(Collectors.toList());
     }
+
+
 }

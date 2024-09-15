@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import side.side.model.LocalEvent;
 import side.side.model.LocalEventDetail;
 import side.side.model.TouristAttraction;
+import side.side.repository.LocalEventRepository;
 import side.side.service.LocalEventService;
 
 import java.util.List;
@@ -17,6 +18,8 @@ public class LocalEventController {
 
     @Autowired
     private LocalEventService localEventService;
+    @Autowired
+    private LocalEventRepository localEventRepository;
 
     @GetMapping("/{contentid}/detail")
     public ResponseEntity<?> getLocalEventDetail(@PathVariable String contentid) {
@@ -58,4 +61,5 @@ public class LocalEventController {
     public List<LocalEvent> getLocalEventsByRegion(@RequestParam String region) {
         return localEventService.getLocalEventsByRegion(region);
     }
+
 }

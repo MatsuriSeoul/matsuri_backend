@@ -27,5 +27,8 @@ public class LocalEvent {
     private String cat3;
     private String contentid;
     private String contenttypeid;
-
+    private String beginDe;
+    private String endDe;
+    private String regionNm;
+    private String imageUrl;
 }

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.model.*;
+import side.side.repository.TourEventRepository;
 import side.side.service.*;
 
 import java.util.List;
@@ -38,8 +39,12 @@ public class EventController {
 
     @Autowired
     private FoodEventService foodEventService;
+
     @Autowired
     private TourEventService tourEventService;
+
+    @Autowired
+    private TourEventRepository tourEventRepository;
 
     @GetMapping("/fetchGyeonggi")
     public String fetchGyeonggiEvents() {
@@ -53,14 +58,6 @@ public class EventController {
         return "서울 api 저장 완료";
     }
 
-    @GetMapping("/search")
-    public List<Object> searchEvents(
-            @RequestParam(required = false) String date,
-            @RequestParam(required = false) String region,
-            @RequestParam(required = false) String category
-    ) {
-        return eventService.searchEvents(date, region, category);
-    }
 
     //국문관광정보 축제/공연/행사 카테고리 데이터
     @GetMapping("/fetch")
@@ -130,19 +127,19 @@ public class EventController {
         List<ShoppingEvent> shopping = shoppingEventService.fetchAndSaveShoppingEvents(numOfRows, pageNo);
         return ResponseEntity.ok(shopping);
     }
+
     // 음식 카테고리 데이터 불러오기
     @GetMapping("/fetchAndSaveFood")
     public ResponseEntity<List<FoodEvent>> fetchAndSaveFoodEvents(
             @RequestParam String numOfRows,
             @RequestParam String pageNo) {
 
-        List<FoodEvent> food = foodEventService.fetchAndSaveFoodEvents(numOfRows,pageNo);
+        List<FoodEvent> food = foodEventService.fetchAndSaveFoodEvents(numOfRows, pageNo);
         return ResponseEntity.ok(food);
     }
 
 
     /* EventController의 축제/공연/행사에 대한 컨트롤러  */
-
 
 
     // 행사 상세 정보 불러오기
@@ -185,10 +182,20 @@ public class EventController {
         List<TourEvent> events = eventService.fetchAndSaveEvents(numOfRows, pageNo, eventStartDate);
         return ResponseEntity.ok(events);
     }
+
     // 키워드 추출
     @GetMapping("/by-region")
     public List<TourEvent> getTourEventsByRegion(@RequestParam String region) {
         return eventService.getTourEventsByRegion(region);
     }
+
+    @GetMapping("/by-region-category")
+    public ResponseEntity<List<?>> fetchEventsByRegionAndCategory(
+            @RequestParam String region,
+            @RequestParam String category) {
+        List<?> events = eventService.fetchEventsByCategory(region, category);
+        return ResponseEntity.ok(events);
+    }
+
 }
 

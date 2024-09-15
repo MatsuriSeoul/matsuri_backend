@@ -26,6 +26,8 @@ public class LeisureSportsEvent {
     private String cat3;
     private String contentid;
     private String contenttypeid;
-
-    // 기타 필요한 필드 추가
+    private String beginDe;
+    private String endDe;
+    private String regionNm;
+    private String imageUrl;
 }

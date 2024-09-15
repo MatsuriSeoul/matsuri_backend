@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import side.side.model.FoodEvent;
 import side.side.model.FoodEventDetail;
 import side.side.model.ShoppingEvent;
+import side.side.repository.FoodEventRepository;
 import side.side.service.FoodEventService;
 
 import java.util.List;
@@ -17,6 +18,8 @@ public class FoodEventController {
 
     @Autowired
     private FoodEventService foodEventService;
+    @Autowired
+    private FoodEventRepository foodEventRepository;
 
     @GetMapping("/{contentid}/detail")
     public ResponseEntity<?> getFoodEventDetail(@PathVariable String contentid) {

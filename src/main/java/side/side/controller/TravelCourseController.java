@@ -8,6 +8,7 @@ import side.side.model.CulturalFacility;
 import side.side.model.ShoppingEvent;
 import side.side.model.TravelCourse;
 import side.side.model.TravelCourseDetail;
+import side.side.repository.TravelCourseRepository;
 import side.side.service.TravelCourseService;
 
 import java.util.List;
@@ -18,6 +19,8 @@ public class TravelCourseController {
 
     @Autowired
     private TravelCourseService travelCourseService;
+    @Autowired
+    private TravelCourseRepository travelCourseRepository;
 
     @GetMapping("/{contentid}/detail")
     public ResponseEntity<?> getTravelCourseDetail(@PathVariable String contentid) {
@@ -58,4 +61,5 @@ public class TravelCourseController {
     public List<TravelCourse> getTravelCourseByRegion(@RequestParam String region) {
         return travelCourseService.getTravelCourseByRegion(region);
     }
+
 }

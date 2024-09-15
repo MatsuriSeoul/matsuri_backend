@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import side.side.model.CulturalFacility;
 import side.side.model.CulturalFacilityDetail;
 import side.side.model.TouristAttraction;
+import side.side.repository.CulturalFacilityRepository;
 import side.side.service.CulturalFacilityService;
 
 import java.util.List;
@@ -17,6 +18,8 @@ public class CulturalFacilityController {
 
     @Autowired
     private CulturalFacilityService culturalFacilityService;
+    @Autowired
+    private CulturalFacilityRepository culturalFacilityRepository;
 
     // 문화시설 상세 정보 불러오기
     @GetMapping("/{contentid}/detail")
@@ -70,4 +73,6 @@ public class CulturalFacilityController {
     public List<CulturalFacility> getCulturalFacilityByRegion(@RequestParam String region) {
         return culturalFacilityService.getCulturalFacilityByRegion(region);
     }
+    // 이미지 URL과 제목만 반환하는 API
+
 }

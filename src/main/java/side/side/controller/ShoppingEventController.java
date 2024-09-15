@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.model.ShoppingEvent;
 import side.side.model.ShoppingEventDetail;
+import side.side.repository.ShoppingEventRepository;
 import side.side.service.ShoppingEventService;
 
 import java.util.List;
@@ -16,6 +17,8 @@ public class ShoppingEventController {
 
     @Autowired
     private ShoppingEventService shoppingEventService;
+    @Autowired
+    private ShoppingEventRepository shoppingEventRepository;
 
     // 쇼핑 이벤트 상세 정보 가져오기
     @GetMapping("/{contentid}/detail")
@@ -61,4 +64,5 @@ public class ShoppingEventController {
     public List<ShoppingEvent> getShoppingEventsByRegion(@RequestParam String region) {
         return shoppingEventService.getShoppingEventsByRegion(region);
     }
+
 }
