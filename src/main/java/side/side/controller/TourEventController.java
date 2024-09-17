@@ -19,10 +19,8 @@ public class TourEventController {
 
     @GetMapping("/category/{category}")
     public List<TourEvent> getEventsByCategory(@PathVariable String category) {
-        logger.info("Received request for category: " + category);
         List<TourEvent> events = tourEventService.getEventsByCategory(category);
-        logger.info("Returning events: " + events);
         return events;
-        //test
+
     }
 }

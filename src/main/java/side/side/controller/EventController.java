@@ -6,11 +6,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.model.*;
+import side.side.repository.GyeonggiEventRepository;
+import side.side.repository.SeoulEventRepository;
 import side.side.repository.TourEventRepository;
 import side.side.service.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/events")
@@ -46,18 +49,41 @@ public class EventController {
     @Autowired
     private TourEventRepository tourEventRepository;
 
-    @GetMapping("/fetchGyeonggi")
-    public String fetchGyeonggiEvents() {
-        eventService.fetchAndSaveGyeonggiEvents();
-        return "경기도 api 저장 완료";
+    @Autowired
+    private GyeonggiEventRepository gyeonggiEventRepository;
+
+    @Autowired
+    private SeoulEventRepository seoulEventRepository;
+
+    // 경기 이벤트 데이터 반환 (카테고리 필터링 포함)
+    @GetMapping("/gyeonggi-events")
+    public List<GyeonggiEvent> getGyeonggiEvents(@RequestParam(required = false) String category) {
+        return eventService.getGyeonggiEventsByCategory(category);
     }
 
-    @GetMapping("/fetchSeoul")
-    public String fetchSeoulEvents() {
-        eventService.fetchAndSaveSeoulEvents();
-        return "서울 api 저장 완료";
+    // 경기 이벤트 상세 정보 반환
+    @GetMapping("/gyeonggi-events/{id}")
+    public ResponseEntity<GyeonggiEvent> getGyeonggiEventById(@PathVariable("id") Long id) {
+        Optional<GyeonggiEvent> gyeonggiEvent = gyeonggiEventRepository.findById(id);
+        return gyeonggiEvent.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // 서울 이벤트 데이터 반환 (카테고리 필터링 포함)
+    @GetMapping("/seoul-events")
+    public List<SeoulEvent> getSeoulEvents(@RequestParam(required = false) String category) {
+        return eventService.getSeoulEventsByCategory(category);
+    }
+
+    // 서울 이벤트 상세 정보 반환
+    @GetMapping("/seoul-events/{svcid}")
+    public ResponseEntity<SeoulEvent> getSeoulEventBySvcId(@PathVariable("svcid") String svcid) {
+        SeoulEvent seoulEvent = seoulEventRepository.findBySvcid(svcid);
+        if (seoulEvent != null) {
+            return ResponseEntity.ok(seoulEvent);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
     //국문관광정보 축제/공연/행사 카테고리 데이터
     @GetMapping("/fetch")

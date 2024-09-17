@@ -56,7 +56,7 @@ public class EventService {
 
     // 경기도 행사 API
     public void fetchAndSaveGyeonggiEvents() {
-        int pageSize = 10;  // 가져올 데이터 개수를 10개로 설정
+        int pageSize = 500;  // 가져올 데이터 개수를 10개로 설정
         int startIndex = 1;
         boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
@@ -112,7 +112,7 @@ public class EventService {
 
     // 서울 행사 API
     public void fetchAndSaveSeoulEvents() {
-        int pageSize = 10;  // 데이터를 10개만 가져오기 위해 pageSize를 10으로 설정
+        int pageSize = 500;  // 데이터를 10개만 가져오기 위해 pageSize를 10으로 설정
         int startIndex = 1;
         RestTemplate restTemplate = new RestTemplate();
 
@@ -163,7 +163,7 @@ public class EventService {
                     events.add(event);
 
                     // 데이터를 10개만 가져오기 위해 조건 추가
-                    if (events.size() >= 10) break;
+                    if (events.size() >= 500) break;
                 }
                 seoulEventRepository.saveAll(events);
             }
@@ -176,7 +176,7 @@ public class EventService {
     public List<TourEvent> fetchAndSaveEvents(String numOfRows, String pageNo, String eventStartDate) {
         List<TourEvent> allEvents = new ArrayList<>();
         boolean moreData = true;
-        numOfRows = "10";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "500";  // 호출되는 데이터의 개수를 10개로 제한
 
         RestTemplate restTemplate = new RestTemplate();
         String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/searchFestival1")
@@ -446,13 +446,6 @@ public class EventService {
 
 
 
-    public void fetchAndSaveAllEventDetails() {
-        List<String> contentIds = getAllContentIds();
-        for (String contentId : contentIds) {
-            fetchAndSaveEventDetail(contentId);
-        }
-    }
-
     public List<String> getAllContentIds() {
         return tourEventRepository.findAll().stream()
                 .map(event -> event.getContentid())
@@ -460,20 +453,6 @@ public class EventService {
     }
 
 
-
-    public List<Object> searchEvents(String date, String region, String category) {
-        List<Object> results = new ArrayList<>();
-
-        if (region == null || region.equalsIgnoreCase("경기")) {
-            results.addAll(gyeonggiEventRepository.findByCriteria(date, category));
-        }
-
-        if (region == null || region.equalsIgnoreCase("서울")) {
-            results.addAll(seoulEventRepository.findByCriteria(date, category));
-        }
-
-        return results;
-    }
     // 서울 특정 카테고리별 이벤트 조회
     public List<?> fetchEventsByCategory(String region, String category) {
         if (region.equals("서울특별시")) {
@@ -498,6 +477,23 @@ public class EventService {
             }
         }
         return new ArrayList<>();
+    }
+    // 경기 이벤트 필터링 로직
+    public List<GyeonggiEvent> getGyeonggiEventsByCategory(String category) {
+        if (category != null && !category.isEmpty()) {
+            // category_nm 필드를 기준으로 필터링
+            return gyeonggiEventRepository.findByCategoryNm(category);
+        }
+        return gyeonggiEventRepository.findAll();  // 카테고리가 없으면 전체 조회
+    }
+
+    // 서울 이벤트 필터링 로직
+    public List<SeoulEvent> getSeoulEventsByCategory(String category) {
+        if (category != null && !category.isEmpty()) {
+            // minclassnm 필드를 기준으로 필터링
+            return seoulEventRepository.findByMinclassnm(category);
+        }
+        return seoulEventRepository.findAll();  // 카테고리가 없으면 전체 조회
     }
 }
 

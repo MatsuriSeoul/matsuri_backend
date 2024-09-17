@@ -37,7 +37,7 @@ public class LocalEventService {
     public List<LocalEvent> fetchAndSaveEventsLocal(String numOfRows, String pageNo) {
         List<LocalEvent> allEvents = new ArrayList<>();
         boolean moreData = true;
-        numOfRows = "10";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "500";  // 호출되는 데이터의 개수를 10개로 제한
         RestTemplate restTemplate = new RestTemplate();
 
         // 단일 요청
