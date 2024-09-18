@@ -14,13 +14,13 @@ public class LogoutController {
 
     @PostMapping("/api/logout")
     public void logUserLogout(@RequestBody LogoutRequest logoutRequest) {
-        logger.info("닉네임 : {} 님이 로그아웃 하였습니다.", logoutRequest.getUserNick());
+        logger.info("닉네임 : {} 님이 로그아웃 하였습니다.", logoutRequest.getUserId());
     }
 
     @Getter
     @Setter
     public static class LogoutRequest {
         private String userNick;
-        private Long userId;
+        private String userId;
     }
 }

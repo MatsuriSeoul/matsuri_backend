@@ -30,7 +30,7 @@ public class JwtUtils {
         return new SecretKeySpec(keyBytes, SignatureAlgorithm.HS512.getJcaName());
     }
 
-    public String generateToken(String userName, Long userId) {
+    public String generateToken(String userName, String userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expirationMs);
 

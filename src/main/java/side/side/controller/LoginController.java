@@ -37,7 +37,7 @@ public class LoginController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("비밀번호 일치하지 않습니다.");
         }
         // 로그인 하면 JWT 토큰 생성
-        String token = jwtUtils.generateToken(storedUser.getUserName(), storedUser.getId());
+        String token = jwtUtils.generateToken(storedUser.getUserName(), storedUser.getId().toString());
         // 로그인 로그
         logger.info("로그인 성공 ID : {}", storedUser.getId());
 

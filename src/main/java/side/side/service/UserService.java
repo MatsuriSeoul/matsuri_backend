@@ -50,6 +50,11 @@ public class UserService {
         return userInfo.orElse(null); // Optional에서 UserInfo로 변환
     }
 
+    //소셜 로그인 사용자 확인
+    public UserInfo findBySocialIdAndProvider(String socialId, String provider) {
+        return userRepository.findBySocialIdAndSocialProvider(socialId, provider);
+    }
+
     // identifier와 type을 기반으로 비밀번호를 찾는 메소드
     public Optional<String> findPasswordByIdentifier(String identifier, String type) {
         Optional<UserInfo> user; // UserInfo 객체를 감싸는 Optional 선언
