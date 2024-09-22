@@ -225,7 +225,7 @@ public class UserService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(email);
-            message.setSubject("Matsuri 인증번호");
+            message.setSubject("Korplace 인증번호");
             message.setText("인증번호는 " + code + " 입니다. 유효시간은 5분입니다. 유효 시간 내에 인증번호를 입력해주세요.");
             mailSender.send(message);
         } catch (Exception e) {
@@ -298,7 +298,7 @@ public class UserService {
     private void sendEmailTempPassword(String email, String tempPassword) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
-        message.setSubject("Matsuri 임시 비밀번호 발급");
+        message.setSubject("Korplace 임시 비밀번호 발급");
         message.setText("임시 비밀번호는 " + tempPassword + " 입니다.");
         mailSender.send(message);
     }
@@ -540,9 +540,20 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public String getUserEmailById(Long userId) {
+        return userRepository.findById(userId)
+                .map(UserInfo::getUserEmail)  // 유저 이메일 반환
+                .orElseThrow(() -> new RuntimeException("User not found with id " + userId));
+    }
+
 
     public UserInfo setAdmin(UserInfo userInfo) {
         userInfo.setRole("ADMIN");
+        return userRepository.save(userInfo);
+    }
+
+    public UserInfo setTestUser(UserInfo userInfo) {
+        userInfo.setRole("USER");
         return userRepository.save(userInfo);
     }
 
