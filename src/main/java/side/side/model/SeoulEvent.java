@@ -72,7 +72,7 @@ public class SeoulEvent {
     @Column(name = "imgurl")
     private String imgurl;
 
-    @Column(name = "dtlcont", columnDefinition = "TEXT")
+    @Column(name = "dtlcont", columnDefinition = "LONGTEXT")
     private String dtlcont;
 
     @Column(name = "telno")

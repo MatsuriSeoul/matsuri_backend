@@ -9,12 +9,15 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.CulturalFacility;
 import side.side.model.CulturalFacilityDetail;
+import side.side.model.FoodEvent;
 import side.side.repository.CulturalFacilityDetailRepository;
 import side.side.repository.CulturalFacilityRepository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class CulturalFacilityService {
@@ -32,6 +35,7 @@ public class CulturalFacilityService {
     // 문화시설 API 호출 및 데이터 저장
     public List<CulturalFacility> fetchAndSaveCulturalFacilities(String numOfRows, String pageNo) {
         List<CulturalFacility> culturalFacilities = new ArrayList<>();
+        numOfRows = "500";  // 호출되는 데이터의 개수를 10개로 제한
         RestTemplate restTemplate = new RestTemplate();
 
         String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/areaBasedList1")
@@ -255,4 +259,11 @@ public class CulturalFacilityService {
         // 카테고리에 따른 문화시설 데이터 가져오기
         return culturalFacilityRepository.findByContenttypeid(contentTypeId);
     }
+    // '서울특별시'에 해당하는 문화시설 이벤트 가져오기
+    public List<CulturalFacility> getCulturalFacilityByRegion(String region) {
+        return culturalFacilityRepository.findAll().stream()
+                .filter(event -> event.getAddr1().contains(region))
+                .collect(Collectors.toList());
+    }
+
 }

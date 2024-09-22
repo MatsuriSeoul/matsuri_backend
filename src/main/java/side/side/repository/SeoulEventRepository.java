@@ -12,4 +12,8 @@ public interface SeoulEventRepository extends JpaRepository<SeoulEvent, Long> {
             "(:date IS NULL OR e.svcopnbgndt <= :date AND e.svcopnenddt >= :date) AND " +
             "(:category IS NULL OR e.minclassnm = :category)")
     List<SeoulEvent> findByCriteria(@Param("date") String date, @Param("category") String category);
+
+    // minclassnm 필드를 기준으로 카테고리 필터링
+    List<SeoulEvent> findByMinclassnm(String minclassnm);
+    SeoulEvent findBySvcid(String svcid);
 }

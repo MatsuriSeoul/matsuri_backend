@@ -7,14 +7,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import side.side.model.FoodEvent;
 import side.side.model.TravelCourse;
 import side.side.model.TravelCourseDetail;
 import side.side.repository.TravelCourseDetailRepository;
 import side.side.repository.TravelCourseRepository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class TravelCourseService {
@@ -32,7 +35,7 @@ public class TravelCourseService {
     // contenttypeid가 25인 여행 코스를 가져와서 DB에 저장하는 메소드
     public List<TravelCourse> fetchAndSaveTravelCourses(String numOfRows, String pageNo) {
         List<TravelCourse> allCourses = new ArrayList<>();
-        numOfRows = "10";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "500";  // 호출되는 데이터의 개수를 10개로 제한
         boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
 
@@ -328,5 +331,11 @@ public class TravelCourseService {
         String contentTypeId = "25"; // 25 관광지 설정
 
         return travelCourseRepository.findByContenttypeid(contentTypeId); // 필요에 따라 로직 변경
+    }
+    // '서울특별시'에 해당하는 여행 코스 이벤트 가져오기
+    public List<TravelCourse> getTravelCourseByRegion(String region) {
+        return travelCourseRepository.findAll().stream()
+                .filter(event -> event.getAddr1().contains(region))
+                .collect(Collectors.toList());
     }
 }

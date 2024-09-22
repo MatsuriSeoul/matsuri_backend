@@ -5,18 +5,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import side.side.model.LeisureSportsEvent;
-import side.side.model.LeisureSportsEventDetail;
-import side.side.model.TravelCourse;
-import side.side.model.TravelCourseDetail;
+import side.side.model.*;
 import side.side.repository.LeisureSportsEventDetailRepository;
 import side.side.repository.LeisureSportsEventRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class LeisureSportsEventService {
@@ -34,7 +33,7 @@ public class LeisureSportsEventService {
     // ContentypeId 28인 레포츠 불러와 저장하기
     public List<LeisureSportsEvent> fetchAndSaveLeisureSportsEvents(String numOfRows, String pageNo) {
         List<LeisureSportsEvent> leisureSportsEvents = new ArrayList<>();  // 리스트 초기화
-        numOfRows = "10";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "500";  // 호출되는 데이터의 개수를 10개로 제한
         RestTemplate restTemplate = new RestTemplate();
 
         // 단일 요청
@@ -266,9 +265,10 @@ public class LeisureSportsEventService {
         String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailImage1")
                 .queryParam("serviceKey", serviceKey)
                 .queryParam("contentId", contentid)
+                .queryParam("imageYN", "Y")
+                .queryParam("subImageYN", "Y")
                 .queryParam("MobileOS", "ETC")
                 .queryParam("MobileApp", "AppTest")
-                .queryParam("imageYN", "Y")
                 .queryParam("_type", "json")
                 .build()
                 .toUriString();
@@ -293,6 +293,7 @@ public class LeisureSportsEventService {
 
         return null;
     }
+
     //데이터베이스에서 여행 코스 상세 정보 추출
     public LeisureSportsEventDetail getLeisureSportsEventDetailFromDB(String contentid) {
         return leisureSportsEventDetailRepository.findByContentid(contentid);
@@ -303,4 +304,11 @@ public class LeisureSportsEventService {
 
         return leisureSportsEventRepository.findByContenttypeid(contentTypeId); // 필요에 따라 로직 변경
     }
+    // '서울특별시'에 해당하는 레저스포츠 이벤트 가져오기
+    public List<LeisureSportsEvent> getLeisureSportsByRegion(String region) {
+        return leisureSportsEventRepository.findAll().stream()
+                .filter(event -> event.getAddr1().contains(region))
+                .collect(Collectors.toList());
+    }
+
 }

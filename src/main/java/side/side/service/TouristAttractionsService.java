@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import side.side.model.FoodEvent;
 import side.side.model.TouristAttraction;
 import side.side.model.TouristAttractionDetail;
 import side.side.repository.TouristAttractionDetailRepository;
@@ -13,8 +14,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class TouristAttractionsService {
@@ -34,7 +37,7 @@ public class TouristAttractionsService {
     public List<TouristAttraction> fetchAndSaveTouristAttractions(String numOfRows, String pageNo) {
         List<TouristAttraction> allAttractions = new ArrayList<>();
         boolean moreData = true;
-        numOfRows = "10";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "500";  // 호출되는 데이터의 개수를 10개로 제한
         RestTemplate restTemplate = new RestTemplate();
 
         // 단일 요청
@@ -334,5 +337,11 @@ public class TouristAttractionsService {
 
         // 카테고리에 따른 관광지 데이터 가져오기
         return touristAttractionRepository.findByContenttypeid(contentTypeId);
+    }
+    // '서울특별시'에 해당하는 관광지 이벤트 가져오기
+    public List<TouristAttraction> getTouristAttractionByRegion(String region) {
+        return touristAttractionRepository.findAll().stream()
+                .filter(event -> event.getAddr1().contains(region))
+                .collect(Collectors.toList());
     }
 }

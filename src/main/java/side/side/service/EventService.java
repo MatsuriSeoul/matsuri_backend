@@ -31,6 +31,22 @@ public class EventService {
     @Autowired
     private TourEventDetailRepository tourEventDetailRepository;
 
+    @Autowired
+    private ShoppingEventService shoppingEventService;
+    @Autowired
+    private FoodEventService foodEventService;
+    @Autowired
+    private LocalEventService localEventService;
+    @Autowired
+    private CulturalFacilityService culturalFacilityService;
+    @Autowired
+    private TravelCourseService travelCourseService;
+    @Autowired
+    private LeisureSportsEventService leisureSportsEventService;
+    @Autowired
+    private TouristAttractionsService touristAttractionsService;
+    @Autowired
+    private TourEventService tourEventService;
 
 
     // 키 값 절대 건들이면 안됨
@@ -40,7 +56,7 @@ public class EventService {
 
     // 경기도 행사 API
     public void fetchAndSaveGyeonggiEvents() {
-        int pageSize = 100;
+        int pageSize = 500;  // 가져올 데이터 개수를 10개로 설정
         int startIndex = 1;
         boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
@@ -82,11 +98,8 @@ public class EventService {
                     }
                     gyeonggiEventRepository.saveAll(events);
 
-                    if (dataNode.size() < pageSize) {
-                        moreData = false;
-                    } else {
-                        startIndex++;
-                    }
+                    // 10개씩 가져오는 것으로 설정했으므로 한 번만 가져오고 종료
+                    moreData = false;
                 } else {
                     moreData = false;
                 }
@@ -99,70 +112,63 @@ public class EventService {
 
     // 서울 행사 API
     public void fetchAndSaveSeoulEvents() {
-        int pageSize = 100;
+        int pageSize = 500;  // 데이터를 10개만 가져오기 위해 pageSize를 10으로 설정
         int startIndex = 1;
-        boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
 
-        while (moreData) {
-            String url = String.format("http://openAPI.seoul.go.kr:8088/%s/json/ListPublicReservationCulture/%d/%d/",
-                    seoulApiKey, startIndex, startIndex + pageSize - 1);
-            try {
-                String response = restTemplate.getForObject(url, String.class);
-                System.out.println("서울 API 응답" + response);
+        String url = String.format("http://openAPI.seoul.go.kr:8088/%s/json/ListPublicReservationCulture/%d/%d/",
+                seoulApiKey, startIndex, startIndex + pageSize - 1);
+        try {
+            String response = restTemplate.getForObject(url, String.class);
+            System.out.println("서울 API 응답" + response);
 
-                if (response.startsWith("<")) {
-                    throw new IllegalArgumentException("JSON 응답 API 안됨");
-                }
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode rootNode = objectMapper.readTree(response);
-                JsonNode dataNode = rootNode.path("ListPublicReservationCulture").path("row");
-
-                if (dataNode.isArray()) {
-                    List<SeoulEvent> events = new ArrayList<>();
-                    for (JsonNode node : dataNode) {
-                        SeoulEvent event = new SeoulEvent();
-                        event.setGubun(node.path("GUBUN").asText());
-                        event.setSvcid(node.path("SVCID").asText());
-                        event.setMaxclassnm(node.path("MAXCLASSNM").asText());
-                        event.setMinclassnm(node.path("MINCLASSNM").asText());
-                        event.setSvcstatnm(node.path("SVCSTATNM").asText());
-                        event.setSvcnm(node.path("SVCNM").asText());
-                        event.setPayatnm(node.path("PAYATNM").asText());
-                        event.setPlacenm(node.path("PLACENM").asText());
-                        event.setUsetgtinfo(node.path("USETGTINFO").asText());
-                        event.setSvcurl(node.path("SVCURL").asText());
-                        event.setX(node.path("X").asText());
-                        event.setY(node.path("Y").asText());
-                        event.setSvcopnbgndt(node.path("SVCOPNBGNDT").asText());
-                        event.setSvcopnenddt(node.path("SVCOPNENDDT").asText());
-                        event.setRcptbgndt(node.path("RCPTBGNDT").asText());
-                        event.setRcptenddt(node.path("RCPTENDDT").asText());
-                        event.setAreanm(node.path("AREANM").asText());
-                        event.setImgurl(node.path("IMGURL").asText());
-                        event.setDtlcont(node.path("DTLCONT").asText());
-                        event.setTelno(node.path("TELNO").asText());
-                        event.setVMin(node.path("V_MIN").asText());
-                        event.setVMax(node.path("V_MAX").asText());
-                        event.setRevstddaynm(node.path("REVSTDDAYNM").asText());
-                        event.setRevstdday(node.path("REVSTDDAY").asText());
-                        events.add(event);
-                    }
-                    seoulEventRepository.saveAll(events);
-
-                    if (dataNode.size() < pageSize) {
-                        moreData = false;
-                    } else {
-                        startIndex += pageSize;
-                    }
-                } else {
-                    moreData = false;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                moreData = false;
+            if (response.startsWith("<")) {
+                throw new IllegalArgumentException("JSON 응답 API 안됨");
             }
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(response);
+            JsonNode dataNode = rootNode.path("ListPublicReservationCulture").path("row");
+
+            if (dataNode.isArray()) {
+                List<SeoulEvent> events = new ArrayList<>();
+
+                // 최대 10개의 데이터를 가져오기 위해, API 호출 후 처음 10개의 데이터만 추가
+                for (JsonNode node : dataNode) {
+                    SeoulEvent event = new SeoulEvent();
+                    event.setGubun(node.path("GUBUN").asText());
+                    event.setSvcid(node.path("SVCID").asText());
+                    event.setMaxclassnm(node.path("MAXCLASSNM").asText());
+                    event.setMinclassnm(node.path("MINCLASSNM").asText());
+                    event.setSvcstatnm(node.path("SVCSTATNM").asText());
+                    event.setSvcnm(node.path("SVCNM").asText());
+                    event.setPayatnm(node.path("PAYATNM").asText());
+                    event.setPlacenm(node.path("PLACENM").asText());
+                    event.setUsetgtinfo(node.path("USETGTINFO").asText());
+                    event.setSvcurl(node.path("SVCURL").asText());
+                    event.setX(node.path("X").asText());
+                    event.setY(node.path("Y").asText());
+                    event.setSvcopnbgndt(node.path("SVCOPNBGNDT").asText());
+                    event.setSvcopnenddt(node.path("SVCOPNENDDT").asText());
+                    event.setRcptbgndt(node.path("RCPTBGNDT").asText());
+                    event.setRcptenddt(node.path("RCPTENDDT").asText());
+                    event.setAreanm(node.path("AREANM").asText());
+                    event.setImgurl(node.path("IMGURL").asText());
+                    event.setDtlcont(node.path("DTLCONT").asText());
+                    event.setTelno(node.path("TELNO").asText());
+                    event.setVMin(node.path("V_MIN").asText());
+                    event.setVMax(node.path("V_MAX").asText());
+                    event.setRevstddaynm(node.path("REVSTDDAYNM").asText());
+                    event.setRevstdday(node.path("REVSTDDAY").asText());
+                    events.add(event);
+
+                    // 데이터를 10개만 가져오기 위해 조건 추가
+                    if (events.size() >= 500) break;
+                }
+                seoulEventRepository.saveAll(events);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -170,7 +176,7 @@ public class EventService {
     public List<TourEvent> fetchAndSaveEvents(String numOfRows, String pageNo, String eventStartDate) {
         List<TourEvent> allEvents = new ArrayList<>();
         boolean moreData = true;
-        numOfRows = "10";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "500";  // 호출되는 데이터의 개수를 10개로 제한
 
         RestTemplate restTemplate = new RestTemplate();
         String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/searchFestival1")
@@ -426,6 +432,12 @@ public class EventService {
             return null;
         }
     }
+    // '서울특별시'에 해당하는 쇼핑 이벤트 가져오기
+    public List<TourEvent> getTourEventsByRegion(String region) {
+        return tourEventRepository.findAll().stream()
+                .filter(event -> event.getAddr1().contains(region))
+                .collect(Collectors.toList());
+    }
 
     //데이터베이스에서 행사 상세 정보 추출
     public TourEventDetail getEventDetailFromDB(String contentid) {
@@ -434,13 +446,6 @@ public class EventService {
 
 
 
-    public void fetchAndSaveAllEventDetails() {
-        List<String> contentIds = getAllContentIds();
-        for (String contentId : contentIds) {
-            fetchAndSaveEventDetail(contentId);
-        }
-    }
-
     public List<String> getAllContentIds() {
         return tourEventRepository.findAll().stream()
                 .map(event -> event.getContentid())
@@ -448,21 +453,48 @@ public class EventService {
     }
 
 
+    // 서울 특정 카테고리별 이벤트 조회
+    public List<?> fetchEventsByCategory(String region, String category) {
+        if (region.equals("서울특별시")) {
+            switch (category) {
+                case "쇼핑":
+                    return shoppingEventService.getShoppingEventsByCategory(region);
+                case "음식":
+                    return foodEventService.getFoodEventsByCategory(region);
+                case "숙박":
+                    return localEventService.getLocalEventsByRegion(region);
+                case "문화시설":
+                    return culturalFacilityService.getCulturalFacilityByRegion(region);
+                case "여행코스":
+                    return travelCourseService.getTravelCourseByRegion(region);
+                case "레포츠":
+                    return leisureSportsEventService.getLeisureSportsByRegion(region);
+                case "관광지":
+                    return touristAttractionsService.getTouristAttractionByRegion(region);
 
-    public List<Object> searchEvents(String date, String region, String category) {
-        List<Object> results = new ArrayList<>();
-
-        if (region == null || region.equalsIgnoreCase("경기")) {
-            results.addAll(gyeonggiEventRepository.findByCriteria(date, category));
+                default:
+                    return new ArrayList<>();
+            }
         }
-
-        if (region == null || region.equalsIgnoreCase("서울")) {
-            results.addAll(seoulEventRepository.findByCriteria(date, category));
+        return new ArrayList<>();
+    }
+    // 경기 이벤트 필터링 로직
+    public List<GyeonggiEvent> getGyeonggiEventsByCategory(String category) {
+        if (category != null && !category.isEmpty()) {
+            // category_nm 필드를 기준으로 필터링
+            return gyeonggiEventRepository.findByCategoryNm(category);
         }
-
-        return results;
+        return gyeonggiEventRepository.findAll();  // 카테고리가 없으면 전체 조회
     }
 
+    // 서울 이벤트 필터링 로직
+    public List<SeoulEvent> getSeoulEventsByCategory(String category) {
+        if (category != null && !category.isEmpty()) {
+            // minclassnm 필드를 기준으로 필터링
+            return seoulEventRepository.findByMinclassnm(category);
+        }
+        return seoulEventRepository.findAll();  // 카테고리가 없으면 전체 조회
+    }
 }
 
 

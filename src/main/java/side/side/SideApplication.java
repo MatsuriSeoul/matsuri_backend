@@ -7,9 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @SpringBootApplication
 @RequestMapping("/")
 public class SideApplication {
-
-	public static void main(String[] args) {
-		SpringApplication.run(SideApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(SideApplication.class, args);
+    }
 }

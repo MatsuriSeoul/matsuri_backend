@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.model.TouristAttraction;
 import side.side.model.TouristAttractionDetail;
+import side.side.model.TravelCourse;
+import side.side.repository.TouristAttractionRepository;
 import side.side.service.TouristAttractionsService;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -17,6 +19,8 @@ public class TouristAttractionController {
 
     @Autowired
     private TouristAttractionsService touristAttractionsService;
+    @Autowired
+    private TouristAttractionRepository touristAttractionRepository;
 
     //  관광지 상세 정보 불러오기
     @GetMapping("/{contentid}/detail")
@@ -53,4 +57,10 @@ public class TouristAttractionController {
         List<TouristAttraction> attractions = touristAttractionsService.getTouristAttractionsByCategory(category);
         return ResponseEntity.ok(attractions);
     }
+    // 키워드 추출
+    @GetMapping("/by-region")
+    public List<TouristAttraction> getTouristAttractionByRegion(@RequestParam String region) {
+        return touristAttractionsService.getTouristAttractionByRegion(region);
+    }
+
 }

@@ -29,4 +29,8 @@ public class TouristAttraction {
     private String zipcode;      // 우편번호
     private String tel;          // 전화번호
     private String modifiedtime; // 수정일
+    private String beginDe;
+    private String endDe;
+    private String regionNm;
+    private String imageUrl;
 }

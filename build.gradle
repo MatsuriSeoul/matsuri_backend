@@ -17,6 +17,9 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+	all {
+		exclude group: 'commons-logging', module: 'commons-logging'
+	}
 }
 
 repositories {
@@ -28,19 +31,23 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'jakarta.servlet:jakarta.servlet-api:4.0.4'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.mysql:mysql-connector-j:8.0.33' // 명시적으로 MySQL 드라이버 추가
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'jakarta.servlet:jakarta.servlet-api:4.0.4'
 	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.3'
-	//JWT
+
+	// JWT
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.2'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.2'
+
+	// 전화번호 인증 API
+	implementation 'com.twilio.sdk:twilio:8.32.0'
 
 	// jBCrypt 라이브러리
 	implementation 'org.mindrot:jbcrypt:0.4'
@@ -57,8 +64,7 @@ def frontendDir = "$projectDir/frontend"
 
 sourceSets {
 	main {
-		resources { srcDirs = ["$projectDir/src/main/resources"]
-		}
+		resources { srcDirs = ["$projectDir/src/main/resources"] }
 	}
 }
 
@@ -75,7 +81,6 @@ task installReact(type: Exec) {
 	}
 }
 
-
 task buildReact(type: Exec) {
 	dependsOn "installReact"
 	workingDir "$frontendDir"
@@ -87,11 +92,13 @@ task buildReact(type: Exec) {
 		commandLine "npm", "run-script", "build"
 	}
 }
+
 task copyReactBuildFiles(type: Copy) {
 	dependsOn "buildReact"
 	from "$frontendDir/build"
 	into "$projectDir/src/main/resources/static"
 }
+
 task watchReact(type: Exec) {
 	workingDir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
@@ -101,6 +108,7 @@ task watchReact(type: Exec) {
 		commandLine "npm", "run", "watch"
 	}
 }
+
 tasks.withType(JavaCompile) {
 	options.compilerArgs << '-parameters'
 }

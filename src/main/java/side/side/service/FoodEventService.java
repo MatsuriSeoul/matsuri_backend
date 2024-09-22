@@ -7,14 +7,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import side.side.model.FoodEvent;
-import side.side.model.FoodEventDetail;
+import side.side.model.*;
 import side.side.repository.FoodEventDetailRepository;
 import side.side.repository.FoodEventRepository;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class FoodEventService {
@@ -31,7 +32,7 @@ public class FoodEventService {
 
     // 음식 API 호출 및 데이터 저장
     public List<FoodEvent> fetchAndSaveFoodEvents(String numOfRows, String pageNo) {
-        numOfRows = "0";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "500";  // 호출되는 데이터의 개수를 10개로 제한
         List<FoodEvent> allFoodEvents = new ArrayList<>();
         boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
@@ -235,4 +236,93 @@ public class FoodEventService {
             e.printStackTrace();
         }
     }
+    // 이미지 정보 API 호출 메소드
+    public JsonNode fetchImagesFromApi(String contentid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailImage1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("imageYN", "Y")
+                .queryParam("subImageYN", "Y")
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        logger.info("음식 이벤트 이미지 정보 가져오기: contentId = " + contentid);
+        logger.info("요청 URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API 응답: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                return objectMapper.readTree(response.getBody()).path("response").path("body").path("items").path("item");
+            } else {
+                logger.warning("해당 contentId에 대한 음식 이벤트 이미지 정보를 가져오지 못했습니다: " + contentid);
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 음식 이벤트 이미지 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    // 소개 정보 API 호출 메소드
+    public JsonNode fetchIntroInfoFromApi(String contentid, String contenttypeid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailIntro1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("contentTypeId", contenttypeid)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        logger.info("음식 이벤트 소개 정보 가져오기: contentId = " + contentid);
+        logger.info("요청 URL: " + url);
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            logger.info("API 응답: " + response.getBody());
+
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                return objectMapper.readTree(response.getBody()).path("response").path("body").path("items").path("item").get(0);
+            } else {
+                logger.warning("해당 contentId에 대한 음식 이벤트 소개 정보를 가져오지 못했습니다: " + contentid);
+            }
+        } catch (Exception e) {
+            logger.severe("contentId: " + contentid + "에 대한 음식 이벤트 소개 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+    // 데이터베이스에서 숙박 시설 상세 정보 추출
+    public FoodEventDetail getFoodEventDetailFromDB(String contentid) {
+        return foodEventDetailRepository.findByContentid(contentid);
+    }
+
+    // 카테고리 기반 숙박 시설 리스트 반환
+    public List<FoodEvent> getFoodEventsByCategory(String category) {
+        // 카테고리 맵핑 로직에 따라 contentTypeId를 설정
+        String contentTypeId = "39"; // 39 음식 설정
+
+        return foodEventRepository.findByContenttypeid(contentTypeId); // 필요에 따라 로직 변경
+    }
+    // '서울특별시'에 해당하는 쇼핑 이벤트 가져오기
+    public List<FoodEvent> getFoodEventsByRegion(String region) {
+        return foodEventRepository.findAll().stream()
+                .filter(event -> event.getAddr1().contains(region))
+                .collect(Collectors.toList());
+    }
+
+
 }

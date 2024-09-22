@@ -27,6 +27,8 @@ public class ShoppingEvent {
     private String sigungucode;
     private String tel;
     private String overview;
-
-
+    private String beginDe;
+    private String endDe;
+    private String regionNm;
+    private String imageUrl;
 }
