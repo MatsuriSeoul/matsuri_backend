@@ -1,6 +1,7 @@
 package side.side.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,5 +28,6 @@ public class Inquiry {
 
     private String status;  // 답변 상태 추가 (예: "답변 대기 중", "답변 완료")
 
+    @JsonProperty("isPublic") // JSON 직렬화 및 역직렬화 시 필드 이름을 명확히 지정
     private boolean isPublic;
 }
