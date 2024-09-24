@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import side.side.model.SeoulEvent;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface SeoulEventRepository extends JpaRepository<SeoulEvent, Long> {
@@ -16,4 +17,17 @@ public interface SeoulEventRepository extends JpaRepository<SeoulEvent, Long> {
     // minclassnm 필드를 기준으로 카테고리 필터링
     List<SeoulEvent> findByMinclassnm(String minclassnm);
     SeoulEvent findBySvcid(String svcid);
+
+    // 서울특별시의 무료 행사 가져오기
+    @Query(value = "SELECT * FROM seoul_event WHERE PAYATNM = '무료' ORDER BY RAND() LIMIT :limit", nativeQuery = true)
+    List<SeoulEvent> findFreeEventsInSeoul(@Param("limit") int limit);
+
+    // 서울특별시의 유료 행사 가져오기
+    @Query(value = "SELECT * FROM seoul_event WHERE (PAYATNM != '무료' OR PAYATNM IS NULL) ORDER BY RAND() LIMIT :limit", nativeQuery = true)
+    List<SeoulEvent> findPaidEventsInSeoul(@Param("limit") int limit);
+
+    // 서울에서 개최 예정 or 중인 행사 가져오기
+    @Query("SELECT e FROM SeoulEvent e WHERE e.rcptbgndt <= :today AND e.rcptenddt >= :today OR e.rcptbgndt > :today")
+    List<SeoulEvent> findScheduledEvents(@Param("today") String today);
+
 }
