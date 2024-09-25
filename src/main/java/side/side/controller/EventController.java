@@ -1,6 +1,7 @@
 package side.side.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,6 @@ import side.side.repository.TourEventRepository;
 import side.side.service.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -222,6 +222,10 @@ public class EventController {
         List<?> events = eventService.fetchEventsByCategory(region, category);
         return ResponseEntity.ok(events);
     }
-
+    // 메인페이지 핫!스팟 랜덤 렌더링
+    @GetMapping("/random-by-region")
+    public List<TourEvent> getTopTouristEvents(@RequestParam("region") String region) {
+        return eventService.getRandomEventsByRegion(region);
+    }
 }
 

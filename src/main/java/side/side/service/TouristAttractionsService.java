@@ -37,7 +37,7 @@ public class TouristAttractionsService {
     public List<TouristAttraction> fetchAndSaveTouristAttractions(String numOfRows, String pageNo) {
         List<TouristAttraction> allAttractions = new ArrayList<>();
         boolean moreData = true;
-        numOfRows = "500";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "0";  // 호출되는 데이터의 개수를 10개로 제한
         RestTemplate restTemplate = new RestTemplate();
 
         // 단일 요청

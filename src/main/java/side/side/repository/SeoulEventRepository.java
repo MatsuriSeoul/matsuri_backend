@@ -15,5 +15,12 @@ public interface SeoulEventRepository extends JpaRepository<SeoulEvent, Long> {
 
     // minclassnm 필드를 기준으로 카테고리 필터링
     List<SeoulEvent> findByMinclassnm(String minclassnm);
+
     SeoulEvent findBySvcid(String svcid);
+
+    // 카테고리와 날짜 범위로 필터링
+    @Query("SELECT s FROM SeoulEvent s WHERE s.minclassnm = :category AND s.rcptbgndt >= :startDate AND s.rcptenddt <= :endDate")
+    List<SeoulEvent> findByCategoryAndDateRange(@Param("category") String category,
+                                                @Param("startDate") String startDate,
+                                                @Param("endDate") String endDate);
 }

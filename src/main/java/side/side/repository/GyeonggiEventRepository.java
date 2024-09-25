@@ -21,4 +21,10 @@ public interface GyeonggiEventRepository extends JpaRepository<GyeonggiEvent, Lo
 
     // category_nm 필드를 기준으로 카테고리 필터링
     List<GyeonggiEvent> findByCategoryNm(String categoryNm);
+
+    // 카테고리와 날짜 범위로 필터링
+    @Query("SELECT g FROM GyeonggiEvent g WHERE g.categoryNm = :categoryNm AND g.beginDe >= :startDate AND g.endDe <= :endDate")
+    List<GyeonggiEvent> findByCategoryAndDateRange(@Param("categoryNm") String categoryNm,
+                                                   @Param("startDate") String startDate,
+                                                   @Param("endDate") String endDate);
 }
