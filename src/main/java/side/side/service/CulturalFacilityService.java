@@ -35,7 +35,7 @@ public class CulturalFacilityService {
     // 문화시설 API 호출 및 데이터 저장
     public List<CulturalFacility> fetchAndSaveCulturalFacilities(String numOfRows, String pageNo) {
         List<CulturalFacility> culturalFacilities = new ArrayList<>();
-        numOfRows = "500";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "50";  // 호출되는 데이터의 개수를 10개로 제한
         RestTemplate restTemplate = new RestTemplate();
 
         String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/areaBasedList1")
