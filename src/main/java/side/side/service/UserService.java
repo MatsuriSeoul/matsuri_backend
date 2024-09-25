@@ -568,6 +568,11 @@ public class UserService {
         return userInfo.orElse(null);
     }
 
+    //소셜 로그인 사용자 확인
+    public UserInfo findBySocialIdAndProvider(String socialId, String provider) {
+        return userRepository.findBySocialIdAndSocialProvider(socialId, provider);
+    }
+
     public boolean checkUserIdExists(String userId) {
         return userRepository.existsByUserId(userId);
     }

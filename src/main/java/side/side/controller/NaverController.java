@@ -74,7 +74,9 @@ public class NaverController {
             if (userInfoResponse.getStatusCode() == HttpStatus.OK) {
                 JsonNode userJson = objectMapper.readTree(userInfoResponse.getBody()).get("response");
                 String userName = userJson.get("name").asText();
-                String userId = userJson.get("id").asText();
+//                String userId = userJson.get("id").asText();
+                String socialId = userJson.get("id").asText();
+                String userId = userJson.get("email").asText();
                 String userEmail = userJson.has("email") ? userJson.get("email").asText() : null;
                 String userPhone = userJson.has("mobile") ? userJson.get("mobile").asText() : null;
                 String userBirthday = userJson.has("birthday") ? userJson.get("birthday").asText() : null;
@@ -82,7 +84,8 @@ public class NaverController {
                 log.info("사용자 이름: {}, 사용자 ID: {}", userName, userId);  // 사용자 정보 로그 출력
 
                 // DB에서 해당 네이버 사용자 ID가 있는지 확인
-                UserInfo existingUser = userService.findBySocialIdAndProvider(userId, "naver");
+                UserInfo existingUser = userService.findBySocialIdAndProvider(socialId, "naver");
+                UserInfo user;
 
                 if (existingUser == null) {
                     // 새로운 사용자라면 DB에 저장
@@ -91,17 +94,21 @@ public class NaverController {
                     newUser.setUserEmail(userEmail);
                     newUser.setUserPhone(userPhone);
                     newUser.setUserBirthday(userBirthday);
-                    newUser.setSocialId(userId);
+                    newUser.setUserId(userId);
+                    newUser.setSocialId(socialId);
                     newUser.setSocialProvider("naver");
+                    newUser.setRole("USER");
                     userService.saveUser(newUser);
 
                     log.info("새로운 네이버 사용자를 DB에 저장했습니다.");
+                    user = newUser;
                 } else {
                     log.info("기존 사용자입니다.");
+                    user = existingUser;
                 }
 
                 // JWT 생성
-                String token = jwtUtils.generateToken(userName, userId);
+                String token = jwtUtils.generateToken(user.getUserName(), user.getId(), user.getRole());
 
 
                 // 사용자 정보와 JWT를 반환
@@ -109,6 +116,9 @@ public class NaverController {
                 responseHeaders.add("Set-Cookie", "token=" + token + "; Path=/; HttpOnly;");
 
                 URI redirectUri = URI.create("/");
+
+                log.info("생성된 JWT: {}", token);  // JWT 로그 출력
+
                 return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).headers(responseHeaders).build();
 
             } else {

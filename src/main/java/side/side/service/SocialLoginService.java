@@ -3,7 +3,7 @@ package side.side.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import side.side.config.JwtUtils;
-import side.side.repository.ResponseRepository;
+
 
 @Service
 public class SocialLoginService {
