@@ -1,9 +1,7 @@
 package side.side.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.model.*;
@@ -12,6 +10,8 @@ import side.side.repository.SeoulEventRepository;
 import side.side.repository.TourEventRepository;
 import side.side.service.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -164,6 +164,38 @@ public class EventController {
         return ResponseEntity.ok(food);
     }
 
+    // 무료 행사 가져오기
+    @GetMapping("/free")
+    public List<?> getFreeEvents(@RequestParam("region") String region) {
+        if ("경기도".equals(region)) {
+            return eventService.getGyeonggiFreeEvents();
+        } else if ("서울특별시".equals(region)) {
+            return eventService.getSeoulFreeEvents();
+        }
+        return new ArrayList<>();
+    }
+
+    // 유료 행사 가져오기
+    @GetMapping("/paid")
+    public List<?> getPaidEvents(@RequestParam("region") String region) {
+        if ("경기도".equals(region)) {
+            return eventService.getGyeonggiPaidEvents();
+        } else if ("서울특별시".equals(region)) {
+            return eventService.getSeoulPaidEvents();
+        }
+        return new ArrayList<>();
+    }
+    // 진행 중인 행사 및 예정된 행사 가져오기
+    @GetMapping("/scheduled")
+    public List<?> getScheduledEvents(@RequestParam("region") String region) {
+        if ("경기도".equals(region)) {
+            return eventService.getGyeonggiScheduledEvents();
+        } else if ("서울특별시".equals(region)) {
+            return eventService.getSeoulScheduledEvents();
+        }
+        return Collections.emptyList();
+    }
+
 
     /* EventController의 축제/공연/행사에 대한 컨트롤러  */
 
@@ -222,10 +254,10 @@ public class EventController {
         List<?> events = eventService.fetchEventsByCategory(region, category);
         return ResponseEntity.ok(events);
     }
-    // 메인페이지 핫!스팟 랜덤 렌더링
     @GetMapping("/random-by-region")
-    public List<TourEvent> getTopTouristEvents(@RequestParam("region") String region) {
+    public List<TourEvent> getRandomEventsByRegion(@RequestParam("region") String region) {
         return eventService.getRandomEventsByRegion(region);
     }
+
 }
 

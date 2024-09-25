@@ -36,7 +36,7 @@ public class ShoppingEventService {
     public List<ShoppingEvent> fetchAndSaveShoppingEvents(String numOfRows, String pageNo) {
         List<ShoppingEvent> allShoppingEvents = new ArrayList<>();
         boolean moreData = true;
-        numOfRows = "0";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "50";  // 호출되는 데이터의 개수를 10개로 제한
         RestTemplate restTemplate = new RestTemplate();
 
         // 단일 요청

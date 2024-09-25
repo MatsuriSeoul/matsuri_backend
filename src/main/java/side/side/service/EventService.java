@@ -1,8 +1,5 @@
 package side.side.service;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -13,7 +10,8 @@ import side.side.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -60,7 +58,7 @@ public class EventService {
 
     // 경기도 행사 API
     public void fetchAndSaveGyeonggiEvents() {
-        int pageSize = 0;  // 가져올 데이터 개수를 10개로 설정
+        int pageSize = 50;  // 가져올 데이터 개수를 10개로 설정
         int startIndex = 1;
         boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
@@ -116,7 +114,7 @@ public class EventService {
 
     // 서울 행사 API
     public void fetchAndSaveSeoulEvents() {
-        int pageSize = 0;  // 데이터를 10개만 가져오기 위해 pageSize를 10으로 설정
+        int pageSize = 50;  // 데이터를 10개만 가져오기 위해 pageSize를 10으로 설정
         int startIndex = 1;
         RestTemplate restTemplate = new RestTemplate();
 
@@ -134,10 +132,10 @@ public class EventService {
             JsonNode rootNode = objectMapper.readTree(response);
             JsonNode dataNode = rootNode.path("ListPublicReservationCulture").path("row");
 
-            if (dataNode.isArray()) {
-                List<SeoulEvent> events = new ArrayList<>();
-
                 // 최대 10개의 데이터를 가져오기 위해, API 호출 후 처음 10개의 데이터만 추가
+
+                if (dataNode.isArray()) {
+                    List<SeoulEvent> events = new ArrayList<>();
                 for (JsonNode node : dataNode) {
                     SeoulEvent event = new SeoulEvent();
                     event.setGubun(node.path("GUBUN").asText());
@@ -167,7 +165,7 @@ public class EventService {
                     events.add(event);
 
                     // 데이터를 10개만 가져오기 위해 조건 추가
-                    if (events.size() >= 500) break;
+                    if (events.size() >= 50) break;
                 }
                 seoulEventRepository.saveAll(events);
             }
@@ -348,12 +346,10 @@ public class EventService {
                 eventDetail.setOverview(itemNode.path("overview").asText());
 
                 tourEventDetailRepository.save(eventDetail);
-              //  logger.info("Event detail saved for contentId: " + contentid);
             } else {
-                logger.warning("Failed to fetch event detail for contentId: " + contentid);
+                logger.warning("contentID에 따른 데이터 불러오지 못함 : " + contentid);
             }
         } catch (Exception e) {
-           // logger.severe("Error fetching event detail for contentId: " + contentid + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -436,49 +432,6 @@ public class EventService {
             return null;
         }
     }
-
-    //빅데이터 API 지역 방문객 수 조회
-    public List<JSONObject> getTopTouristRegions(String startDate, String endDate, String region) {
-        List<JSONObject> topRegions = new ArrayList<>();
-        try {
-            String apiUrl = "http://apis.data.go.kr/B551011/DataLabService/locgoRegnVisitrDDList";
-            apiUrl += "?serviceKey=" + serviceKey;
-            apiUrl += "&MobileOS=ETC&MobileApp=AppTest&_type=json";
-            apiUrl += "&startYmd=" + startDate + "&endYmd=" + endDate;
-            apiUrl += "&numOfRows=10&pageNo=1";
-
-            RestTemplate restTemplate = new RestTemplate();
-            String response = restTemplate.getForObject(apiUrl, String.class);
-            JSONObject json = new JSONObject(response);
-            JSONArray items = json.getJSONObject("response").getJSONObject("body").getJSONObject("items").getJSONArray("item");
-
-            // JSONArray에 있는 모든 요소를 순회하며 topRegions에 추가합니다.
-            for (int i = 0; i < items.length(); i++) {
-                JSONObject jsonItem = items.getJSONObject(i);
-                if (jsonItem.getString("signguNm").contains(region)) {
-                    topRegions.add(jsonItem);
-                }
-            }
-
-            // touNum을 기준으로 내림차순 정렬한 상위 4개의 지역만 반환
-            return topRegions.stream()
-                    .filter(item -> item.has("touNum") && !item.isNull("touNum")) // touNum이 존재하고 null이 아닌 경우 필터링
-                    .sorted((a, b) -> {
-                        try {
-                            return Double.compare(b.getDouble("touNum"), a.getDouble("touNum"));
-                        } catch (JSONException e) {
-                            return 0; // JSONException이 발생하면 동일한 순서 유지
-                        }
-                    })
-                    .limit(4)
-                    .collect(Collectors.toList());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return topRegions;
-    }
-
     // '서울특별시'에 해당하는 쇼핑 이벤트 가져오기
     public List<TourEvent> getTourEventsByRegion(String region) {
         return tourEventRepository.findAll().stream()
@@ -498,7 +451,6 @@ public class EventService {
                 .map(event -> event.getContentid())
                 .collect(Collectors.toList());
     }
-
 
 
     // 서울 특정 카테고리별 이벤트 조회
@@ -543,33 +495,38 @@ public class EventService {
         }
         return seoulEventRepository.findAll();  // 카테고리가 없으면 전체 조회
     }
-
-    // 경기도 행사 데이터를 카테고리와 날짜에 따라 필터링하는 메소드
-    public List<GyeonggiEvent> getGyeonggiEventsByCategoryAndDate(String category, String startDate, String endDate) {
-        if (category != null && startDate != null && endDate != null) {
-            return gyeonggiEventRepository.findByCategoryAndDateRange(category, startDate, endDate);
-        } else if (category != null) {
-            return gyeonggiEventRepository.findByCategoryNm(category);
-        } else {
-            return gyeonggiEventRepository.findAll();
-        }
-    }
-
-    // 서울 행사 데이터를 카테고리와 날짜에 따라 필터링하는 메소드
-    public List<SeoulEvent> getSeoulEventsByCategoryAndDate(String category, String startDate, String endDate) {
-        if (category != null && startDate != null && endDate != null) {
-            return seoulEventRepository.findByCategoryAndDateRange(category, startDate, endDate);
-        } else if (category != null) {
-            return seoulEventRepository.findByMinclassnm(category);
-        } else {
-            return seoulEventRepository.findAll();
-        }
-    }
-
-    // 랜덤으로 데이터를 가져오는 메소드
     public List<TourEvent> getRandomEventsByRegion(String region) {
-        // 데이터베이스에서 지역별로 랜덤하게 데이터를 4개 추출
         return tourEventRepository.findRandomEventsByRegion(region, 4);
+    }
+    // 경기도 무료 행사 가져오기
+    public List<GyeonggiEvent> getGyeonggiFreeEvents() {
+        return gyeonggiEventRepository.findFreeEventsInGyeonggi(4);
+    }
+
+    // 서울특별시 무료 행사 가져오기
+    public List<SeoulEvent> getSeoulFreeEvents() {
+        return seoulEventRepository.findFreeEventsInSeoul(4);
+    }
+
+    // 경기도 유료 행사 가져오기
+    public List<GyeonggiEvent> getGyeonggiPaidEvents() {
+        return gyeonggiEventRepository.findPaidEventsInGyeonggi(4);
+    }
+
+    // 서울특별시 유료 행사 가져오기
+    public List<SeoulEvent> getSeoulPaidEvents() {
+        return seoulEventRepository.findPaidEventsInSeoul(4);
+    }
+    // 경기도 진행 중 및 예정된 행사 가져오기
+    public List<GyeonggiEvent> getGyeonggiScheduledEvents() {
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return gyeonggiEventRepository.findScheduledEvents(today);
+    }
+
+    // 서울특별시 진행 중 및 예정된 행사 가져오기
+    public List<SeoulEvent> getSeoulScheduledEvents() {
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return seoulEventRepository.findScheduledEvents(today);
     }
 }
 

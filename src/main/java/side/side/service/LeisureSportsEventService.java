@@ -33,7 +33,7 @@ public class LeisureSportsEventService {
     // ContentypeId 28인 레포츠 불러와 저장하기
     public List<LeisureSportsEvent> fetchAndSaveLeisureSportsEvents(String numOfRows, String pageNo) {
         List<LeisureSportsEvent> leisureSportsEvents = new ArrayList<>();  // 리스트 초기화
-        numOfRows = "0";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "50";  // 호출되는 데이터의 개수를 10개로 제한
         RestTemplate restTemplate = new RestTemplate();
 
         // 단일 요청
