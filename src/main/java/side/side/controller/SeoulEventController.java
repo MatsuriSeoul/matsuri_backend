@@ -19,8 +19,6 @@ public class SeoulEventController {
     @Autowired
     private SeoulEventRepository seoulEventRepository;
 
-    @Autowired
-    private EventService eventService;
 
     // 이미지 URL과 제목만 반환하는 API
     // 이미지를 가지지 않은 경우에는 해당 데이터를 제외하고 반환
@@ -31,12 +29,5 @@ public class SeoulEventController {
                 .map(event -> new String[]{event.getSvcnm(), event.getImgurl()})
                 .collect(Collectors.toList());
     }
-    @GetMapping("/seoul-events")
-    public List<SeoulEvent> getSeoulEvents(
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
-    ) {
-        return eventService.getSeoulEventsByCategoryAndDate(category, startDate, endDate);
-    }
+
 }

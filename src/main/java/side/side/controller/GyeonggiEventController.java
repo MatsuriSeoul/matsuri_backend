@@ -33,12 +33,5 @@ public class GyeonggiEventController {
     public List<Object[]> getGyeonggiEventTitlesAndImages() {
         return gyeonggiEventRepository.findTitlesAndImages();
     }
-    @GetMapping("/gyeonggi-events")
-    public List<GyeonggiEvent> getGyeonggiEvents(
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate
-    ) {
-        return eventService.getGyeonggiEventsByCategoryAndDate(category, startDate, endDate);
-    }
+
 }

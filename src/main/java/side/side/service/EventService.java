@@ -132,10 +132,10 @@ public class EventService {
             JsonNode rootNode = objectMapper.readTree(response);
             JsonNode dataNode = rootNode.path("ListPublicReservationCulture").path("row");
 
-                // 최대 10개의 데이터를 가져오기 위해, API 호출 후 처음 10개의 데이터만 추가
+            // 최대 10개의 데이터를 가져오기 위해, API 호출 후 처음 10개의 데이터만 추가
 
-                if (dataNode.isArray()) {
-                    List<SeoulEvent> events = new ArrayList<>();
+            if (dataNode.isArray()) {
+                List<SeoulEvent> events = new ArrayList<>();
                 for (JsonNode node : dataNode) {
                     SeoulEvent event = new SeoulEvent();
                     event.setGubun(node.path("GUBUN").asText());
@@ -226,7 +226,7 @@ public class EventService {
         return allEvents;
     }
 
-        //모든 데이터 요청
+    //모든 데이터 요청
 //        while (moreData) {
 //            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/searchFestival1")
 //                    .queryParam("serviceKey", serviceKey)
@@ -302,12 +302,12 @@ public class EventService {
                 .build()
                 .toUriString();
 
-     //  logger.info("Fetching event detail for contentId: " + contentid);
-       // logger.info("Request URL: " + url);
+        //  logger.info("Fetching event detail for contentId: " + contentid);
+        // logger.info("Request URL: " + url);
 
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-          //  logger.info("API Response: " + response.getBody());
+            //  logger.info("API Response: " + response.getBody());
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 ObjectMapper objectMapper = new ObjectMapper();
@@ -529,7 +529,3 @@ public class EventService {
         return seoulEventRepository.findScheduledEvents(today);
     }
 }
-
-
-
-
