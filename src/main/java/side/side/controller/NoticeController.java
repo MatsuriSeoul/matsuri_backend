@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 import side.side.config.JwtUtils;
 import side.side.model.Notice;
 import side.side.model.NoticeImage;
-import side.side.model.Response;
 import side.side.service.NoticeService;
 
 import java.io.IOException;
