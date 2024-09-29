@@ -75,7 +75,7 @@ public class JwtUtils {
 
     public boolean validateToken(String token) {
         try {
-            token = token.replace("Bearer ", "");
+//            token = token.replace("Bearer ", "");
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
