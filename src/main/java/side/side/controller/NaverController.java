@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import side.side.config.JwtUtils;
 import side.side.model.UserInfo;
+import side.side.response.LoginResponse;
 import side.side.service.UserService;
 
 import java.net.URI;
@@ -35,9 +36,9 @@ public class NaverController {
 
     private final String clientId = "cAxVyC6eWpTfHY6rLFwK"; // 네이버 클라이언트 ID
     private final String clientSecret = "MzaDRXyw9H"; // 네이버 클라이언트 시크릿
-    private final String redirectUri = "http://localhost:8080/naver/oauth2"; // 리다이렉트 URI
+    private final String redirectUri = "http://localhost:8080/api/login"; // 리다이렉트 URI
 
-    @GetMapping("/naver/oauth2")
+    @GetMapping("/api/login")
     public ResponseEntity<?> naverCallback(@RequestParam String code, @RequestParam String state) {
         try {
             // 액세스 토큰 요청
@@ -89,19 +90,21 @@ public class NaverController {
 
                 if (existingUser == null) {
                     // 새로운 사용자라면 DB에 저장
-                    UserInfo newUser = new UserInfo();
-                    newUser.setUserName(userName);
-                    newUser.setUserEmail(userEmail);
-                    newUser.setUserPhone(userPhone);
-                    newUser.setUserBirthday(userBirthday);
-                    newUser.setUserId(userId);
-                    newUser.setSocialId(socialId);
-                    newUser.setSocialProvider("naver");
-                    newUser.setRole("USER");
-                    userService.saveUser(newUser);
+//                    UserInfo newUser = new UserInfo();
+                    user = new UserInfo();
+                    user.setUserName(userName);
+                    user.setUserEmail(userEmail);
+                    user.setUserPhone(userPhone);
+                    user.setUserBirthday(userBirthday);
+                    user.setUserId(userId);
+                    user.setSocialId(socialId);
+                    user.setSocialProvider("naver");
+                    user.setRole("USER");
+
+                    userService.saveUser(user);
 
                     log.info("새로운 네이버 사용자를 DB에 저장했습니다.");
-                    user = newUser;
+
                 } else {
                     log.info("기존 사용자입니다.");
                     user = existingUser;
@@ -110,22 +113,18 @@ public class NaverController {
                 // JWT 생성
                 String token = jwtUtils.generateToken(user.getUserName(), user.getId(), user.getRole());
 
-
-                // 사용자 정보와 JWT를 반환
-                HttpHeaders responseHeaders = new HttpHeaders();
-                responseHeaders.add("Set-Cookie", "token=" + token + "; Path=/; HttpOnly;");
-
-                URI redirectUri = URI.create("/");
-
                 log.info("생성된 JWT: {}", token);  // JWT 로그 출력
 
-                return ResponseEntity.status(HttpStatus.FOUND).location(redirectUri).headers(responseHeaders).build();
+                // 클라이언트 측으로 JWT를 포함하여 리디렉션
+                URI redirectUri = new URI("http://localhost:8080/?token=" + token);
+                HttpHeaders responseHeaders = new HttpHeaders();
+                responseHeaders.setLocation(redirectUri);
 
+                return ResponseEntity.status(HttpStatus.FOUND).headers(responseHeaders).build();
             } else {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("네이버 사용자 정보를 가져오는 데 실패했습니다.");
             }
         } catch (Exception e) {
-            log.error("에러 발생: {}", e.getMessage(), e);  // 에러 로그 출력
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("네이버 로그인 처리 중 에러가 발생했습니다.");
         }
     }
