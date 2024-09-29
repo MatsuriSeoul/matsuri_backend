@@ -100,13 +100,13 @@ public class DataLoader implements ApplicationRunner {
 //            touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
 //        }
 ////
-////        // 숙박 이벤트 데이터 호출
-//        String lodgingNumOfRows = "10";
-//        String lodgingPageNo = "1";
-//        List<LocalEvent> localEvents = localEventService.fetchAndSaveEventsLocal(lodgingNumOfRows, lodgingPageNo);
-//        for (LocalEvent localEvent : localEvents) {
-//            localEventService.fetchAndSaveLocalEventDetail(localEvent.getContentid());
-//        }
+//        // 숙박 이벤트 데이터 호출
+        String lodgingNumOfRows = "10";
+        String lodgingPageNo = "1";
+        List<LocalEvent> localEvents = localEventService.fetchAndSaveEventsLocal(lodgingNumOfRows, lodgingPageNo);
+        for (LocalEvent localEvent : localEvents) {
+            localEventService.fetchAndSaveLocalEventDetail(localEvent.getContentid());
+        }
 ////
 ////        // 레포츠 데이터 호출
 //        String leisureNumOfRows = "10";
@@ -147,16 +147,16 @@ public class DataLoader implements ApplicationRunner {
 //        for (FoodEvent foodEvent : foodEvents) {
 //            foodEventService.fetchAndSaveFoodEventDetail(foodEvent.getContentid());
 //        }
+
+        // 저장된 이벤트의 상세 정보를 업데이트
+        updateEventDetails();
+    }
 //
-//        // 저장된 이벤트의 상세 정보를 업데이트
-//        updateEventDetails();
-//    }
-////
-//    private void updateEventDetails() {
-//        // 저장된 모든 이벤트의 contentid를 가져와서 상세 정보를 업데이트
-//        List<String> contentIds = eventService.getAllContentIds();
-//        for (String contentId : contentIds) {
-//            eventService.fetchAndSaveEventDetail(contentId);
-//        }
+    private void updateEventDetails() {
+        // 저장된 모든 이벤트의 contentid를 가져와서 상세 정보를 업데이트
+        List<String> contentIds = eventService.getAllContentIds();
+        for (String contentId : contentIds) {
+            eventService.fetchAndSaveEventDetail(contentId);
+        }
     }
 }

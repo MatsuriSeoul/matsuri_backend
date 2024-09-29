@@ -178,7 +178,7 @@ public class EventService {
     public List<TourEvent> fetchAndSaveEvents(String numOfRows, String pageNo, String eventStartDate) {
         List<TourEvent> allEvents = new ArrayList<>();
         boolean moreData = true;
-        numOfRows = "50";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "10";  // 호출되는 데이터의 개수를 10개로 제한
 
         RestTemplate restTemplate = new RestTemplate();
         String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/searchFestival1")
@@ -297,6 +297,7 @@ public class EventService {
                 .queryParam("MobileApp", "AppTest")
                 .queryParam("defaultYN", "Y")
                 .queryParam("addrinfoYN", "Y")
+                .queryParam("mapinfoYN", "Y")
                 .queryParam("overviewYN", "Y")
                 .queryParam("_type", "json")
                 .build()
