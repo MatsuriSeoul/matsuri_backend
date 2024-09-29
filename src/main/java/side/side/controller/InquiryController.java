@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.config.JwtUtils;
 import side.side.model.Inquiry;
-import side.side.model.InquiryDTO;
+import side.side.model.DTO.InquiryDTO;
 import side.side.model.InquiryResponse;
 import side.side.service.InquiryService;
 

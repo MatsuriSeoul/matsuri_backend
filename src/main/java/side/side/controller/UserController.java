@@ -12,9 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import side.side.config.JwtUtils;
-import side.side.model.UserInfo;
-import side.side.repository.UserRepository;
+import side.side.model.*;
+import side.side.repository.*;
 import side.side.response.LoginResponse;
+import side.side.service.EventService;
+import side.side.service.LikeService;
 import side.side.service.ProfileImageService;
 import side.side.service.UserService;
 
@@ -23,7 +25,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -38,8 +42,32 @@ public class UserController {
     private UserRepository userRepository;
     @Autowired
     private ProfileImageService profileImageService;
+    @Autowired
+    private LikeService likeService;
+    @Autowired
+    private EventService eventService;
+    @Autowired
+    private CulturalFacilityDetailRepository culturalFacilityDetailRepository;
+    @Autowired
+    private FoodEventDetailRepository foodEventDetailRepository;
+    @Autowired
+    private LeisureSportsEventDetailRepository leisureSportsEventDetailRepository;
+    @Autowired
+    private LocalEventDetailRepository localEventDetailRepository;
+    @Autowired
+    private ShoppingEventDetailRepository shoppingEventDetailRepository;
+    @Autowired
+    private TourEventDetailRepository tourEventDetailRepository;
+    @Autowired
+    private TouristAttractionDetailRepository touristAttractionDetailRepository;
+    @Autowired
+    private TravelCourseDetailRepository travelCourseDetailRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+    @Autowired
+    private SeoulEventRepository seoulEventRepository;
+    @Autowired
+    private GyeonggiEventRepository gyeonggiEventRepository;
 
     @PostMapping("/save")
     public ResponseEntity<String> saveUser(@RequestBody UserInfo userinfo) {
@@ -229,6 +257,50 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("프로필 이미지 삭제 실패");
         }
+    }
+
+    @GetMapping("/liked-events")
+    public ResponseEntity<List<Object>> getLikedEvents(@RequestHeader("Authorization") String token) {
+        Long userId = jwtUtils.extractUserId(token);  // JWT 토큰에서 사용자 ID 추출
+        List<Like> likedContents = likeService.getLikedContentsByUser(userId);
+
+        List<Object> likedEvents = likedContents.stream().map(like -> {
+            String contentId = like.getContentId();
+            String contentType = like.getContentType();
+
+            // contentType이 "EventDetail"일 경우 모든 테이블에서 contentId 조회
+            if (contentType.equals("EventDetail")) {
+                return eventService.findEventDetailFromAllSources(contentId);
+            }
+
+
+            switch (contentType) {
+                case "CulturalFacilityDetail":
+                    return culturalFacilityDetailRepository.findByContentid(contentId);
+                case "FoodEventDetail":
+                    return foodEventDetailRepository.findByContentid(contentId);
+                case "LeisureSportsEventDetail":
+                    return leisureSportsEventDetailRepository.findByContentid(contentId);
+                case "LocalEventDetail":
+                    return localEventDetailRepository.findByContentid(contentId);
+                case "ShoppingEventDetail":
+                    return shoppingEventDetailRepository.findByContentid(contentId);
+                case "TourEventDetail":
+                    return tourEventDetailRepository.findByContentid(contentId);
+                case "TouristAttractionDetail":
+                    return touristAttractionDetailRepository.findByContentid(contentId);
+                case "TravelCourseDetail":
+                    return travelCourseDetailRepository.findByContentid(contentId);
+                case "SeoulEventDetail":
+                    return seoulEventRepository.findBySvcid(contentId);
+                case "GyeonggiEventDetail":  // 경기도 행사 데이터 처리 추가
+                    return gyeonggiEventRepository.findById(Long.parseLong(contentId)).orElse(null);
+                default:
+                    return null;
+            }
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(likedEvents);
     }
 
     @Getter

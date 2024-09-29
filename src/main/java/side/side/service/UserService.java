@@ -367,10 +367,6 @@ public class UserService {
         String encodedPassword = BCrypt.hashpw(userInfo.getUserPassword(), BCrypt.gensalt());
         userInfo.setUserPassword(encodedPassword);
 
-        // 기본 프로필 이미지가 없으면 기본 이미지 설정
-        if (userInfo.getProfileImage() == null || userInfo.getProfileImage().isEmpty()) {
-            userInfo.setProfileImage("/uploads/userProfileImg/default-profile-image.png");
-        }
 
         return userRepository.save(userInfo);
     }
