@@ -1,4 +1,4 @@
-package side.side.model;
+package side.side.model.DTO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;

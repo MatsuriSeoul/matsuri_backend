@@ -367,10 +367,6 @@ public class UserService {
         String encodedPassword = BCrypt.hashpw(userInfo.getUserPassword(), BCrypt.gensalt());
         userInfo.setUserPassword(encodedPassword);
 
-        // 기본 프로필 이미지가 없으면 기본 이미지 설정
-        if (userInfo.getProfileImage() == null || userInfo.getProfileImage().isEmpty()) {
-            userInfo.setProfileImage("/uploads/userProfileImg/default-profile-image.png");
-        }
 
         return userRepository.save(userInfo);
     }
@@ -566,6 +562,11 @@ public class UserService {
     public UserInfo findByUserId(String userId) {
         Optional<UserInfo> userInfo = userRepository.findByUserId(userId);
         return userInfo.orElse(null);
+    }
+
+    //소셜 로그인 사용자 확인
+    public UserInfo findBySocialIdAndProvider(String socialId, String provider) {
+        return userRepository.findBySocialIdAndSocialProvider(socialId, provider);
     }
 
     public boolean checkUserIdExists(String userId) {
