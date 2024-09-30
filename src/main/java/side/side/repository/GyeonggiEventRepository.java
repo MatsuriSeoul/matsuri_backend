@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import side.side.model.GyeonggiEvent;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public interface GyeonggiEventRepository extends JpaRepository<GyeonggiEvent, Long> {
