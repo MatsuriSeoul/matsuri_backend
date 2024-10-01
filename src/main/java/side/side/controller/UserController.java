@@ -268,10 +268,7 @@ public class UserController {
             String contentId = like.getContentId();
             String contentType = like.getContentType();
 
-            // contentType이 "EventDetail"일 경우 모든 테이블에서 contentId 조회
-            if (contentType.equals("EventDetail")) {
-                return eventService.findEventDetailFromAllSources(contentId);
-            }
+
 
 
             switch (contentType) {

@@ -1,11 +1,17 @@
 package side.side.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.web.util.UriComponentsBuilder;
+import side.side.model.LocalBase;
+import side.side.repository.LocalBasedRepository;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,82 +20,71 @@ import java.util.Map;
 @Service
 public class LocalBasedService {
 
+    @Autowired
+    private LocalBasedRepository localBaseRepository;
+
     private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
     private final String baseUrl = "http://apis.data.go.kr/B551011/KorService1/areaBasedList1";
 
-    public Map<String, Object> getTourismInfo(String region, int subregionCode, int numOfRows, int pageNo) {
-        List<Map<String, String>> allEvents = new ArrayList<>();
-        boolean moreData = true;
+    // API를 호출하고 결과를 저장하는 메소드
+    public List<LocalBase> fetchAndSaveEvents(String region, int numOfRows, String pageNo) {
+        List<LocalBase> allEvents = new ArrayList<>();
+        RestTemplate restTemplate = new RestTemplate();
 
-        while (moreData) {
-            try {
-                RestTemplate restTemplate = new RestTemplate();
+        // API 호출 URL 빌드 (sigunguCode를 제외하고 호출)
+        String url = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("numOfRows", numOfRows)
+                .queryParam("pageNo", pageNo)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("listYN", "Y")
+                .queryParam("arrange", "A")
+                //.queryParam("contentTypeId", "32")  // 숙박시설 고정
+                .queryParam("areaCode", getAreaCode(region))  // 지역 코드만 추가
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
 
-                String url = UriComponentsBuilder.fromHttpUrl(baseUrl)
-                        .queryParam("ServiceKey", serviceKey) // 대소문자 수정
-                        .queryParam("pageNo", pageNo)
-                        .queryParam("numOfRows", numOfRows)
-                        .queryParam("MobileOS", "ETC")
-                        .queryParam("MobileApp", "AppTest")
-                        .queryParam("arrange", "A")
-                        .queryParam("listYN", "Y")
-                        .queryParam("contentTypeId", "32") // 숙박시설
-                        .queryParam("areaCode", getAreaCode(region))
-                        .queryParam("sigunguCode", subregionCode)
-                        .queryParam("cat1", "A02")
-                        .queryParam("cat2", "")
-                        .queryParam("cat3", "")
-                        .queryParam("_type", "json")
-                        .build()
-                        .toUriString();
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response.getBody());
+                JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
 
-                System.out.println("API Request URL: " + url); // 디버깅용 로그
-
-                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-
-                if (response.getStatusCode().is2xxSuccessful()) {
-                    JSONObject jsonResponse = new JSONObject(response.getBody());
-                    JSONObject responseBody = jsonResponse.getJSONObject("response").getJSONObject("body");
-                    JSONObject itemsObj = responseBody.optJSONObject("items");
-
-                    if (itemsObj == null) {
-                        moreData = false;
-                        continue;
+                if (itemsNode.isArray()) {
+                    List<LocalBase> events = new ArrayList<>();
+                    for (JsonNode node : itemsNode) {
+                        LocalBase event = new LocalBase();
+                        event.setTitle(node.path("title").asText());
+                        event.setAddr1(node.path("addr1").asText());
+                        event.setAddr2(node.path("addr2").asText());
+                        event.setFirstImage(node.path("firstimage").asText());
+                        event.setFirstImage2(node.path("firstimage2").asText());
+                        event.setAreaCode(node.path("areacode").asInt());
+                        event.setSigunguCode(node.path("sigungucode").asInt());
+                        event.setCat1(node.path("cat1").asText());
+                        event.setCat2(node.path("cat2").asText());
+                        event.setCat3(node.path("cat3").asText());
+                        event.setContentTypeId(node.path("contenttypeid").asText());
+                        event.setMapX(node.path("mapx").asDouble());
+                        event.setMapY(node.path("mapy").asDouble());
+                        event.setTelephone(node.path("tel").asText());
+                        event.setZipcode(node.path("zipcode").asText());
+                        events.add(event);
                     }
-
-                    JSONArray items = itemsObj.optJSONArray("item");
-
-                    if (items == null || items.length() == 0) {
-                        moreData = false;
-                    } else {
-                        for (int i = 0; i < items.length(); i++) {
-                            JSONObject item = items.getJSONObject(i);
-                            Map<String, String> event = new HashMap<>();
-                            event.put("title", item.optString("title"));
-                            event.put("firstimage", item.optString("firstimage"));
-                            allEvents.add(event);
-                        }
-                        int totalCount = responseBody.optInt("totalCount");
-                        if (pageNo * numOfRows >= totalCount) {
-                            moreData = false;
-                        } else {
-                            pageNo++;
-                        }
-                    }
-                } else {
-                    System.out.println("API Response Status: " + response.getStatusCode()); // 디버깅용 로그
-                    moreData = false;
+                    localBaseRepository.saveAll(events);
+                    allEvents.addAll(events);
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                moreData = false;
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        Map<String, Object> result = new HashMap<>();
-        result.put("events", allEvents);
-        return result;
+        return allEvents;
     }
+
 
     private int getAreaCode(String region) {
         switch (region.toLowerCase()) {
