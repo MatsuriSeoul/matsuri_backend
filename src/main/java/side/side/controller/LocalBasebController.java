@@ -25,7 +25,7 @@ public class LocalBasebController {
             @RequestParam(defaultValue = "10") String numOfRows,
             @RequestParam(defaultValue = "1") String pageNo) {
         try {
-            List<LocalBase> data = localBasedService.fetchAndSaveEvents(region, Integer.parseInt(numOfRows), pageNo);
+            List<LocalBase> data = localBasedService.fetchAndSaveEvents(region, Integer.parseInt(numOfRows), Integer.parseInt(numOfRows), pageNo);
             return ResponseEntity.ok(data);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Invalid region or subregion code.");

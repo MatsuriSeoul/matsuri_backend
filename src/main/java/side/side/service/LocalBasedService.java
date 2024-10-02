@@ -3,35 +3,32 @@ package side.side.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.ResponseEntity;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.LocalBase;
 import side.side.repository.LocalBasedRepository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class LocalBasedService {
 
     @Autowired
-    private LocalBasedRepository localBaseRepository;
+    private LocalBasedRepository localBasedRepository;
 
     private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
     private final String baseUrl = "http://apis.data.go.kr/B551011/KorService1/areaBasedList1";
 
     // API를 호출하고 결과를 저장하는 메소드
-    public List<LocalBase> fetchAndSaveEvents(String region, int numOfRows, String pageNo) {
+    public List<LocalBase> fetchAndSaveEvents(String region, int sigunguCode, int numOfRows, String pageNo) {
         List<LocalBase> allEvents = new ArrayList<>();
         RestTemplate restTemplate = new RestTemplate();
 
-        // API 호출 URL 빌드 (sigunguCode를 제외하고 호출)
+        // API 호출 URL 빌드
         String url = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .queryParam("serviceKey", serviceKey)
                 .queryParam("numOfRows", numOfRows)
@@ -40,8 +37,8 @@ public class LocalBasedService {
                 .queryParam("MobileApp", "AppTest")
                 .queryParam("listYN", "Y")
                 .queryParam("arrange", "A")
-                //.queryParam("contentTypeId", "32")  // 숙박시설 고정
-                .queryParam("areaCode", getAreaCode(region))  // 지역 코드만 추가
+                .queryParam("areaCode", getAreaCode(region))
+                .queryParam("sigunguCode", sigunguCode)
                 .queryParam("_type", "json")
                 .build()
                 .toUriString();
@@ -54,7 +51,6 @@ public class LocalBasedService {
                 JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
 
                 if (itemsNode.isArray()) {
-                    List<LocalBase> events = new ArrayList<>();
                     for (JsonNode node : itemsNode) {
                         LocalBase event = new LocalBase();
                         event.setTitle(node.path("title").asText());
@@ -67,15 +63,17 @@ public class LocalBasedService {
                         event.setCat1(node.path("cat1").asText());
                         event.setCat2(node.path("cat2").asText());
                         event.setCat3(node.path("cat3").asText());
+                        event.setContentid(node.path("contentid").asText());
                         event.setContentTypeId(node.path("contenttypeid").asText());
                         event.setMapX(node.path("mapx").asDouble());
                         event.setMapY(node.path("mapy").asDouble());
                         event.setTelephone(node.path("tel").asText());
                         event.setZipcode(node.path("zipcode").asText());
-                        events.add(event);
+
+                        // 중복을 무시하고 저장
+                        localBasedRepository.insertIgnoreDuplicate(event);
+                        allEvents.add(event);
                     }
-                    localBaseRepository.saveAll(events);
-                    allEvents.addAll(events);
                 }
             }
         } catch (Exception e) {
