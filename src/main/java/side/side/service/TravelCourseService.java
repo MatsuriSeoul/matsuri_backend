@@ -35,7 +35,7 @@ public class TravelCourseService {
     // contenttypeid가 25인 여행 코스를 가져와서 DB에 저장하는 메소드
     public List<TravelCourse> fetchAndSaveTravelCourses(String numOfRows, String pageNo) {
         List<TravelCourse> allCourses = new ArrayList<>();
-        numOfRows = "50";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "10";  // 호출되는 데이터의 개수를 10개로 제한
         boolean moreData = true;
         RestTemplate restTemplate = new RestTemplate();
 
@@ -171,6 +171,7 @@ public class TravelCourseService {
                 .queryParam("MobileApp", "AppTest")
                 .queryParam("defaultYN", "Y")
                 .queryParam("addrinfoYN", "Y")
+                .queryParam("mapinfoYN", "Y")
                 .queryParam("overviewYN", "Y")
                 .queryParam("_type", "json")
                 .build()

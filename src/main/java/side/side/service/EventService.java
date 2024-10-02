@@ -50,21 +50,6 @@ public class EventService {
     @Autowired
     private TourEventService tourEventService;
 
-    @Autowired
-    private ShoppingEventDetailRepository shoppingEventDetailRepository;
-    @Autowired
-    private FoodEventDetailRepository foodEventDetailRepository;
-    @Autowired
-    private LeisureSportsEventDetailRepository leisureSportsEventDetailRepository;
-    @Autowired
-    private LocalEventDetailRepository localEventDetailRepository;
-    @Autowired
-    private CulturalFacilityDetailRepository culturalFacilityDetailRepository;
-    @Autowired
-    private TouristAttractionDetailRepository touristAttractionDetailRepository;
-    @Autowired
-    private TravelCourseDetailRepository travelCourseDetailRepository;
-
 
     // 키 값 절대 건들이면 안됨
     private final String gyeonggiApiKey = "77b3011d245e4ca68e85caec7fd610ae";
@@ -542,38 +527,6 @@ public class EventService {
     public List<SeoulEvent> getSeoulScheduledEvents() {
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         return seoulEventRepository.findScheduledEvents(today);
-    }
-
-    // 모든 테이블에서 EventDetail 검색
-    public Object findEventDetailFromAllSources(String contentId) {
-        Object eventDetail = culturalFacilityDetailRepository.findByContentid(contentId);
-        if (eventDetail != null) return eventDetail;
-
-        eventDetail = foodEventDetailRepository.findByContentid(contentId);
-        if (eventDetail != null) return eventDetail;
-
-        eventDetail = leisureSportsEventDetailRepository.findByContentid(contentId);
-        if (eventDetail != null) return eventDetail;
-
-        eventDetail = localEventDetailRepository.findByContentid(contentId);
-        if (eventDetail != null) return eventDetail;
-
-        eventDetail = shoppingEventDetailRepository.findByContentid(contentId);
-        if (eventDetail != null) return eventDetail;
-
-        eventDetail = tourEventDetailRepository.findByContentid(contentId);
-        if (eventDetail != null) return eventDetail;
-
-        eventDetail = touristAttractionDetailRepository.findByContentid(contentId);
-        if (eventDetail != null) return eventDetail;
-
-        eventDetail = travelCourseDetailRepository.findByContentid(contentId);
-        if (eventDetail != null) return eventDetail;
-
-        eventDetail = seoulEventRepository.findBySvcid(contentId);
-        if (eventDetail != null) return eventDetail;
-
-        return gyeonggiEventRepository.findById(Long.parseLong(contentId)).orElse(null);
     }
 }
 

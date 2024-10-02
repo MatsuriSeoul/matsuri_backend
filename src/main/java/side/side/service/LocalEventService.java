@@ -37,7 +37,7 @@ public class LocalEventService {
     public List<LocalEvent> fetchAndSaveEventsLocal(String numOfRows, String pageNo) {
         List<LocalEvent> allEvents = new ArrayList<>();
         boolean moreData = true;
-        numOfRows = "50";  // 호출되는 데이터의 개수를 10개로 제한
+        numOfRows = "10";  // 호출되는 데이터의 개수를 10개로 제한
         RestTemplate restTemplate = new RestTemplate();
 
         // 단일 요청
@@ -172,6 +172,7 @@ public class LocalEventService {
                 .queryParam("MobileOS", "ETC")
                 .queryParam("MobileApp", "AppTest")
                 .queryParam("defaultYN", "Y")
+                .queryParam("mapinfoYN", "Y")
                 .queryParam("addrinfoYN", "Y")
                 .queryParam("overviewYN", "Y")
                 .queryParam("_type", "json")
