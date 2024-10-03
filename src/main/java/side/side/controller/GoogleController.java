@@ -38,18 +38,18 @@ public class GoogleController {
     private UserService userService;
 
     // 구글 로그인 URL로 리다이렉션
-    @GetMapping("/api/google/login")
-    public ResponseEntity<?> googleLogin() {
-        String googleAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth?response_type=code"
-                + "&client_id=" + googleClientId
-                + "&redirect_uri=" + googleRedirectUri
-                + "&scope=email profile";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create(googleAuthUrl));
-
-        return new ResponseEntity<>(headers, HttpStatus.MOVED_PERMANENTLY);
-    }
+//    @GetMapping("/api/google/login")
+//    public ResponseEntity<?> googleLogin() {
+//        String googleAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth?response_type=code"
+//                + "&client_id=" + googleClientId
+//                + "&redirect_uri=" + googleRedirectUri
+//                + "&scope=email profile";
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setLocation(URI.create(googleAuthUrl));
+//
+//        return new ResponseEntity<>(headers, HttpStatus.MOVED_PERMANENTLY);
+//    }
 
     // 구글에서 Authorization Code를 받아오는 콜백 메서드
     @GetMapping("/login/oauth2/code/google")
