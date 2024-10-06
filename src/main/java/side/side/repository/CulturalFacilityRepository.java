@@ -7,8 +7,11 @@ import side.side.model.CulturalFacility;
 import side.side.model.TouristAttraction;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CulturalFacilityRepository extends JpaRepository<CulturalFacility, Long> {
     // 특정 contentTypeId에 따라 TouristAttraction 리스트를 가져오는 메소드
     List<CulturalFacility> findByContenttypeid(String contenttypeid);
+
+    Optional<CulturalFacility> findFirstByContentid(String contentid);
 }

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.*;
+import side.side.model.DTO.EventDTO;
 import side.side.repository.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -26,9 +28,6 @@ public class EventService {
 
     @Autowired
     private SeoulEventRepository seoulEventRepository;
-
-    @Autowired
-    private TourEventRepository tourEventRepository;
 
     @Autowired
     private TourEventDetailRepository tourEventDetailRepository;
@@ -49,6 +48,37 @@ public class EventService {
     private TouristAttractionsService touristAttractionsService;
     @Autowired
     private TourEventService tourEventService;
+    @Autowired
+    private ShoppingEventRepository shoppingEventRepository;
+    @Autowired
+    private FoodEventRepository foodEventRepository;
+    @Autowired
+    private LocalEventRepository localEventRepository;
+    @Autowired
+    private CulturalFacilityRepository culturalFacilityRepository;
+    @Autowired
+    private TravelCourseRepository travelCourseRepository;
+    @Autowired
+    private LeisureSportsEventRepository leisureSportsEventRepository;
+    @Autowired
+    private TouristAttractionRepository touristAttractionRepository;
+    @Autowired
+    private TourEventRepository tourEventRepository;
+    @Autowired
+    private ShoppingEventDetailRepository shoppingEventDetailRepository;
+    @Autowired
+    private FoodEventDetailRepository foodEventDetailRepository;
+    @Autowired
+    private LocalEventDetailRepository localEventDetailRepository;
+    @Autowired
+    private CulturalFacilityDetailRepository culturalFacilityDetailRepository;
+    @Autowired
+    private TravelCourseDetailRepository travelCourseDetailRepository;
+    @Autowired
+    private LeisureSportsEventDetailRepository leisureSportsEventDetailRepository;
+    @Autowired
+    private TouristAttractionDetailRepository touristAttractionDetailRepository;
+
 
 
     // 키 값 절대 건들이면 안됨
@@ -532,7 +562,131 @@ public class EventService {
     public List<TourEvent> getSimilarTourEvent(String contenttypeid) {
         return tourEventRepository.findByContenttypeid(contenttypeid);
     }
-}
+
+    public EventDTO findEventDetailFromAllSources(String contentId) {
+        String title = null;
+        String firstImage = null;
+        String imgurl = null;
+        String imageUrl = null;
+        String overview = null;
+        String contenttypeid = null;
+
+        // CulturalFacilityDetail 조회
+        CulturalFacilityDetail facilityDetail = culturalFacilityDetailRepository.findByContentid(contentId);
+        if (facilityDetail != null) {
+            CulturalFacility facility = culturalFacilityRepository.findFirstByContentid(contentId).orElse(null);
+
+            title = facilityDetail.getTitle();
+            overview = facilityDetail.getOverview();
+            firstImage = (facility != null) ? facility.getFirstimage() : null; // 이미지
+            contenttypeid = "14";
+            return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
+        }
+
+        // FoodEventDetail 조회
+        FoodEventDetail foodDetail = foodEventDetailRepository.findByContentid(contentId);
+        if (foodDetail != null) {
+            FoodEvent foodEvent = foodEventRepository.findFirstByContentid(contentId).orElse(null);
+            title = foodDetail.getTitle();
+            overview = foodDetail.getOverview();
+            firstImage = (foodEvent != null) ? foodEvent.getFirstimage() : null;
+            contenttypeid = "39";
+            return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
+        }
+
+        // LeisureSportsEventDetail 조회
+        LeisureSportsEventDetail leisureDetail = leisureSportsEventDetailRepository.findByContentid(contentId);
+        if (leisureDetail != null) {
+            LeisureSportsEvent leisureEvent = leisureSportsEventRepository.findFirstByContentid(contentId).orElse(null);
+            title = leisureDetail.getTitle();
+            overview = leisureDetail.getOverview();
+            firstImage = (leisureEvent != null) ? leisureEvent.getFirstimage() : null;
+            contenttypeid = "28";
+            return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
+        }
+
+        // LocalEventDetail 조회
+        LocalEventDetail localEvent = localEventDetailRepository.findByContentid(contentId);
+        if (localEvent != null) {
+            LocalEvent local = localEventRepository.findFirstByContentid(contentId).orElse(null);
+            title = localEvent.getTitle();
+            overview = localEvent.getOverview();
+            firstImage = (local != null) ? local.getFirstimage() : null;
+            contenttypeid = "32";
+            return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
+        }
+
+        // ShoppingEventDetail 조회
+        ShoppingEventDetail shoppingEvent = shoppingEventDetailRepository.findByContentid(contentId);
+        if (shoppingEvent != null) {
+            ShoppingEvent shopping = shoppingEventRepository.findFirstByContentid(contentId).orElse(null);
+            title = shoppingEvent.getTitle();
+            overview = shoppingEvent.getOverview();
+            firstImage = (shopping != null) ? shopping.getFirstimage() : null;
+            contenttypeid = "38";
+            return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
+        }
+
+        // TourEventDetail 조회
+        TourEventDetail tourEvent = tourEventDetailRepository.findByContentid(contentId);
+        if (tourEvent != null) {
+            TourEvent tour = tourEventRepository.findFirstByContentid(contentId).orElse(null);
+            title = tourEvent.getTitle();
+            overview = tourEvent.getOverview();
+            firstImage = (tour != null) ? tour.getFirstimage() : null;
+            contenttypeid = "15";
+            return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
+        }
+
+        // TouristAttractionDetail 조회
+        TouristAttractionDetail touristAttraction = touristAttractionDetailRepository.findByContentid(contentId);
+        if (touristAttraction != null) {
+            TouristAttraction attraction = touristAttractionRepository.findFirstByContentid(contentId).orElse(null);
+            title = touristAttraction.getTitle();
+            overview = touristAttraction.getOverview();
+            firstImage = (attraction != null) ? attraction.getFirstimage() : null;
+            contenttypeid = "12";
+            return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
+        }
+
+        // TravelCourse 조회
+        TravelCourseDetail travelCourse = travelCourseDetailRepository.findByContentid(contentId);
+        if (travelCourse != null) {
+            TravelCourse course = travelCourseRepository.findFirstByContentid(contentId).orElse(null);
+            title = travelCourse.getTitle();
+            overview = travelCourse.getOverview();
+            firstImage = (course != null) ? course.getImageUrl() : null; // 이미지가 imageurl
+            contenttypeid = "25";
+            return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
+        }
+
+        // 서울 이벤트 조회
+        SeoulEvent seoulEvent = seoulEventRepository.findBySvcid(contentId);
+        if (seoulEvent != null) {
+            title = seoulEvent.getSvcnm();
+            overview = seoulEvent.getDtlcont();
+            imgurl = seoulEvent.getImgurl(); // 서울 이미지
+            contenttypeid = "SeoulEventDetail";
+            return new EventDTO(contentId, contenttypeid, title, null, imgurl, null, overview, seoulEvent.getSvcid(), null);
+        }
+
+        // 경기 이벤트 조회
+        GyeonggiEvent gyeonggiEvent = gyeonggiEventRepository.findById(Long.parseLong(contentId)).orElse(null);
+        if (gyeonggiEvent != null) {
+            title = gyeonggiEvent.getTitle();
+            imageUrl = gyeonggiEvent.getImageUrl(); // 경기 이미지
+            contenttypeid = "GyeonggiEventDetail";
+            return new EventDTO(contentId, contenttypeid, title, null, null, imageUrl, null, null, gyeonggiEvent.getId());
+        }
+
+        return null; // 해당 이벤트를 찾지 못한 경우
+    }
+
+
+
+
+    }
+
 
 
 
