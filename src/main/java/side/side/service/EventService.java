@@ -528,6 +528,10 @@ public class EventService {
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         return seoulEventRepository.findScheduledEvents(today);
     }
+    // 유사한 여행지 정보 가져오기
+    public List<TourEvent> getSimilarTourEvent(String contenttypeid) {
+        return tourEventRepository.findByContenttypeid(contenttypeid);
+    }
 }
 
 

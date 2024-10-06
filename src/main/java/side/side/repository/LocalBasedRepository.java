@@ -3,9 +3,12 @@ package side.side.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import side.side.model.LocalBase;
+
+import java.util.List;
 
 @Repository
 public interface LocalBasedRepository extends JpaRepository<LocalBase, Long> {
@@ -21,4 +24,12 @@ public interface LocalBasedRepository extends JpaRepository<LocalBase, Long> {
     // contentid로 중복된 데이터가 있는지 확인하는 메서드
     boolean existsByContentid(String contentid);
 
+    // 추가된 메서드
+    List<LocalBase> findByAreaCodeAndSigunguCode(int areaCode, int sigunguCode);
+
+    @Query("SELECT DISTINCT l.sigunguCode FROM LocalBase l WHERE l.areaCode = :areaCode")
+    List<Integer> findDistinctSigunguCodesByAreaCode(@Param("areaCode") int areaCode);
+
+    // contenttypeid로 유사한 이벤트 조회
+    List<LocalBase> findByContentTypeId(String contenttypeid);
 }

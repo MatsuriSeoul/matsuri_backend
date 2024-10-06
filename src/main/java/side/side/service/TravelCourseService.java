@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.FoodEvent;
+import side.side.model.TouristAttraction;
 import side.side.model.TravelCourse;
 import side.side.model.TravelCourseDetail;
 import side.side.repository.TravelCourseDetailRepository;
@@ -338,5 +339,9 @@ public class TravelCourseService {
         return travelCourseRepository.findAll().stream()
                 .filter(event -> event.getAddr1().contains(region))
                 .collect(Collectors.toList());
+    }
+    // 유사한 여행지 정보 가져오기
+    public List<TravelCourse> getSimilarTravelCourses(String contenttypeid) {
+        return travelCourseRepository.findByContenttypeid(contenttypeid);
     }
 }

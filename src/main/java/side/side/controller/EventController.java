@@ -258,6 +258,14 @@ public class EventController {
     public List<TourEvent> getRandomEventsByRegion(@RequestParam("region") String region) {
         return eventService.getRandomEventsByRegion(region);
     }
-
+    // 유사한 여행 코스 정보 가져오기
+    @GetMapping("/{contenttypeid}/similar-events")
+    public ResponseEntity<List<TourEvent>> getSimilarTourEvent(@PathVariable String contenttypeid) {
+        List<TourEvent> similarEvents = eventService.getSimilarTourEvent(contenttypeid);
+        if (similarEvents.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(similarEvents);
+    }
 }
 

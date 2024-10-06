@@ -89,86 +89,86 @@ public class DataLoader implements ApplicationRunner {
 
 //         eventService.fetchAndSaveGyeonggiEvents();
 //         eventService.fetchAndSaveSeoulEvents();
-//
+
         // 서버 시작 시 지역별 관광정보를 가져와 저장
- //       fetchAllLocalEvents();
+        fetchAllLocalEvents();
 
 //        // 축제/공연/행사 데이터 호출
-//        String eventNumOfRows = "10"; // 한 페이지에 가져올 이벤트 수
-//        String eventPageNo = "1"; // 시작 페이지 번호
-//        String eventStartDate = "20240101"; // 이벤트 시작 날짜 (YYYYMMDD 형식)
-//
-//        List<TourEvent> tourEvents = eventService.fetchAndSaveEvents(eventNumOfRows, eventPageNo, eventStartDate);
-//        for (TourEvent tourEvent : tourEvents) {
-//            eventService.fetchAndSaveEventDetail(tourEvent.getContentid());
-//        }
-//
-//        // 관광지 데이터 호출
-//        String touristNumOfRows = "10";
-//        String touristPageNo = "1";
-//        List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(touristNumOfRows, touristPageNo);
-//        for(TouristAttraction touristAttraction : touristAttractions) {
-//            touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
-//        }
-//
-//        // 숙박 이벤트 데이터 호출
-//        String lodgingNumOfRows = "10";
-//        String lodgingPageNo = "1";
-//        List<LocalEvent> localEvents = localEventService.fetchAndSaveEventsLocal(lodgingNumOfRows, lodgingPageNo);
-//        for (LocalEvent localEvent : localEvents) {
-//            localEventService.fetchAndSaveLocalEventDetail(localEvent.getContentid());
-//        }
-//
-//        // 레포츠 데이터 호출
-//        String leisureNumOfRows = "10";
-//        String leisurePageNo = "1";
-//        List<LeisureSportsEvent> leisureSportsEvents = leisureSportsEventService.fetchAndSaveLeisureSportsEvents(leisureNumOfRows, leisurePageNo);
-//        for (LeisureSportsEvent leisureSportsEvent : leisureSportsEvents) {
-//            leisureSportsEventService.fetchAndSaveLeisureSportsEventDetail(leisureSportsEvent.getContentid());
-//       }
-//
-//        // 여행 코스 데이터 호출
-//        String travelNumOfRows = "10";
-//        String travelPageNo = "1";
-//        List<TravelCourse> travelCourses = travelCourseService.fetchAndSaveTravelCourses(travelNumOfRows, travelPageNo);
-//        for (TravelCourse travelCourse : travelCourses) {
-//            travelCourseService.fetchAndSaveTravelCourseDetail(travelCourse.getContentid());
-//        }
-//
-//        // 문화시설 데이터 호출
-//        String culturalNumOfRows = "10";
-//        String culturalPageNo = "1";
-//        List<CulturalFacility> culturalFacilities = culturalFacilityService.fetchAndSaveCulturalFacilities(culturalNumOfRows, culturalPageNo);
-//        for (CulturalFacility culturalFacility : culturalFacilities) {
-//            culturalFacilityService.fetchAndSaveCulturalFacilityDetail(culturalFacility.getContentid());
-//        }
-//
-//        // 쇼핑 데이터 호출
-//        String shoppingNumOfRows = "10";
-//        String shoppingPageNo = "1";
-//        List<ShoppingEvent> shoppingEvents = shoppingEventService.fetchAndSaveShoppingEvents(shoppingNumOfRows, shoppingPageNo);
-//        for (ShoppingEvent shoppingEvent : shoppingEvents) {
-//            shoppingEventService.fetchAndSaveShoppingEventDetail(shoppingEvent.getContentid());
-//        }
-//
-//        // 음식 데이터 호출
-//        String foodNumOfRows = "10";
-//        String foodPageNo = "1";
-//        List<FoodEvent> foodEvents = foodEventService.fetchAndSaveFoodEvents(foodNumOfRows, foodPageNo);
-//        for (FoodEvent foodEvent : foodEvents) {
-//            foodEventService.fetchAndSaveFoodEventDetail(foodEvent.getContentid());
-//        }
+        String eventNumOfRows = "10"; // 한 페이지에 가져올 이벤트 수
+        String eventPageNo = "1"; // 시작 페이지 번호
+        String eventStartDate = "20240101"; // 이벤트 시작 날짜 (YYYYMMDD 형식)
+
+        List<TourEvent> tourEvents = eventService.fetchAndSaveEvents(eventNumOfRows, eventPageNo, eventStartDate);
+        for (TourEvent tourEvent : tourEvents) {
+            eventService.fetchAndSaveEventDetail(tourEvent.getContentid());
+        }
+
+        // 관광지 데이터 호출
+        String touristNumOfRows = "10";
+        String touristPageNo = "1";
+        List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(touristNumOfRows, touristPageNo);
+        for(TouristAttraction touristAttraction : touristAttractions) {
+            touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
+        }
+
+        // 숙박 이벤트 데이터 호출
+        String lodgingNumOfRows = "10";
+        String lodgingPageNo = "1";
+        List<LocalEvent> localEvents = localEventService.fetchAndSaveEventsLocal(lodgingNumOfRows, lodgingPageNo);
+        for (LocalEvent localEvent : localEvents) {
+            localEventService.fetchAndSaveLocalEventDetail(localEvent.getContentid());
+        }
+
+        // 레포츠 데이터 호출
+        String leisureNumOfRows = "10";
+        String leisurePageNo = "1";
+        List<LeisureSportsEvent> leisureSportsEvents = leisureSportsEventService.fetchAndSaveLeisureSportsEvents(leisureNumOfRows, leisurePageNo);
+        for (LeisureSportsEvent leisureSportsEvent : leisureSportsEvents) {
+            leisureSportsEventService.fetchAndSaveLeisureSportsEventDetail(leisureSportsEvent.getContentid());
+       }
+
+        // 여행 코스 데이터 호출
+        String travelNumOfRows = "10";
+        String travelPageNo = "1";
+        List<TravelCourse> travelCourses = travelCourseService.fetchAndSaveTravelCourses(travelNumOfRows, travelPageNo);
+        for (TravelCourse travelCourse : travelCourses) {
+            travelCourseService.fetchAndSaveTravelCourseDetail(travelCourse.getContentid());
+        }
+
+        // 문화시설 데이터 호출
+        String culturalNumOfRows = "10";
+        String culturalPageNo = "1";
+        List<CulturalFacility> culturalFacilities = culturalFacilityService.fetchAndSaveCulturalFacilities(culturalNumOfRows, culturalPageNo);
+        for (CulturalFacility culturalFacility : culturalFacilities) {
+            culturalFacilityService.fetchAndSaveCulturalFacilityDetail(culturalFacility.getContentid());
+        }
+
+        // 쇼핑 데이터 호출
+        String shoppingNumOfRows = "10";
+        String shoppingPageNo = "1";
+        List<ShoppingEvent> shoppingEvents = shoppingEventService.fetchAndSaveShoppingEvents(shoppingNumOfRows, shoppingPageNo);
+        for (ShoppingEvent shoppingEvent : shoppingEvents) {
+            shoppingEventService.fetchAndSaveShoppingEventDetail(shoppingEvent.getContentid());
+        }
+
+        // 음식 데이터 호출
+        String foodNumOfRows = "10";
+        String foodPageNo = "1";
+        List<FoodEvent> foodEvents = foodEventService.fetchAndSaveFoodEvents(foodNumOfRows, foodPageNo);
+        for (FoodEvent foodEvent : foodEvents) {
+            foodEventService.fetchAndSaveFoodEventDetail(foodEvent.getContentid());
+        }
 
         // 저장된 이벤트의 상세 정보를 업데이트
         updateEventDetails();
     }
     // LocalBasedService를 이용하여 도시 지역(예시)의 관광정보를 서버 시작 시 가져와 저장
-//    public void fetchAllLocalEvents() {
-//        int numOfRows = EventFetchConfig.DEFAULT_NUM_OF_ROWS;
-//
-//        // 지역별로 관광 정보를 가져와 저장
+    public void fetchAllLocalEvents() {
+        int numOfRows = EventFetchConfig.DEFAULT_NUM_OF_ROWS;
+
+        // 지역별로 관광 정보를 가져와 저장
 //        fetchAndSaveLocalGyeonggiEvents(numOfRows);
-//        fetchAndSaveLocalSeoulEvents(numOfRows);
+        fetchAndSaveLocalSeoulEvents(numOfRows);
 //        fetchAndSaveLocalGangwonEvents(numOfRows);
 //        fetchAndSaveLocalInchoenEvents(numOfRows);
 //        fetchAndSaveLocalChungbukEvents(numOfRows);
@@ -184,8 +184,8 @@ public class DataLoader implements ApplicationRunner {
 //        fetchAndSaveLocalSejongEvents(numOfRows);
 //        fetchAndSaveLocalJejuEvents(numOfRows);
 //        fetchAndSaveLocalBusanEvents(numOfRows);
-//
-//    }
+
+    }
 
 
 
@@ -198,7 +198,7 @@ public class DataLoader implements ApplicationRunner {
         }
     }
     public class EventFetchConfig {
-        public static final int DEFAULT_NUM_OF_ROWS = 10; // 기본 최대 데이터 수
+        public static final int DEFAULT_NUM_OF_ROWS = 20; // 기본 최대 데이터 수
     }
 
 

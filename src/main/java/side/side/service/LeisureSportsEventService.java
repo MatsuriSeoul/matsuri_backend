@@ -311,5 +311,8 @@ public class LeisureSportsEventService {
                 .filter(event -> event.getAddr1().contains(region))
                 .collect(Collectors.toList());
     }
-
+    // 유사한 여행지 정보 가져오기
+    public List<LeisureSportsEvent> getSimilarLeisureSportsEvents(String contenttypeid) {
+        return leisureSportsEventRepository.findByContenttypeid(contenttypeid);
+    }
 }

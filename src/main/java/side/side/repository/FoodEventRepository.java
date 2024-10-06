@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface FoodEventRepository extends JpaRepository<FoodEvent, Long> {
     // 특정 contentTypeId에 따라 TouristAttraction 리스트를 가져오는 메소드
+    //유사한 여행지 추천
     List<FoodEvent> findByContenttypeid(String contenttypeid);
 
 }
