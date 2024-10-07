@@ -26,8 +26,6 @@ import java.util.Map;
 @RestController
 public class NaverController {
 
-    private static final Logger logger = LoggerFactory.getLogger(NaverController.class);
-
     @Autowired
     private JwtUtils jwtUtils;
 
@@ -36,9 +34,9 @@ public class NaverController {
 
     private final String clientId = "cAxVyC6eWpTfHY6rLFwK"; // 네이버 클라이언트 ID
     private final String clientSecret = "MzaDRXyw9H"; // 네이버 클라이언트 시크릿
-    private final String redirectUri = "http://localhost:8080/api/login"; // 리다이렉트 URI
+    private final String redirectUri = "http://localhost:8080/api/naver/login"; // 리다이렉트 URI
 
-    @GetMapping("/api/login")
+    @GetMapping("/api/naver/login")
     public ResponseEntity<?> naverCallback(@RequestParam String code, @RequestParam String state) {
         try {
             // 액세스 토큰 요청

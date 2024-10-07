@@ -7,10 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import side.side.model.LocalEvent;
-import side.side.model.LocalEventDetail;
-import side.side.model.ShoppingEvent;
-import side.side.model.ShoppingEventDetail;
+import side.side.model.*;
 import side.side.repository.ShoppingEventDetailRepository;
 import side.side.repository.ShoppingEventRepository;
 
@@ -31,6 +28,7 @@ public class ShoppingEventService {
     @Autowired
     private ShoppingEventDetailRepository shoppingEventDetailRepository;
     private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
+    private final String baseUrl = "http://apis.data.go.kr/B551011/KorService1/areaBasedList1";
 
     // 쇼핑 API 호출 및 데이터 저장
     public List<ShoppingEvent> fetchAndSaveShoppingEvents(String numOfRows, String pageNo) {
@@ -325,7 +323,10 @@ public class ShoppingEventService {
                 .filter(event -> event.getAddr1().contains(region))
                 .collect(Collectors.toList());
     }
-
+    // 유사한 여행지 정보 가져오기
+    public List<ShoppingEvent> getSimilarShoppingEvents(String contenttypeid) {
+        return shoppingEventRepository.findByContenttypeid(contenttypeid);
+    }
 }
 
 

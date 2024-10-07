@@ -33,4 +33,18 @@ public class LocalBasebController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while fetching data.");
         }
     }
+    // 지역과 시군구 코드로 이벤트를 조회하는 엔드포인트 추가
+    @GetMapping("/events")
+    public ResponseEntity<List<LocalBase>> getEventsByAreaAndSigungu(
+            @RequestParam int areaCode,
+            @RequestParam int sigunguCode) {
+        List<LocalBase> events = localBasedService.getEventsByAreaAndSigungu(areaCode, sigunguCode);
+        return ResponseEntity.ok(events);
+    }
+    // 지역 코드에 따른 시군구 목록을 반환하는 엔드포인트 추가
+    @GetMapping("/districts")
+    public ResponseEntity<List<Integer>> getSigunguCodesByAreaCode(@RequestParam int areaCode) {
+        List<Integer> sigunguCodes = localBasedService.getSigunguCodesByAreaCode(areaCode);
+        return ResponseEntity.ok(sigunguCodes);
+    }
 }

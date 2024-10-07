@@ -61,4 +61,14 @@ public class FoodEventController {
     public List<FoodEvent> getFoodEventsByRegion(@RequestParam String region) {
         return foodEventService.getFoodEventsByRegion(region);
     }
+    // 유사한 음식 여행지 정보 가져오기
+    @GetMapping("/{contenttypeid}/similar-events")
+    public ResponseEntity<List<FoodEvent>> getSimilarFoodEvents(@PathVariable String contenttypeid) {
+        List<FoodEvent> similarEvents = foodEventService.getSimilarFoodEvents(contenttypeid);
+        if (similarEvents.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(similarEvents);
+    }
+
 }

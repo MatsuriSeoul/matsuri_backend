@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import side.side.model.CulturalFacilityDetail;
 import side.side.model.ShoppingEvent;
 import side.side.model.ShoppingEventDetail;
 import side.side.repository.ShoppingEventRepository;
@@ -20,7 +21,7 @@ public class ShoppingEventController {
     @Autowired
     private ShoppingEventRepository shoppingEventRepository;
 
-    // 쇼핑 이벤트 상세 정보 가져오기
+    // 쇼핑 이벤트 상세 정보 가져오기 (Fallback 처리 추가)
     @GetMapping("/{contentid}/detail")
     public ResponseEntity<?> getShoppingEventDetail(@PathVariable String contentid) {
         ShoppingEventDetail detail = shoppingEventService.getShoppingEventDetailFromDB(contentid);
@@ -64,5 +65,13 @@ public class ShoppingEventController {
     public List<ShoppingEvent> getShoppingEventsByRegion(@RequestParam String region) {
         return shoppingEventService.getShoppingEventsByRegion(region);
     }
-
+    // 유사한 쇼핑 여행지 정보 가져오기
+    @GetMapping("/{contenttypeid}/similar-events")
+    public ResponseEntity<List<ShoppingEvent>> getSimilarShoppingEvents(@PathVariable String contenttypeid) {
+        List<ShoppingEvent> similarEvents = shoppingEventService.getSimilarShoppingEvents(contenttypeid);
+        if (similarEvents.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(similarEvents);
+    }
 }

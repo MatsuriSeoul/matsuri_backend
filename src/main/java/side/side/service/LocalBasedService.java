@@ -83,6 +83,114 @@ public class LocalBasedService {
         return allEvents;
     }
 
+    // 2. 실시간으로 상세 정보 API 호출 메소드 (저장하지 않음)
+    public JsonNode fetchEventDetail(String contentid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailCommon1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("defaultYN", "Y")
+                .queryParam("addrinfoYN", "Y")
+                .queryParam("overviewYN", "Y")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response.getBody());
+                JsonNode itemNode = rootNode.path("response").path("body").path("items").path("item");
+
+                if (itemNode.isMissingNode()) {
+                    return null;
+                }
+
+                return itemNode;  // 상세 정보 반환
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // 3. 실시간으로 이미지 정보 API 호출 메소드 (저장하지 않음)
+    public JsonNode fetchImagesFromApi(String contentid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailImage1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("imageYN", "Y")
+                .queryParam("subImageYN", "Y")
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response.getBody());
+                JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+
+                if (itemsNode.isArray() && itemsNode.size() > 0) {
+                    return itemsNode;  // 이미지 리스트 반환
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // 4. 실시간으로 소개 정보 API 호출 메소드 (저장하지 않음)
+    public JsonNode fetchIntroInfoFromApi(String contentid, String contenttypeid) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/detailIntro1")
+                .queryParam("serviceKey", serviceKey)
+                .queryParam("contentId", contentid)
+                .queryParam("contentTypeId", contenttypeid)
+                .queryParam("MobileOS", "ETC")
+                .queryParam("MobileApp", "AppTest")
+                .queryParam("_type", "json")
+                .build()
+                .toUriString();
+
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response.getBody());
+                JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
+
+                if (itemsNode.isArray() && itemsNode.size() > 0) {
+                    return itemsNode.get(0);  // 첫 번째 아이템 반환
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
     private int getAreaCode(String region) {
         switch (region.toLowerCase()) {
@@ -105,5 +213,18 @@ public class LocalBasedService {
             case "jeju": return 39;
             default: throw new IllegalArgumentException("Invalid region name: " + region);
         }
+    }
+
+    // 지역과 시군구 코드로 이벤트를 조회하는 메서드 추가
+    public List<LocalBase> getEventsByAreaAndSigungu(int areaCode, int sigunguCode) {
+        return localBasedRepository.findByAreaCodeAndSigunguCode(areaCode, sigunguCode);
+    }
+    // 특정 지역의 시군구 코드를 가져오는 메서드
+    public List<Integer> getSigunguCodesByAreaCode(int areaCode) {
+        return localBasedRepository.findDistinctSigunguCodesByAreaCode(areaCode);
+    }
+    // 유사한 이벤트를 가져오는 메소드
+    public List<LocalBase> getSimilarEventsByContentType(String contenttypeid) {
+        return localBasedRepository.findByContentTypeId(contenttypeid);
     }
 }

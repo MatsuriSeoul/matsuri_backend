@@ -265,5 +265,9 @@ public class CulturalFacilityService {
                 .filter(event -> event.getAddr1().contains(region))
                 .collect(Collectors.toList());
     }
+    // 유사한 문화시설 정보 가져오기
+    public List<CulturalFacility> getSimilarCulturalFacility(String contenttypeid) {
+        return culturalFacilityRepository.findByContenttypeid(contenttypeid);
+    }
 
 }

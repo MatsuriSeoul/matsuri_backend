@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.model.TouristAttraction;
 import side.side.model.TouristAttractionDetail;
-import side.side.model.TravelCourse;
 import side.side.repository.TouristAttractionRepository;
 import side.side.service.TouristAttractionsService;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,5 +61,13 @@ public class TouristAttractionController {
     public List<TouristAttraction> getTouristAttractionByRegion(@RequestParam String region) {
         return touristAttractionsService.getTouristAttractionByRegion(region);
     }
-
+    // 유사한 관광지 정보 가져오기
+    @GetMapping("/{contenttypeid}/similar-events")
+    public ResponseEntity<List<TouristAttraction>> getSimilarTouristAttractions(@PathVariable String contenttypeid) {
+        List<TouristAttraction> similarEvents = touristAttractionsService.getSimilarTouristAttractions(contenttypeid);
+        if (similarEvents.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(similarEvents);
+    }
 }

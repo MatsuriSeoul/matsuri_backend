@@ -328,5 +328,8 @@ public class LocalEventService {
                 .filter(event -> event.getAddr1().contains(region))
                 .collect(Collectors.toList());
     }
-
+    // 유사한 여행지 정보 가져오기
+    public List<LocalEvent> getSimilarLocalEvents(String contenttypeid) {
+        return localEventRepository.findByContenttypeid(contenttypeid);
+    }
 }
