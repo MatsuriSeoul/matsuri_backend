@@ -73,6 +73,14 @@ public class CulturalFacilityController {
     public List<CulturalFacility> getCulturalFacilityByRegion(@RequestParam String region) {
         return culturalFacilityService.getCulturalFacilityByRegion(region);
     }
-    // 이미지 URL과 제목만 반환하는 API
+    // 유사한 여행 코스 정보 가져오기
+    @GetMapping("/{contenttypeid}/similar-events")
+    public ResponseEntity<List<CulturalFacility>> getSimilarCulturalFacility(@PathVariable String contenttypeid) {
+        List<CulturalFacility> similarEvents = culturalFacilityService.getSimilarCulturalFacility(contenttypeid);
+        if (similarEvents.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(similarEvents);
+    }
 
 }

@@ -61,5 +61,13 @@ public class LocalEventController {
     public List<LocalEvent> getLocalEventsByRegion(@RequestParam String region) {
         return localEventService.getLocalEventsByRegion(region);
     }
-
+    // 유사한 숙박 여행지 정보 가져오기
+    @GetMapping("/{contenttypeid}/similar-events")
+    public ResponseEntity<List<LocalEvent>> getSimilarLocalEvents(@PathVariable String contenttypeid) {
+        List<LocalEvent> similarEvents = localEventService.getSimilarLocalEvents(contenttypeid);
+        if (similarEvents.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(similarEvents);
+    }
 }

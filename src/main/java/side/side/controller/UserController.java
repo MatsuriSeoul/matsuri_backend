@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import side.side.config.JwtUtils;
 import side.side.model.*;
+import side.side.model.DTO.EventDTO;
 import side.side.repository.*;
 import side.side.response.LoginResponse;
 import side.side.service.EventService;
@@ -47,19 +48,35 @@ public class UserController {
     @Autowired
     private EventService eventService;
     @Autowired
+    private CulturalFacilityRepository culturalFacilityRepository;
+    @Autowired
     private CulturalFacilityDetailRepository culturalFacilityDetailRepository;
+    @Autowired
+    private FoodEventRepository foodEventRepository;
     @Autowired
     private FoodEventDetailRepository foodEventDetailRepository;
     @Autowired
+    private LeisureSportsEventRepository leisureSportsEventRepository;
+    @Autowired
     private LeisureSportsEventDetailRepository leisureSportsEventDetailRepository;
+    @Autowired
+    private LocalEventRepository localEventRepository;
     @Autowired
     private LocalEventDetailRepository localEventDetailRepository;
     @Autowired
+    private ShoppingEventRepository shoppingEventRepository;
+    @Autowired
     private ShoppingEventDetailRepository shoppingEventDetailRepository;
+    @Autowired
+    private TourEventRepository tourEventRepository;
     @Autowired
     private TourEventDetailRepository tourEventDetailRepository;
     @Autowired
+    private TouristAttractionRepository touristAttractionRepository;
+    @Autowired
     private TouristAttractionDetailRepository touristAttractionDetailRepository;
+    @Autowired
+    private TravelCourseRepository travelCourseRepository;
     @Autowired
     private TravelCourseDetailRepository travelCourseDetailRepository;
 
@@ -259,46 +276,54 @@ public class UserController {
         }
     }
 
+    // 사용자가 좋아요를 누른 게시글 목록 조회
     @GetMapping("/liked-events")
-    public ResponseEntity<List<Object>> getLikedEvents(@RequestHeader("Authorization") String token) {
-        Long userId = jwtUtils.extractUserId(token);  // JWT 토큰에서 사용자 ID 추출
+    public ResponseEntity<List<EventDTO>> getLikedEvents(@RequestHeader("Authorization") String token) {
+        // JWT에서 사용자 ID 추출
+        Long userId = jwtUtils.extractUserId(token);
         List<Like> likedContents = likeService.getLikedContentsByUser(userId);
 
-        List<Object> likedEvents = likedContents.stream().map(like -> {
-            String contentId = like.getContentId();
-            String contentType = like.getContentType();
+        // 각 좋아요 항목을 EventDTO로 매핑하여 반환
+        List<EventDTO> likedEvents = likedContents.stream()
+                .map(like -> {
+                    String contentId = like.getContentId();
+                    String contentType = like.getContentType();
 
+                    // contentType이 "EventDetail"인 경우
+                    if ("EventDetail".equals(contentType)) {
+                        return eventService.findEventDetailFromAllSources(contentId); // 모든 테이블에서 검색
+                    }
 
+                    // 각 contentType에 따른 검색
+                    switch (contentType) {
+                        case "CulturalFacilityDetail":
+                        case "FoodEventDetail":
+                        case "LeisureSportsEventDetail":
+                        case "LocalEventDetail":
+                        case "ShoppingEventDetail":
+                        case "TourEventDetail":
+                        case "TouristAttractionDetail":
+                        case "TravelCourseDetail":
+                            return eventService.findEventDetailFromAllSources(contentId);  // 통합 조회
+                        case "SeoulEventDetail":  // 서울 이벤트 조회
+                            return eventService.findEventDetailFromAllSources(contentId);
+                        case "GyeonggiEventDetail":  // 경기 이벤트 조회
+                            return eventService.findEventDetailFromAllSources(contentId);
+                        default:
+                            return null;
+                    }
+                })
+                .filter(eventDTO -> eventDTO != null)  // null 값을 필터링
+                .collect(Collectors.toList());
 
+        // 디버그용: contenttypeid를 포함해 반환되는 데이터를 확인합니다.
+        likedEvents.forEach(event -> System.out.println(event.getContenttypeid()));
 
-            switch (contentType) {
-                case "CulturalFacilityDetail":
-                    return culturalFacilityDetailRepository.findByContentid(contentId);
-                case "FoodEventDetail":
-                    return foodEventDetailRepository.findByContentid(contentId);
-                case "LeisureSportsEventDetail":
-                    return leisureSportsEventDetailRepository.findByContentid(contentId);
-                case "LocalEventDetail":
-                    return localEventDetailRepository.findByContentid(contentId);
-                case "ShoppingEventDetail":
-                    return shoppingEventDetailRepository.findByContentid(contentId);
-                case "TourEventDetail":
-                    return tourEventDetailRepository.findByContentid(contentId);
-                case "TouristAttractionDetail":
-                    return touristAttractionDetailRepository.findByContentid(contentId);
-                case "TravelCourseDetail":
-                    return travelCourseDetailRepository.findByContentid(contentId);
-                case "SeoulEventDetail":
-                    return seoulEventRepository.findBySvcid(contentId);
-                case "GyeonggiEventDetail":  // 경기도 행사 데이터 처리 추가
-                    return gyeonggiEventRepository.findById(Long.parseLong(contentId)).orElse(null);
-                default:
-                    return null;
-            }
-        }).collect(Collectors.toList());
 
         return ResponseEntity.ok(likedEvents);
     }
+
+
 
     @Getter
     @Setter

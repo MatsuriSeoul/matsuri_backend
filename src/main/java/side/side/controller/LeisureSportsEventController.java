@@ -61,5 +61,13 @@ public class LeisureSportsEventController {
     public List<LeisureSportsEvent> getLeisureSportsByRegion(@RequestParam String region) {
         return leisureSportsEventService.getLeisureSportsByRegion(region);
     }
-
+    // 유사한 레포츠 여행지 정보 가져오기
+    @GetMapping("/{contenttypeid}/similar-events")
+    public ResponseEntity<List<LeisureSportsEvent>> getSimilarLeisureSportsEvents(@PathVariable String contenttypeid) {
+        List<LeisureSportsEvent> similarEvents = leisureSportsEventService.getSimilarLeisureSportsEvents(contenttypeid);
+        if (similarEvents.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(similarEvents);
+    }
 }

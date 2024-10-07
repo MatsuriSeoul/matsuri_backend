@@ -19,8 +19,6 @@ public class TravelCourseController {
 
     @Autowired
     private TravelCourseService travelCourseService;
-    @Autowired
-    private TravelCourseRepository travelCourseRepository;
 
     @GetMapping("/{contentid}/detail")
     public ResponseEntity<?> getTravelCourseDetail(@PathVariable String contentid) {
@@ -61,5 +59,13 @@ public class TravelCourseController {
     public List<TravelCourse> getTravelCourseByRegion(@RequestParam String region) {
         return travelCourseService.getTravelCourseByRegion(region);
     }
-
+    // 유사한 여행 코스 정보 가져오기
+    @GetMapping("/{contenttypeid}/similar-events")
+    public ResponseEntity<List<TravelCourse>> getSimilarTravelCourses(@PathVariable String contenttypeid) {
+        List<TravelCourse> similarEvents = travelCourseService.getSimilarTravelCourses(contenttypeid);
+        if (similarEvents.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(similarEvents);
+    }
 }
