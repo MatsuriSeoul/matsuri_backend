@@ -7,8 +7,8 @@ import side.side.model.TourEvent;
 import side.side.repository.TourEventRepository;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
@@ -31,5 +31,10 @@ public class TourEventService {
         logger.info("Fetched Events: " + events);
 
         return events;
+    }
+
+    // contentid로 TourEvent 조회
+    public Optional<TourEvent> findBycontentid(String contentid) {
+        return tourEventRepository.findBycontentid(contentid);
     }
 }

@@ -10,9 +10,11 @@ import org.springframework.web.bind.annotation.*;
 import side.side.config.JwtUtils;
 import side.side.model.Comment;
 import side.side.model.Notice;
+import side.side.model.TourEvent;
 import side.side.model.UserInfo;
 import side.side.service.CommentService;
 import side.side.service.NoticeService;
+import side.side.service.TourEventService;
 import side.side.service.UserService;
 
 import java.util.List;
@@ -35,6 +37,9 @@ public class CommentController {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    private TourEventService tourEventService;
+
     // 댓글 작성
     @PostMapping
     public ResponseEntity<?> createComment(@RequestBody CommentRequest commentRequest, @RequestHeader("Authorization") String token) {
@@ -47,8 +52,11 @@ public class CommentController {
                     .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
             // 공지사항 정보 조회
-            Notice notice = noticeService.getNoticeById(commentRequest.getNoticeId())
-                    .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다."));
+//            Notice notice = noticeService.getNoticeById(commentRequest.getNoticeId())
+//                    .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다."));
+
+//            TourEvent tourEvent = tourEventService.findBycontentid(commentRequest.getContentid())
+//                    .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 이벤트를 찾을 수 없습니다."));
 
             // 이름 마스킹 처리 (예: 홍길동 -> 홍OO)
             String maskedName = maskName(user.getUserName());
@@ -56,9 +64,24 @@ public class CommentController {
             // 댓글 생성 및 저장
             Comment comment = new Comment();
             comment.setContent(commentRequest.getContent());
-            comment.setNotice(notice);
+//            comment.setNotice(notice);
+//            comment.setContentid(tourEvent);  // 조회된 TourEvent 객체 설정
             comment.setAuthor(user);  // 댓글 작성자 정보 저장
             comment.setMaskedAuthor(maskedName);
+
+            // 공지사항 댓글 작성
+            if (commentRequest.getNoticeId() != null) {
+                Notice notice = noticeService.getNoticeById(commentRequest.getNoticeId())
+                        .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다."));
+                comment.setNotice(notice);
+            }
+
+            // 행사 댓글 작성
+            if (commentRequest.getContentid() != null) {
+                TourEvent tourEvent = tourEventService.findBycontentid(commentRequest.getContentid())
+                        .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 이벤트를 찾을 수 없습니다."));
+                comment.setContentid(tourEvent);
+            }
 
             commentService.createComment(comment);
 
@@ -113,6 +136,11 @@ public class CommentController {
         return commentService.getCommentByNoticeId(noticeId);
     }
 
+    @GetMapping("/events/{contentid}")
+    public List<Comment> getCommentByEventId(@PathVariable TourEvent contentid){
+        return commentService.getCommentByEventId(contentid);
+    }
+
 
 
     @Getter
@@ -120,5 +148,6 @@ public class CommentController {
     public static class CommentRequest {
         private String content;
         private Long noticeId;
+        private String contentid;
     }
 }

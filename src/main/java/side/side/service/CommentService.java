@@ -3,6 +3,7 @@ package side.side.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import side.side.model.Comment;
+import side.side.model.TourEvent;
 import side.side.repository.CommentRepository;
 
 import java.util.List;
@@ -44,5 +45,9 @@ public class CommentService {
         }
 
         commentRepository.delete(comment);
+    }
+
+    public List<Comment> getCommentByEventId(TourEvent contentid) {
+        return commentRepository.findBycontentid(contentid);
     }
 }
