@@ -91,9 +91,9 @@ public class DataLoader implements ApplicationRunner {
 //         eventService.fetchAndSaveSeoulEvents();
 
         // 서버 시작 시 지역별 관광정보를 가져와 저장
-        fetchAllLocalEvents();
+ //       fetchAllLocalEvents();
 
-//        // 축제/공연/행사 데이터 호출
+        // 축제/공연/행사 데이터 호출
         String eventNumOfRows = "10"; // 한 페이지에 가져올 이벤트 수
         String eventPageNo = "1"; // 시작 페이지 번호
         String eventStartDate = "20240101"; // 이벤트 시작 날짜 (YYYYMMDD 형식)
@@ -103,7 +103,7 @@ public class DataLoader implements ApplicationRunner {
             eventService.fetchAndSaveEventDetail(tourEvent.getContentid());
         }
 
-        // 관광지 데이터 호출
+//         관광지 데이터 호출
         String touristNumOfRows = "10";
         String touristPageNo = "1";
         List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(touristNumOfRows, touristPageNo);
