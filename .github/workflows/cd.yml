@@ -40,20 +40,21 @@ jobs:
           # 경로 이동
           cd /home/ubuntu/cd/
 
-          # 백업 및 기존 파일 삭제
+          # 기존 백엔드 파일을 백업, 단 frontend 폴더는 제외
           if [ -d "backend" ]; then
             echo "Backing up existing backend files..."
-            rm -rf backend_old/
-            mv backend/ backend_old/
+            mkdir -p backend_old/
+            rsync -av --progress backend/ backend_old/ --exclude frontend/
+            rm -rf backend/*
           fi
 
-          # 새로운 파일 복사
+          # 새로운 백엔드 파일 복사
           echo "Deploying new backend files..."
-          mv backend_temp/ backend/
+          rsync -av --progress backend_temp/ backend/ --exclude frontend/
 
           # 실행 권한 부여 (필요 시)
           chmod +x backend/gradlew
 
-          # 백엔드 애플리케이션 실행
+          # 백엔드 애플리케이션 빌드 및 실행
           cd backend/
           ./gradlew build
