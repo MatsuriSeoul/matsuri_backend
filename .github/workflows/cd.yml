@@ -33,6 +33,6 @@ jobs:
         key: ${{ secrets.EC2_SSH_KEY }} 
         script: |
           cd /home/ubuntu/cd/backend/
-          ./gradle bootR
+          ./gradlew bootRun
           
           
