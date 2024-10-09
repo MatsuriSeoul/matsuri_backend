@@ -59,10 +59,6 @@ dependencies {
 	implementation 'org.json:json:20210307'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
-}
-
 // 권한 설정 및 기타 설정
 tasks.withType(JavaCompile) {
 	options.compilerArgs << '-parameters'
