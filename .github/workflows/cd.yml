@@ -57,4 +57,4 @@ jobs:
 
           # 백엔드 애플리케이션 빌드 및 실행
           cd backend/
-          gradle bootRun
+          ./gradlew bootRun
