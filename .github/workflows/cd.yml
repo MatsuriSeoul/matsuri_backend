@@ -56,4 +56,4 @@ jobs:
 
           # 애플리케이션 실행
           cd backend/
-          ./gradlew bootRun
+          ./gradlew build
