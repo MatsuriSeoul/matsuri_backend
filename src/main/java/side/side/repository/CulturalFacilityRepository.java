@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import side.side.model.CulturalFacility;
+import side.side.model.TourEvent;
 import side.side.model.TouristAttraction;
 
 import java.util.List;
@@ -14,4 +15,7 @@ public interface CulturalFacilityRepository extends JpaRepository<CulturalFacili
     List<CulturalFacility> findByContenttypeid(String contenttypeid);
 
     Optional<CulturalFacility> findFirstByContentid(String contentid);
+
+    //여행톡
+    Optional<CulturalFacility> findBycontentid(String contentid);
 }

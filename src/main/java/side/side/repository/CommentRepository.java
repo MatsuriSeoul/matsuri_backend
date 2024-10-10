@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByNoticeId(Long NoticeId);
-    List<Comment> findBycontentid(TourEvent Contentid);
+    List<Comment> findBycontentid(String Contentid);
 }

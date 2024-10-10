@@ -1,12 +1,12 @@
 package side.side.model;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Entity
 @Getter
@@ -21,7 +21,6 @@ public class ShoppingEvent {
     private String firstimage;
     private String mapx;
     private String mapy;
-    private String contentid;
     private String contenttypeid;
     private String areacode;
     private String sigungucode;
@@ -31,4 +30,12 @@ public class ShoppingEvent {
     private String endDe;
     private String regionNm;
     private String imageUrl;
+
+    @Column(unique = true, nullable = false)
+    private String contentid;
+
+    //   댓글
+    @OneToMany(mappedBy = "contentid", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Comment> comments;
 }

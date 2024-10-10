@@ -10,12 +10,14 @@ import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.CulturalFacility;
 import side.side.model.CulturalFacilityDetail;
 import side.side.model.FoodEvent;
+import side.side.model.TourEvent;
 import side.side.repository.CulturalFacilityDetailRepository;
 import side.side.repository.CulturalFacilityRepository;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -268,6 +270,11 @@ public class CulturalFacilityService {
     // 유사한 문화시설 정보 가져오기
     public List<CulturalFacility> getSimilarCulturalFacility(String contenttypeid) {
         return culturalFacilityRepository.findByContenttypeid(contenttypeid);
+    }
+
+    // contentid로 culturalFacility 조회
+    public Optional<CulturalFacility> findBycontentid(String contentid) {
+        return culturalFacilityRepository.findBycontentid(contentid);
     }
 
 }

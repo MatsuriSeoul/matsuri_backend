@@ -14,6 +14,7 @@ import side.side.repository.ShoppingEventRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -327,6 +328,12 @@ public class ShoppingEventService {
     public List<ShoppingEvent> getSimilarShoppingEvents(String contenttypeid) {
         return shoppingEventRepository.findByContenttypeid(contenttypeid);
     }
+
+    // contentid로 ShoppingEvent 조회
+    public Optional<ShoppingEvent> findBycontentid(String contentid) {
+        return shoppingEventRepository.findBycontentid(contentid);
+    }
+
 }
 
 

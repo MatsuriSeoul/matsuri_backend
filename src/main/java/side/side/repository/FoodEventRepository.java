@@ -3,6 +3,7 @@ package side.side.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import side.side.model.CulturalFacility;
 import side.side.model.FoodEvent;
 import side.side.model.LocalEvent;
 import side.side.model.TouristAttraction;
@@ -16,5 +17,8 @@ public interface FoodEventRepository extends JpaRepository<FoodEvent, Long> {
     List<FoodEvent> findByContenttypeid(String contenttypeid);
 
     Optional<FoodEvent> findFirstByContentid(String contentid);
+
+    //여행톡
+    Optional<FoodEvent> findBycontentid(String contentid);
 
 }

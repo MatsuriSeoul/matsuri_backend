@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import side.side.model.CulturalFacility;
 import side.side.model.LocalEvent;
+import side.side.model.ShoppingEvent;
 import side.side.model.TouristAttraction;
 
 import java.util.List;
@@ -15,5 +16,8 @@ public interface LocalEventRepository extends JpaRepository<LocalEvent, Long> {
     List<LocalEvent> findByContenttypeid(String contenttypeid);
 
     Optional<LocalEvent> findFirstByContentid(String contentid);
+
+    //여행톡
+    Optional<LocalEvent> findBycontentid(String contentid);
 
 }

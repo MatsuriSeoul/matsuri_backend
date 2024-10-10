@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -314,5 +315,10 @@ public class LeisureSportsEventService {
     // 유사한 여행지 정보 가져오기
     public List<LeisureSportsEvent> getSimilarLeisureSportsEvents(String contenttypeid) {
         return leisureSportsEventRepository.findByContenttypeid(contenttypeid);
+    }
+
+    // contentid로 LeisureSports 조회
+    public Optional<LeisureSportsEvent> findBycontentid(String contentid) {
+        return leisureSportsEventRepository.findBycontentid(contentid);
     }
 }

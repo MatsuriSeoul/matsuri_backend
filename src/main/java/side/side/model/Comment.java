@@ -1,8 +1,12 @@
 package side.side.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -16,9 +20,7 @@ public class Comment {
     @JoinColumn(name = "notice_id")
     private Notice notice;
 
-    @ManyToOne
-    @JoinColumn(name = "contentid", referencedColumnName = "contentid")
-    private TourEvent contentid;  // 새로운 필드 추가
+    private String contentid;
 
     private String content;
 
@@ -27,5 +29,9 @@ public class Comment {
     private UserInfo author;  // 작성자 정보
 
     private String maskedAuthor;  //  마스킹된 작성자 이름
+
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<CommentImage> images = new ArrayList<>();
 
 }

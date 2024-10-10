@@ -14,6 +14,7 @@ import side.side.repository.FoodEventRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -327,6 +328,11 @@ public class FoodEventService {
     // 유사한 여행지 정보 가져오기
     public List<FoodEvent> getSimilarFoodEvents(String contenttypeid) {
         return foodEventRepository.findByContenttypeid(contenttypeid);
+    }
+
+    // contentid로 FoodEvent 조회
+    public Optional<FoodEvent> findBycontentid(String contentid) {
+        return foodEventRepository.findBycontentid(contentid);
     }
 
 }

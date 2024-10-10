@@ -7,16 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import side.side.model.FoodEvent;
-import side.side.model.TouristAttraction;
-import side.side.model.TravelCourse;
-import side.side.model.TravelCourseDetail;
+import side.side.model.*;
 import side.side.repository.TravelCourseDetailRepository;
 import side.side.repository.TravelCourseRepository;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -343,5 +341,10 @@ public class TravelCourseService {
     // 유사한 여행지 정보 가져오기
     public List<TravelCourse> getSimilarTravelCourses(String contenttypeid) {
         return travelCourseRepository.findByContenttypeid(contenttypeid);
+    }
+
+    // contentid로 TravelCourse 조회
+    public Optional<TravelCourse> findBycontentid(String contentid) {
+        return travelCourseRepository.findBycontentid(contentid);
     }
 }

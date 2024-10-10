@@ -5,10 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import side.side.model.FoodEvent;
-import side.side.model.ShoppingEvent;
-import side.side.model.TouristAttraction;
-import side.side.model.TouristAttractionDetail;
+import side.side.model.*;
 import side.side.repository.TouristAttractionDetailRepository;
 import side.side.repository.TouristAttractionRepository;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -349,5 +347,10 @@ public class TouristAttractionsService {
     // 유사한 여행지 정보 가져오기
     public List<TouristAttraction> getSimilarTouristAttractions(String contenttypeid) {
         return touristAttractionRepository.findByContenttypeid(contenttypeid);
+    }
+
+    // contentid로 TouristAttraction 조회
+    public Optional<TouristAttraction> findBycontentid(String contentid) {
+        return touristAttractionRepository.findBycontentid(contentid);
     }
 }

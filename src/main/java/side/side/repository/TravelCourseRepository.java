@@ -3,6 +3,7 @@ package side.side.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import side.side.model.LeisureSportsEvent;
 import side.side.model.TouristAttraction;
 import side.side.model.TravelCourse;
 
@@ -14,4 +15,7 @@ public interface TravelCourseRepository  extends JpaRepository<TravelCourse, Lon
     List<TravelCourse> findByContenttypeid(String contenttypeid);
 
     Optional<TravelCourse> findFirstByContentid(String contentid);
+
+    //여행톡
+    Optional<TravelCourse> findBycontentid(String contentid);
 }

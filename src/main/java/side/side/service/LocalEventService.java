@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import side.side.model.CulturalFacility;
 import side.side.model.FoodEvent;
 import side.side.model.LocalEvent;
 import side.side.model.LocalEventDetail;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -331,5 +333,10 @@ public class LocalEventService {
     // 유사한 여행지 정보 가져오기
     public List<LocalEvent> getSimilarLocalEvents(String contenttypeid) {
         return localEventRepository.findByContenttypeid(contenttypeid);
+    }
+
+    // contentid로 LocalEvent 조회
+    public Optional<LocalEvent> findBycontentid(String contentid) {
+        return localEventRepository.findBycontentid(contentid);
     }
 }
