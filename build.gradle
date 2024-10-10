@@ -50,14 +50,13 @@ dependencies {
 	// jBCrypt 라이브러리
 	implementation 'org.mindrot:jbcrypt:0.4'
 
-	// Apache POI 라이브러리
-	implementation 'org.apache.poi:poi-ooxml:5.2.3'
+// Apache POI 라이브러리
+implementation 'org.apache.poi:poi-ooxml:5.2.3'
 
-	//Json 패키지
-	implementation 'org.json:json:20210307'
+//Json 패키지
+implementation 'org.json:json:20210307'
 }
 
-// 권한 설정 및 기타 설정
 tasks.withType(JavaCompile) {
 	options.compilerArgs << '-parameters'
 }
