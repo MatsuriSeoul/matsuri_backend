@@ -48,6 +48,7 @@ public class CulturalFacilityService {
                 .queryParam("MobileApp", "AppTest")
                 .queryParam("arrange", "A")  // 제목순 정렬
                 .queryParam("contentTypeId", "14")  // 문화시설의 contentTypeId
+                .queryParam("mapinfoYN", "Y") // 좌표 정보 요청
                 .queryParam("_type", "json")
                 .build()
                 .toUriString();

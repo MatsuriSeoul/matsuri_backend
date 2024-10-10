@@ -31,6 +31,8 @@ public class TourEvent {
     private String contentid; // 콘텐츠ID
 
     private String contenttypeid; // 관광타입(관광지, 숙박등) ID
+    private String mapx;
+    private String mapy;
     private String beginDe;
     private String endDe;
     private String regionNm;

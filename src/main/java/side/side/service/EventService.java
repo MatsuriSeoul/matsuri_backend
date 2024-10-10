@@ -15,7 +15,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -241,6 +240,8 @@ public class EventService {
                         event.setCat1(node.path("cat1").asText());
                         event.setCat2(node.path("cat2").asText());
                         event.setCat3(node.path("cat3").asText());
+                        event.setMapx(node.path("mapx").asText());
+                        event.setMapy(node.path("mapy").asText());
                         event.setContentid(node.path("contentid").asText());
                         event.setContenttypeid(node.path("contenttypeid").asText());
                         events.add(event);
@@ -328,6 +329,7 @@ public class EventService {
                 .queryParam("defaultYN", "Y")
                 .queryParam("addrinfoYN", "Y")
                 .queryParam("overviewYN", "Y")
+                .queryParam("mapinfoYN", "Y") // 좌표 정보 요청
                 .queryParam("_type", "json")
                 .build()
                 .toUriString();
@@ -473,8 +475,6 @@ public class EventService {
     public TourEventDetail getEventDetailFromDB(String contentid) {
         return tourEventDetailRepository.findByContentid(contentid);
     }
-
-
 
     public List<String> getAllContentIds() {
         return tourEventRepository.findAll().stream()
@@ -681,11 +681,7 @@ public class EventService {
 
         return null; // 해당 이벤트를 찾지 못한 경우
     }
-
-
-
-
-    }
+}
 
 
 

@@ -1,11 +1,14 @@
 package side.side.repository;
 
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import side.side.model.TourEvent;
+import side.side.model.TourEventDetail;
 import side.side.model.TouristAttraction;
+import side.side.service.EventService;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,4 +28,5 @@ public interface TourEventRepository extends JpaRepository<TourEvent, Long> {
 
     //유사한 여행지 추천
     List<TourEvent> findByContenttypeid(String contenttypeid);
+
 }

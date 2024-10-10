@@ -210,6 +210,9 @@ public class EventController {
         return ResponseEntity.ok(detail);
     }
 
+
+
+
     // 행사 소개 정보 불러오기 (외부 API에서)
     @GetMapping("/{contentid}/{contenttypeid}/intro")
     public ResponseEntity<?> getIntroInfo(@PathVariable String contentid, @PathVariable String contenttypeid) {
