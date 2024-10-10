@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -124,4 +125,7 @@ public class CommentService {
     }
 
 
+    public Optional<Comment> findCommentById(long id){
+        return commentRepository.findById(id);
+    }
 }

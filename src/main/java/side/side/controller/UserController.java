@@ -16,10 +16,7 @@ import side.side.model.*;
 import side.side.model.DTO.EventDTO;
 import side.side.repository.*;
 import side.side.response.LoginResponse;
-import side.side.service.EventService;
-import side.side.service.LikeService;
-import side.side.service.ProfileImageService;
-import side.side.service.UserService;
+import side.side.service.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,6 +26,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -79,6 +77,9 @@ public class UserController {
     private TravelCourseRepository travelCourseRepository;
     @Autowired
     private TravelCourseDetailRepository travelCourseDetailRepository;
+
+    @Autowired
+    private CommentService commentService;
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     @Autowired
@@ -322,6 +323,25 @@ public class UserController {
 
         return ResponseEntity.ok(likedEvents);
     }
+
+    @GetMapping("/liked-comments")
+    public ResponseEntity<List<Comment>> getLikedComments(@RequestHeader("Authorization") String token) {
+        Long userId = jwtUtils.extractUserId(token);
+        List<Like> likedComments = likeService.getLikedContentsByUser(userId)
+                .stream()
+                .filter(like -> "Comment".equals(like.getContentType()))
+//                .collect(Collectors.toList());
+                .collect(Collectors.toUnmodifiableList());
+
+        List<Comment> comments = likedComments.stream()
+                .map(like -> commentService.findCommentById(Long.parseLong(like.getContentId())))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(comments);
+    }
+
 
 
 
