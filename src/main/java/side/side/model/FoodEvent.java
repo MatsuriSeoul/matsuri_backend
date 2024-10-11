@@ -21,7 +21,6 @@ public class FoodEvent {
     private String firstimage;
     private String mapx;
     private String mapy;
-    @Column(unique = true, nullable = false)
     private String contentid;
     private String contenttypeid;
     private String areacode;

@@ -31,9 +31,7 @@ public class TravelCourse {
     private String endDe;
     private String regionNm;
     private String imageUrl;
-    // Getter 및 Setter 메소드
 
-    @Column(unique = true, nullable = false)
     private String contentid;
 
     //   댓글

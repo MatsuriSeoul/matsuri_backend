@@ -331,7 +331,7 @@ public class FoodEventService {
     }
 
     // contentid로 FoodEvent 조회
-    public Optional<FoodEvent> findBycontentid(String contentid) {
+    public List<FoodEvent> findBycontentid(String contentid) {
         return foodEventRepository.findBycontentid(contentid);
     }
 

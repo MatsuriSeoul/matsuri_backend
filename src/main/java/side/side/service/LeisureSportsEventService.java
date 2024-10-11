@@ -318,7 +318,7 @@ public class LeisureSportsEventService {
     }
 
     // contentid로 LeisureSports 조회
-    public Optional<LeisureSportsEvent> findBycontentid(String contentid) {
+    public List<LeisureSportsEvent> findBycontentid(String contentid) {
         return leisureSportsEventRepository.findBycontentid(contentid);
     }
 }

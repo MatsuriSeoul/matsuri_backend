@@ -336,7 +336,7 @@ public class LocalEventService {
     }
 
     // contentid로 LocalEvent 조회
-    public Optional<LocalEvent> findBycontentid(String contentid) {
+    public List<LocalEvent> findBycontentid(String contentid) {
         return localEventRepository.findBycontentid(contentid);
     }
 }

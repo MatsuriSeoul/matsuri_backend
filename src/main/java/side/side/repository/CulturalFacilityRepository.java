@@ -17,5 +17,5 @@ public interface CulturalFacilityRepository extends JpaRepository<CulturalFacili
     Optional<CulturalFacility> findFirstByContentid(String contentid);
 
     //여행톡
-    Optional<CulturalFacility> findBycontentid(String contentid);
+    List<CulturalFacility> findBycontentid(String contentid);
 }

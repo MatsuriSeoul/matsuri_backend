@@ -24,9 +24,11 @@ public interface TourEventRepository extends JpaRepository<TourEvent, Long> {
     List<TourEvent> findRandomEventsByRegion(@Param("region") String region, @Param("limit") int limit);
 
     //여행톡
-    Optional<TourEvent> findBycontentid(String contentid);
+    List<TourEvent> findBycontentid(String contentid);
 
     //유사한 여행지 추천
     List<TourEvent> findByContenttypeid(String contenttypeid);
+
+    boolean existsByContentid(String contentid);  // 중복 여부 확인 메소드
 
 }

@@ -17,5 +17,5 @@ public interface ShoppingEventRepository extends JpaRepository<ShoppingEvent, Lo
     Optional<ShoppingEvent> findFirstByContentid(String contentid);
 
     //여행톡
-    Optional<ShoppingEvent> findBycontentid(String contentid);
+    List<ShoppingEvent> findBycontentid(String contentid);
 }

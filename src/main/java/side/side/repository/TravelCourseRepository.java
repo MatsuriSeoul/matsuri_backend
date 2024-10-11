@@ -17,5 +17,5 @@ public interface TravelCourseRepository  extends JpaRepository<TravelCourse, Lon
     Optional<TravelCourse> findFirstByContentid(String contentid);
 
     //여행톡
-    Optional<TravelCourse> findBycontentid(String contentid);
+    List<TravelCourse> findBycontentid(String contentid);
 }

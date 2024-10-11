@@ -34,7 +34,7 @@ public class TourEventService {
     }
 
     // contentid로 TourEvent 조회
-    public Optional<TourEvent> findBycontentid(String contentid) {
+    public List<TourEvent> findBycontentid(String contentid) {
         return tourEventRepository.findBycontentid(contentid);
     }
 }

@@ -90,46 +90,67 @@ public class CommentController {
             }
 
             // 행사, 문화시설 등 다른 콘텐츠에 대한 댓글 작성
-            if (contentid != null && category != null) {
-                comment.setContentid(contentid);
+            switch (category) {
+                case "events":
+                    List<TourEvent> events = tourEventService.findBycontentid(contentid);
+                    if (events.isEmpty()) {
+                        throw new RuntimeException("해당 콘텐츠 ID에 대한 이벤트를 찾을 수 없습니다.");
+                    }
+                    break;
 
-                switch (category) {
-                    case "events":
-                        tourEventService.findBycontentid(contentid)
-                                .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 이벤트를 찾을 수 없습니다."));
-                        break;
-                    case "cultural-facilities":
-                        culturalFacilityService.findBycontentid(contentid)
-                                .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 문화시설을 찾을 수 없습니다."));
-                        break;
-                    case "tourist-attraction":
-                        touristAttractionsService.findBycontentid(contentid)
-                                .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 관광지를 찾을 수 없습니다."));
-                        break;
-                    case "travel-courses":
-                        travelCourseService.findBycontentid(contentid)
-                                .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 여행 코스를 찾을 수 없습니다."));
-                        break;
-                    case "leisure-sports":
-                        leisureSportsEventService.findBycontentid(contentid)
-                                .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 레저 스포츠를 찾을 수 없습니다."));
-                        break;
-                    case "local-events":
-                        localEventService.findBycontentid(contentid)
-                                .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 지역 행사를 찾을 수 없습니다."));
-                        break;
-                    case "shopping-events":
-                        shoppingEventService.findBycontentid(contentid)
-                                .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 쇼핑 이벤트를 찾을 수 없습니다."));
-                        break;
-                    case "food-events":
-                        foodEventService.findBycontentid(contentid)
-                                .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 음식 이벤트를 찾을 수 없습니다."));
-                        break;
-                    default:
-                        throw new RuntimeException("알 수 없는 카테고리입니다.");
-                }
+                case "cultural-facilities":
+                    List<CulturalFacility> culturalFacilities = culturalFacilityService.findBycontentid(contentid);
+                    if (culturalFacilities.isEmpty()) {
+                        throw new RuntimeException("해당 콘텐츠 ID에 대한 문화시설을 찾을 수 없습니다.");
+                    }
+                    break;
+
+                case "tourist-attraction":
+                    List<TouristAttraction> touristAttractions = touristAttractionsService.findBycontentid(contentid);
+                    if (touristAttractions.isEmpty()) {
+                        throw new RuntimeException("해당 콘텐츠 ID에 대한 관광지를 찾을 수 없습니다.");
+                    }
+                    break;
+
+                case "travel-courses":
+                    List<TravelCourse> travelCourses = travelCourseService.findBycontentid(contentid);
+                    if (travelCourses.isEmpty()) {
+                        throw new RuntimeException("해당 콘텐츠 ID에 대한 여행 코스를 찾을 수 없습니다.");
+                    }
+                    break;
+
+                case "leisure-sports":
+                    List<LeisureSportsEvent> leisureSports = leisureSportsEventService.findBycontentid(contentid);
+                    if (leisureSports.isEmpty()) {
+                        throw new RuntimeException("해당 콘텐츠 ID에 대한 레저 스포츠를 찾을 수 없습니다.");
+                    }
+                    break;
+
+                case "local-events":
+                    List<LocalEvent> localEvents = localEventService.findBycontentid(contentid);
+                    if (localEvents.isEmpty()) {
+                        throw new RuntimeException("해당 콘텐츠 ID에 대한 지역 행사를 찾을 수 없습니다.");
+                    }
+                    break;
+
+                case "shopping-events":
+                    List<ShoppingEvent> shoppingEvents = shoppingEventService.findBycontentid(contentid);
+                    if (shoppingEvents.isEmpty()) {
+                        throw new RuntimeException("해당 콘텐츠 ID에 대한 쇼핑 이벤트를 찾을 수 없습니다.");
+                    }
+                    break;
+
+                case "food-events":
+                    List<FoodEvent> foodEvents = foodEventService.findBycontentid(contentid);
+                    if (foodEvents.isEmpty()) {
+                        throw new RuntimeException("해당 콘텐츠 ID에 대한 음식 이벤트를 찾을 수 없습니다.");
+                    }
+                    break;
+
+                default:
+                    throw new RuntimeException("알 수 없는 카테고리입니다.");
             }
+
 
             // 댓글 저장
             Comment savedComment = commentService.createComment(comment);

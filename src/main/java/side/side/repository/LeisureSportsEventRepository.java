@@ -18,5 +18,5 @@ public interface LeisureSportsEventRepository extends JpaRepository<LeisureSport
     Optional<LeisureSportsEvent> findFirstByContentid(String contentid);
 
     //여행톡
-    Optional<LeisureSportsEvent> findBycontentid(String contentid);
+    List<LeisureSportsEvent> findBycontentid(String contentid);
 }

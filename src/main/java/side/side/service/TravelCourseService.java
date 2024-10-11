@@ -344,7 +344,7 @@ public class TravelCourseService {
     }
 
     // contentid로 TravelCourse 조회
-    public Optional<TravelCourse> findBycontentid(String contentid) {
+    public List<TravelCourse> findBycontentid(String contentid) {
         return travelCourseRepository.findBycontentid(contentid);
     }
 }

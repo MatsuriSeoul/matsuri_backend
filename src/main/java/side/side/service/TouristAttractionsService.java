@@ -350,7 +350,7 @@ public class TouristAttractionsService {
     }
 
     // contentid로 TouristAttraction 조회
-    public Optional<TouristAttraction> findBycontentid(String contentid) {
+    public List<TouristAttraction> findBycontentid(String contentid) {
         return touristAttractionRepository.findBycontentid(contentid);
     }
 }

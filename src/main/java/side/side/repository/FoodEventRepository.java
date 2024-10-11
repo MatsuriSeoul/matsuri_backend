@@ -19,6 +19,6 @@ public interface FoodEventRepository extends JpaRepository<FoodEvent, Long> {
     Optional<FoodEvent> findFirstByContentid(String contentid);
 
     //여행톡
-    Optional<FoodEvent> findBycontentid(String contentid);
+    List<FoodEvent> findBycontentid(String contentid);
 
 }

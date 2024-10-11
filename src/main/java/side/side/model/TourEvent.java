@@ -27,7 +27,6 @@ public class TourEvent {
     private String cat2; // 중분류
     private String cat3; // 소분류
 
-    @Column(unique = true, nullable = false)
     private String contentid; // 콘텐츠ID
 
     private String contenttypeid; // 관광타입(관광지, 숙박등) ID

@@ -33,7 +33,6 @@ public class TouristAttraction {
     private String regionNm;
     private String imageUrl;
 
-    @Column(unique = true, nullable = false)
     private String contentid;      //콘텐츠 ID
 
     //   댓글

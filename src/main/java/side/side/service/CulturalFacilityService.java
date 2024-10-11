@@ -274,7 +274,7 @@ public class CulturalFacilityService {
     }
 
     // contentid로 culturalFacility 조회
-    public Optional<CulturalFacility> findBycontentid(String contentid) {
+    public List<CulturalFacility> findBycontentid(String contentid) {
         return culturalFacilityRepository.findBycontentid(contentid);
     }
 

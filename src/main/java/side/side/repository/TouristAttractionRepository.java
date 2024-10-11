@@ -16,6 +16,6 @@ public interface TouristAttractionRepository extends JpaRepository<TouristAttrac
     Optional<TouristAttraction> findFirstByContentid(String contentid);
 
     //여행톡
-    Optional<TouristAttraction> findBycontentid(String contentid);
+    List<TouristAttraction> findBycontentid(String contentid);
 
 }

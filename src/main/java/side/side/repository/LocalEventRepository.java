@@ -18,6 +18,6 @@ public interface LocalEventRepository extends JpaRepository<LocalEvent, Long> {
     Optional<LocalEvent> findFirstByContentid(String contentid);
 
     //여행톡
-    Optional<LocalEvent> findBycontentid(String contentid);
+    List<LocalEvent> findBycontentid(String contentid);
 
 }

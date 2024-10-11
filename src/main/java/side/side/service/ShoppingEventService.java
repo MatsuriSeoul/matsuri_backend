@@ -330,7 +330,7 @@ public class ShoppingEventService {
     }
 
     // contentid로 ShoppingEvent 조회
-    public Optional<ShoppingEvent> findBycontentid(String contentid) {
+    public List<ShoppingEvent> findBycontentid(String contentid) {
         return shoppingEventRepository.findBycontentid(contentid);
     }
 
