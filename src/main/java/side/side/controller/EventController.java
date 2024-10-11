@@ -244,9 +244,22 @@ public class EventController {
         return ResponseEntity.ok(events);
     }
 
+    // 퍼스트 이미지 가져오기
+    @GetMapping("/firstimage/{contentid}")
+    public ResponseEntity<String> fetchFirstImage(@PathVariable String contentid) {
+        Optional<TourEvent> eventOptional = tourEventRepository.findByContentid(contentid);
+        if (eventOptional.isPresent()) {
+            TourEvent event = eventOptional.get();
+            return ResponseEntity.ok(event.getFirstimage());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     // 키워드 추출
     @GetMapping("/by-region")
     public List<TourEvent> getTourEventsByRegion(@RequestParam String region) {
+
         return eventService.getTourEventsByRegion(region);
     }
 

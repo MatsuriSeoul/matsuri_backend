@@ -2,6 +2,7 @@ package side.side.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import side.side.config.CategoryMapping;
 import side.side.model.TourEvent;
 import side.side.repository.TourEventRepository;
@@ -34,6 +35,7 @@ public class TourEventService {
     }
 
     // contentid로 TourEvent 조회
+    @Transactional
     public List<TourEvent> findBycontentid(String contentid) {
         return tourEventRepository.findBycontentid(contentid);
     }

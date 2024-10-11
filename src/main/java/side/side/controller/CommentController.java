@@ -81,6 +81,7 @@ public class CommentController {
             comment.setContent(content);
             comment.setAuthor(user);  // 댓글 작성자 정보 저장
             comment.setMaskedAuthor(maskedName);
+            comment.setContentid(contentid);
 
             // 공지사항 댓글 작성
             if (noticeId != null) {
