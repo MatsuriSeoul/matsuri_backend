@@ -11,6 +11,7 @@ import side.side.repository.FoodEventRepository;
 import side.side.service.FoodEventService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/food-events")
@@ -46,6 +47,18 @@ public class FoodEventController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(images);
+    }
+
+    // 퍼스트 이미지 가져오기
+    @GetMapping("/firstimage/{contentid}")
+    public ResponseEntity<String> fetchFirstImage(@PathVariable String contentid) {
+        Optional<FoodEvent> eventOptional = foodEventRepository.findByContentid(contentid);
+        if (eventOptional.isPresent()) {
+            FoodEvent event = eventOptional.get();
+            return ResponseEntity.ok(event.getFirstimage());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/category/{category}")

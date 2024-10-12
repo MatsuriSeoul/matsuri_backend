@@ -56,6 +56,9 @@ dependencies {
 
 	//Json 패키지
 	implementation 'org.json:json:20210307'
+
+	implementation 'org.apache.commons:commons-text:1.9'
+
 }
 
 tasks.named('test') {
@@ -72,15 +75,14 @@ sourceSets {
 
 processResources { dependsOn "copyReactBuildFiles" }
 
+
+def npmPath = "/usr/local/bin/npm"
+
 task installReact(type: Exec) {
 	workingDir "$frontendDir"
 	inputs.dir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine "npm.cmd", "install"
-	} else {
-		commandLine "npm", "install"
-	}
+	commandLine npmPath, "install"
 }
 
 task buildReact(type: Exec) {
@@ -88,11 +90,7 @@ task buildReact(type: Exec) {
 	workingDir "$frontendDir"
 	inputs.dir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine "npm.cmd", "run-script", "build"
-	} else {
-		commandLine "npm", "run-script", "build"
-	}
+	commandLine npmPath, "run-script", "build"
 }
 
 task copyReactBuildFiles(type: Copy) {
@@ -104,13 +102,10 @@ task copyReactBuildFiles(type: Copy) {
 task watchReact(type: Exec) {
 	workingDir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine "npm.cmd", "run", "watch"
-	} else {
-		commandLine "npm", "run", "watch"
-	}
+	commandLine npmPath, "run", "watch"
 }
 
 tasks.withType(JavaCompile) {
 	options.compilerArgs << '-parameters'
+
 }

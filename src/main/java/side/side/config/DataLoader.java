@@ -71,6 +71,8 @@ public class DataLoader implements ApplicationRunner {
             System.out.println("Admin Token: " + token);
         }
 
+        System.out.println("======================================");
+
         UserInfo user = new UserInfo();
         user.setUserId("user");
         user.setUserName("TestUser");
@@ -103,13 +105,13 @@ public class DataLoader implements ApplicationRunner {
             eventService.fetchAndSaveEventDetail(tourEvent.getContentid());
         }
 
-////         관광지 데이터 호출
-//        String touristNumOfRows = "10";
-//        String touristPageNo = "1";
-//        List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(touristNumOfRows, touristPageNo);
-//        for(TouristAttraction touristAttraction : touristAttractions) {
-//            touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
-//        }
+//         관광지 데이터 호출
+        String touristNumOfRows = "10";
+        String touristPageNo = "1";
+        List<TouristAttraction> touristAttractions = touristAttractionsService.fetchAndSaveTouristAttractions(touristNumOfRows, touristPageNo);
+        for(TouristAttraction touristAttraction : touristAttractions) {
+            touristAttractionsService.fetchAndSaveTouristAttractionDetail(touristAttraction.getContentid());
+        }
 //
 //        // 숙박 이벤트 데이터 호출
 //        String lodgingNumOfRows = "10";
@@ -151,13 +153,13 @@ public class DataLoader implements ApplicationRunner {
 //            shoppingEventService.fetchAndSaveShoppingEventDetail(shoppingEvent.getContentid());
 //        }
 //
-//        // 음식 데이터 호출
-//        String foodNumOfRows = "10";
-//        String foodPageNo = "1";
-//        List<FoodEvent> foodEvents = foodEventService.fetchAndSaveFoodEvents(foodNumOfRows, foodPageNo);
-//        for (FoodEvent foodEvent : foodEvents) {
-//            foodEventService.fetchAndSaveFoodEventDetail(foodEvent.getContentid());
-//        }
+        // 음식 데이터 호출
+        String foodNumOfRows = "10";
+        String foodPageNo = "1";
+        List<FoodEvent> foodEvents = foodEventService.fetchAndSaveFoodEvents(foodNumOfRows, foodPageNo);
+        for (FoodEvent foodEvent : foodEvents) {
+            foodEventService.fetchAndSaveFoodEventDetail(foodEvent.getContentid());
+        }
 
         // 저장된 이벤트의 상세 정보를 업데이트
         updateEventDetails();
