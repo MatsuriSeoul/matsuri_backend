@@ -33,6 +33,8 @@ public class LocalEvent {
 
     private String contentid;
 
+    private String mapx;
+    private String mapy;
     //   댓글
     @OneToMany(mappedBy = "contentid", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore

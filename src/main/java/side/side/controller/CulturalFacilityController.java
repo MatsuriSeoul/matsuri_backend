@@ -6,11 +6,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.model.CulturalFacility;
 import side.side.model.CulturalFacilityDetail;
+import side.side.model.FoodEvent;
 import side.side.model.TouristAttraction;
 import side.side.repository.CulturalFacilityRepository;
 import side.side.service.CulturalFacilityService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/cultural-facilities")
@@ -82,5 +84,15 @@ public class CulturalFacilityController {
         }
         return ResponseEntity.ok(similarEvents);
     }
-
+    // 퍼스트 이미지 가져오기
+    @GetMapping("/firstimage/{contentid}")
+    public ResponseEntity<String> fetchFirstImage(@PathVariable String contentid) {
+        Optional<CulturalFacility> eventOptional = culturalFacilityRepository.findByContentid(contentid);
+        if (eventOptional.isPresent()) {
+            CulturalFacility event = eventOptional.get();
+            return ResponseEntity.ok(event.getFirstimage());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

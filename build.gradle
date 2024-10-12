@@ -75,14 +75,15 @@ sourceSets {
 
 processResources { dependsOn "copyReactBuildFiles" }
 
-
-def npmPath = "/usr/local/bin/npm"
-
 task installReact(type: Exec) {
 	workingDir "$frontendDir"
 	inputs.dir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	commandLine npmPath, "install"
+	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+		commandLine "npm.cmd", "install"
+	} else {
+		commandLine "npm", "install"
+	}
 }
 
 task buildReact(type: Exec) {
@@ -90,7 +91,11 @@ task buildReact(type: Exec) {
 	workingDir "$frontendDir"
 	inputs.dir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	commandLine npmPath, "run-script", "build"
+	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+		commandLine "npm.cmd", "run-script", "build"
+	} else {
+		commandLine "npm", "run-script", "build"
+	}
 }
 
 task copyReactBuildFiles(type: Copy) {
@@ -102,10 +107,13 @@ task copyReactBuildFiles(type: Copy) {
 task watchReact(type: Exec) {
 	workingDir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	commandLine npmPath, "run", "watch"
+	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+		commandLine "npm.cmd", "run", "watch"
+	} else {
+		commandLine "npm", "run", "watch"
+	}
 }
 
 tasks.withType(JavaCompile) {
 	options.compilerArgs << '-parameters'
-
 }

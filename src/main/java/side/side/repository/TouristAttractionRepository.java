@@ -23,9 +23,9 @@ public interface TouristAttractionRepository extends JpaRepository<TouristAttrac
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<TouristAttraction> findBycontentid(String contentid);
 
-    // FoodEventRepository에 다음 메소드 추가
-    @Query("SELECT t FROM FoodEvent t WHERE t.contentid = :contentid")
+    @Query("SELECT t FROM TouristAttraction t WHERE t.contentid = :contentid")
     Optional<TouristAttraction> findByContentid(@Param("contentid") String contentid);
+
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT t FROM TouristAttraction t WHERE t.contentid = :contentid")

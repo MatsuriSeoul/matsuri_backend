@@ -100,8 +100,6 @@ public class FoodEventService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
         //모든 데이터 받아올때
 //        while (moreData) {
 //            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/areaBasedList1")

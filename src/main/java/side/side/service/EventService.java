@@ -614,6 +614,7 @@ public class EventService {
         return tourEventRepository.findByContenttypeid(contenttypeid);
     }
 
+    @Transactional
     public EventDTO findEventDetailFromAllSources(String contentId) {
         String title = null;
         String firstImage = null;

@@ -106,7 +106,7 @@ public class CommentController {
                     }
                     break;
 
-                case "tourist-attraction":
+                case "tourist-attractions":
                     List<TouristAttraction> touristAttractions = touristAttractionsService.findBycontentid(contentid);
                     if (touristAttractions.isEmpty()) {
                         throw new RuntimeException("해당 콘텐츠 ID에 대한 관광지를 찾을 수 없습니다.");
@@ -219,7 +219,7 @@ public class CommentController {
         try {
             List<Comment> comments;
             switch (category) {
-                case "tourist-attraction":
+                case "tourist-attractions":
                     comments = commentService.getCommentByTouristAttraction(contentid);
                     break;
                 case "cultural-facilities":
