@@ -40,6 +40,8 @@ public interface TourEventRepository extends JpaRepository<TourEvent, Long> {
     //유사한 여행지 추천
     List<TourEvent> findByContenttypeid(String contenttypeid);
 
+    @Query(value = "SELECT * FROM tour_event t WHERE (:month = '' OR SUBSTRING(t.eventstartdate, 5, 2) = :month) AND (:region IS NULL OR t.addr1 LIKE %:region%)", nativeQuery = true)
+    List<TourEvent> findByMonthAndRegion(@Param("month") String month, @Param("region") String region);
 
     @Modifying
     @Query(value = "INSERT INTO tour_event (contentid, title, addr1, eventstartdate, eventenddate, firstimage, cat1, cat2, cat3, mapx, mapy, contenttypeid) " +
