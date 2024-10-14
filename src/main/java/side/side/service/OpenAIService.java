@@ -64,12 +64,8 @@ public class OpenAIService {
     );
 
     public String getResponseFromOpenAI(String region, String category) {
-        // 프론트엔드에서 전달된 값 확인
-        System.out.println("전달된 지역: " + region);
-        System.out.println("전달된 카테고리: " + category);
-
-        // 지역과 카테고리를 매핑된 값으로 변환 (소문자 변환)
-        String mappedRegion = regionMap.getOrDefault(region.toLowerCase(), null); // 소문자 처리하여 매핑
+        // 지역과 카테고리를 매핑된 값으로 변환
+        String mappedRegion = regionMap.getOrDefault(region, null);
         String mappedCategory = categoryMap.getOrDefault(category, null);
 
         // 매핑된 값 확인
@@ -89,10 +85,17 @@ public class OpenAIService {
             eventList.append(String.format("%s에서 %s에 해당하는 행사가 없습니다.", mappedRegion, category));
         } else {
             eventList.append(String.format("%s에서 열리는 %s에 대한 정보를 알려드릴게요!\n", region, category));
+            int count = 0;
             for (TourEvent event : events) {
-                eventList.append(String.format("행사 제목: %s\n이미지: %s\n", event.getTitle(), event.getFirstimage()));
+                if (count >= 2) break; // 2개의 행사만 처리
+                String image = event.getFirstimage() != null ? event.getFirstimage() : "이미지 없음";
+                eventList.append(String.format("행사 제목: %s\n이미지: %s\n\n", event.getTitle(), image));
+                count++;
             }
         }
+
+        // OpenAI로 보낼 데이터 출력 (디버깅용)
+        System.out.println("OpenAI로 보낼 데이터: " + eventList.toString());
 
         // OpenAI API 호출 준비
         String url = "https://api.openai.com/v1/chat/completions";
@@ -100,18 +103,21 @@ public class OpenAIService {
         headers.set("Authorization", "Bearer " + openaiApiKey);
         headers.set("Content-Type", "application/json");
 
+        // GPT-4 모델 사용
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "gpt-3.5-turbo");
+        requestBody.put("model", "gpt-4");
         requestBody.put("messages", List.of(
-                Map.of("role", "system", "content", eventList.toString())
+                Map.of("role", "user", "content", "다음은 DB에서 가져온 행사 정보입니다. 이 데이터를 수정하지 말고 그대로 출력해주세요:\n\n" + eventList.toString())
         ));
         requestBody.put("max_tokens", 500);
-        requestBody.put("temperature", 0.7);
+        requestBody.put("temperature", 0); // 모델이 추가적인 예측을 하지 않도록 설정
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 
+        // OpenAI 응답 출력 (디버깅용)
+        System.out.println("OpenAI 응답: " + response.getBody());
+
         return response.getBody();
     }
-
 }
