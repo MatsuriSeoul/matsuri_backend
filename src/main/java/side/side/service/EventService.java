@@ -3,6 +3,8 @@ package side.side.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.*;
@@ -205,6 +207,7 @@ public class EventService {
     }
 
     // 한국관광공사_국문 관광정보 서비스_GW API / TourEvent
+    @Transactional(propagation = Propagation.REQUIRED)
     public List<TourEvent> fetchAndSaveEvents(String numOfRows, String pageNo, String eventStartDate) {
         List<TourEvent> allEvents = new ArrayList<>();
         boolean moreData = true;
@@ -230,7 +233,6 @@ public class EventService {
                 JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
 
                 if (itemsNode.isArray()) {
-                    List<TourEvent> events = new ArrayList<>();
                     for (JsonNode node : itemsNode) {
                         TourEvent event = new TourEvent();
                         event.setTitle(node.path("title").asText());
@@ -241,12 +243,35 @@ public class EventService {
                         event.setCat1(node.path("cat1").asText());
                         event.setCat2(node.path("cat2").asText());
                         event.setCat3(node.path("cat3").asText());
+                        event.setMapx(node.path("mapx").asText());
+                        event.setMapy(node.path("mapy").asText());
                         event.setContentid(node.path("contentid").asText());
                         event.setContenttypeid(node.path("contenttypeid").asText());
-                        events.add(event);
+
+                        // 데이터에 락 걸기
+                        Optional<TourEvent> existingDetail = tourEventRepository.findByContentidForUpdate(event.getContentid());
+                        if (existingDetail.isPresent()) {
+                            continue;
+                        }
+
+                        // Upsert 사용하여 데이터 삽입 또는 업데이트
+                        tourEventRepository.upsertTourEvent(
+                                event.getContentid(),
+                                event.getTitle(),
+                                event.getAddr1(),
+                                event.getEventstartdate(),
+                                event.getEventenddate(),
+                                event.getFirstimage(),
+                                event.getCat1(),
+                                event.getCat2(),
+                                event.getCat3(),
+                                event.getMapx(),
+                                event.getMapy(),
+                                event.getContenttypeid()
+                        );
+
+                        allEvents.add(event);
                     }
-                    tourEventRepository.saveAll(events);
-                    allEvents.addAll(events);
                 }
             }
         } catch (Exception e) {
@@ -255,6 +280,7 @@ public class EventService {
 
         return allEvents;
     }
+
 
         //모든 데이터 요청
 //        while (moreData) {
@@ -317,6 +343,7 @@ public class EventService {
 
 
     //행사의 상세 정보
+    @Transactional(propagation = Propagation.REQUIRED)
     public void fetchAndSaveEventDetail(String contentid) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -328,24 +355,19 @@ public class EventService {
                 .queryParam("defaultYN", "Y")
                 .queryParam("addrinfoYN", "Y")
                 .queryParam("overviewYN", "Y")
+                .queryParam("mapinfoYN", "Y") // 좌표 정보 요청
                 .queryParam("_type", "json")
                 .build()
                 .toUriString();
 
-     //  logger.info("Fetching event detail for contentId: " + contentid);
-       // logger.info("Request URL: " + url);
-
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-          //  logger.info("API Response: " + response.getBody());
-
             if (response.getStatusCode().is2xxSuccessful()) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode rootNode = objectMapper.readTree(response.getBody());
                 JsonNode itemNode = rootNode.path("response").path("body").path("items").path("item").get(0);
 
                 if (itemNode.isMissingNode()) {
-                    logger.warning("No event details found for contentId: " + contentid);
                     return;
                 }
 
@@ -361,7 +383,6 @@ public class EventService {
                 eventDetail.setTitle(itemNode.path("title").asText());
                 eventDetail.setFirstimage(itemNode.path("firstimage").asText());
                 eventDetail.setFirstimage2(itemNode.path("firstimage2").asText());
-                eventDetail.setCpyrhtDivCd(itemNode.path("cpyrhtDivCd").asText());
                 eventDetail.setAreacode(itemNode.path("areacode").asText());
                 eventDetail.setSigungucode(itemNode.path("sigungucode").asText());
                 eventDetail.setCat1(itemNode.path("cat1").asText());
@@ -375,7 +396,38 @@ public class EventService {
                 eventDetail.setMlevel(itemNode.path("mlevel").asText());
                 eventDetail.setOverview(itemNode.path("overview").asText());
 
-                tourEventDetailRepository.save(eventDetail);
+                // 데이터에 락 걸기
+                Optional<TourEventDetail> existingDetail = tourEventDetailRepository.findByContentidForUpdate(contentid);
+                if (existingDetail.isPresent()) {
+                    return;
+                }
+
+                // Upsert 사용하여 데이터 삽입 또는 업데이트
+                tourEventDetailRepository.upsertTourEventDetail(
+                        eventDetail.getContentid(),
+                        eventDetail.getContenttypeid(),
+                        eventDetail.getBooktour(),
+                        eventDetail.getCreatedtime(),
+                        eventDetail.getHomepage(),
+                        eventDetail.getModifiedtime(),
+                        eventDetail.getTel(),
+                        eventDetail.getTelname(),
+                        eventDetail.getTitle(),
+                        eventDetail.getFirstimage(),
+                        eventDetail.getFirstimage2(),
+                        eventDetail.getAreacode(),
+                        eventDetail.getSigungucode(),
+                        eventDetail.getCat1(),
+                        eventDetail.getCat2(),
+                        eventDetail.getCat3(),
+                        eventDetail.getAddr1(),
+                        eventDetail.getAddr2(),
+                        eventDetail.getZipcode(),
+                        eventDetail.getMapx(),
+                        eventDetail.getMapy(),
+                        eventDetail.getMlevel(),
+                        eventDetail.getOverview()
+                );
             } else {
                 logger.warning("contentID에 따른 데이터 불러오지 못함 : " + contentid);
             }
@@ -470,11 +522,10 @@ public class EventService {
     }
 
     //데이터베이스에서 행사 상세 정보 추출
+    @Transactional
     public TourEventDetail getEventDetailFromDB(String contentid) {
         return tourEventDetailRepository.findByContentid(contentid);
     }
-
-
 
     public List<String> getAllContentIds() {
         return tourEventRepository.findAll().stream()
@@ -563,6 +614,7 @@ public class EventService {
         return tourEventRepository.findByContenttypeid(contenttypeid);
     }
 
+    @Transactional
     public EventDTO findEventDetailFromAllSources(String contentId) {
         String title = null;
         String firstImage = null;
@@ -681,11 +733,7 @@ public class EventService {
 
         return null; // 해당 이벤트를 찾지 못한 경우
     }
-
-
-
-
-    }
+}
 
 
 

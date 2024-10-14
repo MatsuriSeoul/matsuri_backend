@@ -1,11 +1,13 @@
 package side.side.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -24,10 +26,20 @@ public class TourEvent {
     private String cat1; // 대분류
     private String cat2; // 중분류
     private String cat3; // 소분류
+
     private String contentid; // 콘텐츠ID
+
     private String contenttypeid; // 관광타입(관광지, 숙박등) ID
+    private String mapx;
+    private String mapy;
     private String beginDe;
     private String endDe;
     private String regionNm;
     private String imageUrl;
+
+    //   댓글
+    @OneToMany(mappedBy = "contentid", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Comment> comments;
+
 }

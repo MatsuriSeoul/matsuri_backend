@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.*;
@@ -14,6 +16,7 @@ import side.side.repository.FoodEventRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -31,6 +34,7 @@ public class FoodEventService {
     private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
 
     // 음식 API 호출 및 데이터 저장
+    @Transactional(propagation = Propagation.REQUIRED)
     public List<FoodEvent> fetchAndSaveFoodEvents(String numOfRows, String pageNo) {
         numOfRows = "10";  // 호출되는 데이터의 개수를 10개로 제한
         List<FoodEvent> allFoodEvents = new ArrayList<>();
@@ -50,20 +54,14 @@ public class FoodEventService {
                 .build()
                 .toUriString();
 
-        logger.info("응답 URL: " + url);
-
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            logger.info("응답 상태" + response.getStatusCode());
-            logger.info("응답 본문" + response.getBody());
-
             if (response.getStatusCode().is2xxSuccessful()) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode rootNode = objectMapper.readTree(response.getBody());
                 JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
 
                 if (itemsNode.isArray()) {
-                    List<FoodEvent> foodEvents = new ArrayList<>();
                     for (JsonNode node : itemsNode) {
                         FoodEvent event = new FoodEvent();
                         event.setTitle(node.path("title").asText());
@@ -77,17 +75,31 @@ public class FoodEventService {
                         event.setSigungucode(node.path("sigungucode").asText());
                         event.setTel(node.path("tel").asText());
                         event.setOverview(node.path("overview").asText());
-                        foodEvents.add(event);
+
+
+                        Optional<FoodEvent> existingDetail = foodEventRepository.findByContentidForUpdate(event.getContentid());
+                        if (existingDetail.isPresent()) {
+                            continue;
+                        }
+
+                        foodEventRepository.upsertFoodEvent(
+                                event.getContentid(),
+                                event.getTitle(),
+                                event.getAddr1(),
+                                event.getFirstimage(),
+                                event.getMapx(),
+                                event.getMapy(),
+                                event.getContenttypeid()
+                        );
+
+                    allFoodEvents.add(event);
                     }
-                    foodEventRepository.saveAll(foodEvents);
-                    allFoodEvents.addAll(foodEvents);
+
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
         //모든 데이터 받아올때
 //        while (moreData) {
 //            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/areaBasedList1")
@@ -160,6 +172,7 @@ public class FoodEventService {
     }
 
     // FoodEventDetail 저장
+    @Transactional(propagation = Propagation.REQUIRED)
     public void fetchAndSaveFoodEventDetail(String contentid) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -176,28 +189,14 @@ public class FoodEventService {
                 .build()
                 .toUriString();
 
-        logger.info("contentId에 대한 음식 이벤트 세부 정보를 가져오는 중:" + contentid);
-        logger.info("요청 URL:" + url);
-
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            logger.info("API 응답: " + response.getBody());
-
             if (response.getStatusCode().is2xxSuccessful()) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode rootNode = objectMapper.readTree(response.getBody());
-                JsonNode itemsNode = rootNode.path("response").path("body").path("items");
+                JsonNode itemNode = rootNode.path("response").path("body").path("items").path("item").get(0);
 
-                // items 노드가 비어있거나 item 노드가 없는 경우를 처리
-                if (itemsNode.isMissingNode() || !itemsNode.has("item")) {
-                    logger.warning("contentId에 대한 음식 이벤트 세부 정보를 찾을 수 없습니다:" + contentid);
-                    return;
-                }
-
-                JsonNode itemNode = itemsNode.path("item").get(0); // 첫 번째 아이템만 사용
-
-                if (itemNode == null) {
-                    logger.warning("contentId에 대한 항목을 찾을 수 없습니다:" + contentid);
+                if (itemNode.isMissingNode()) {
                     return;
                 }
 
@@ -213,7 +212,6 @@ public class FoodEventService {
                 eventDetail.setTitle(itemNode.path("title").asText());
                 eventDetail.setFirstimage(itemNode.path("firstimage").asText());
                 eventDetail.setFirstimage2(itemNode.path("firstimage2").asText());
-                eventDetail.setCpyrhtDivCd(itemNode.path("cpyrhtDivCd").asText());
                 eventDetail.setAreacode(itemNode.path("areacode").asText());
                 eventDetail.setSigungucode(itemNode.path("sigungucode").asText());
                 eventDetail.setCat1(itemNode.path("cat1").asText());
@@ -227,16 +225,46 @@ public class FoodEventService {
                 eventDetail.setMlevel(itemNode.path("mlevel").asText());
                 eventDetail.setOverview(itemNode.path("overview").asText());
 
-                foodEventDetailRepository.save(eventDetail);
-                logger.info("contentId에 대한 음식 이벤트 세부 정보가 저장되었습니다:" + contentid);
+                // 데이터에 락 걸기
+                Optional<FoodEventDetail> existingDetail = foodEventDetailRepository.findByContentidForUpdate(contentid);
+                if (existingDetail.isPresent()) {
+                    return;
+                }
+
+                // Upsert 사용하여 데이터 삽입 또는 업데이트
+                foodEventDetailRepository.upsertFoodEventDetail(
+                        eventDetail.getContentid(),
+                        eventDetail.getContenttypeid(),
+                        eventDetail.getBooktour(),
+                        eventDetail.getCreatedtime(),
+                        eventDetail.getHomepage(),
+                        eventDetail.getModifiedtime(),
+                        eventDetail.getTel(),
+                        eventDetail.getTelname(),
+                        eventDetail.getTitle(),
+                        eventDetail.getFirstimage(),
+                        eventDetail.getFirstimage2(),
+                        eventDetail.getAreacode(),
+                        eventDetail.getSigungucode(),
+                        eventDetail.getCat1(),
+                        eventDetail.getCat2(),
+                        eventDetail.getCat3(),
+                        eventDetail.getAddr1(),
+                        eventDetail.getAddr2(),
+                        eventDetail.getZipcode(),
+                        eventDetail.getMapx(),
+                        eventDetail.getMapy(),
+                        eventDetail.getMlevel(),
+                        eventDetail.getOverview()
+                );
             } else {
-                logger.warning("contentId에 대한 음식 이벤트 세부 정보를 가져오지 못했습니다:" + contentid);
+                logger.warning("contentID에 따른 데이터 불러오지 못함 : " + contentid);
             }
         } catch (Exception e) {
-            logger.severe("contentId에 대한 음식 이벤트 세부 정보를 가져오는 중 오류가 발생했습니다." + contentid + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
+
     // 이미지 정보 API 호출 메소드
     public JsonNode fetchImagesFromApi(String contentid) {
         RestTemplate restTemplate = new RestTemplate();
@@ -306,27 +334,37 @@ public class FoodEventService {
 
         return null;
     }
-    // 데이터베이스에서 숙박 시설 상세 정보 추출
+    // 데이터베이스에서 음식점 상세 정보 추출
+    @Transactional
     public FoodEventDetail getFoodEventDetailFromDB(String contentid) {
         return foodEventDetailRepository.findByContentid(contentid);
     }
 
-    // 카테고리 기반 숙박 시설 리스트 반환
+    // 카테고리 기반 음식점 리스트 반환
+    @Transactional
     public List<FoodEvent> getFoodEventsByCategory(String category) {
         // 카테고리 맵핑 로직에 따라 contentTypeId를 설정
         String contentTypeId = "39"; // 39 음식 설정
 
         return foodEventRepository.findByContenttypeid(contentTypeId); // 필요에 따라 로직 변경
     }
-    // '서울특별시'에 해당하는 쇼핑 이벤트 가져오기
+    // '서울특별시'에 해당하는 음식점 가져오기
+    @Transactional
     public List<FoodEvent> getFoodEventsByRegion(String region) {
         return foodEventRepository.findAll().stream()
                 .filter(event -> event.getAddr1().contains(region))
                 .collect(Collectors.toList());
     }
-    // 유사한 여행지 정보 가져오기
+    // 유사한 음식점 정보 가져오기
+    @Transactional
     public List<FoodEvent> getSimilarFoodEvents(String contenttypeid) {
         return foodEventRepository.findByContenttypeid(contenttypeid);
+    }
+
+    // contentid로 FoodEvent 조회
+    @Transactional
+    public List<FoodEvent> findBycontentid(String contentid) {
+        return foodEventRepository.findBycontentid(contentid);
     }
 
 }

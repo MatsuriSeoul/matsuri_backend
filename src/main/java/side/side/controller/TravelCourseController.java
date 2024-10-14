@@ -4,14 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import side.side.model.CulturalFacility;
-import side.side.model.ShoppingEvent;
-import side.side.model.TravelCourse;
-import side.side.model.TravelCourseDetail;
+import side.side.model.*;
 import side.side.repository.TravelCourseRepository;
 import side.side.service.TravelCourseService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/travel-courses")
@@ -19,6 +17,8 @@ public class TravelCourseController {
 
     @Autowired
     private TravelCourseService travelCourseService;
+    @Autowired
+    private TravelCourseRepository travelCourseRepository;
 
     @GetMapping("/{contentid}/detail")
     public ResponseEntity<?> getTravelCourseDetail(@PathVariable String contentid) {
@@ -46,6 +46,19 @@ public class TravelCourseController {
         }
         return ResponseEntity.ok(images);
     }
+
+    // 퍼스트 이미지 가져오기
+    @GetMapping("/firstimage/{contentid}")
+    public ResponseEntity<String> fetchFirstImage(@PathVariable String contentid) {
+        Optional<TravelCourse> eventOptional = travelCourseRepository.findByContentid(contentid);
+        if (eventOptional.isPresent()) {
+            TravelCourse event = eventOptional.get();
+            return ResponseEntity.ok(event.getImageUrl());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     @GetMapping("/category/{category}")
     public ResponseEntity<List<TravelCourse>> getTravelCoursesByCategory(@PathVariable String category) {
         List<TravelCourse> travelCourses = travelCourseService.getTravelCoursesByCategory(category);

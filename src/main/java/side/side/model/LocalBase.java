@@ -48,7 +48,6 @@ public class LocalBase {
     @Column
     private String contentTypeId;
 
-    @Column(nullable = false, unique = true)
     private String contentid; // API에서 제공하는 고유 식별자
 
     @Column

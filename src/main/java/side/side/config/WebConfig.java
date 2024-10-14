@@ -16,6 +16,10 @@ public class WebConfig implements WebMvcConfigurer {
         // 공지사항 이미지 서빙
         registry.addResourceHandler("/uploads/noticeImage/**")
                 .addResourceLocations("file:" + System.getProperty("user.home") + "/Desktop/uploads/noticeImage/");
+
+        //카테고리 댓글 이미지 서빙
+        registry.addResourceHandler("/uploads/commentImage/**")
+                .addResourceLocations("file:" + System.getProperty("user.home") + "/Desktop/uploads/commentImage/");
     }
 
 

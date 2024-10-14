@@ -4,6 +4,8 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import side.side.model.FoodEvent;
+import side.side.model.FoodEventDetail;
 import side.side.model.TouristAttraction;
 import side.side.model.TouristAttractionDetail;
 import side.side.repository.TouristAttractionRepository;
@@ -11,6 +13,7 @@ import side.side.service.TouristAttractionsService;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/tourist-attractions")
@@ -21,7 +24,6 @@ public class TouristAttractionController {
     @Autowired
     private TouristAttractionRepository touristAttractionRepository;
 
-    //  관광지 상세 정보 불러오기
     @GetMapping("/{contentid}/detail")
     public ResponseEntity<?> getTouristAttractionDetail(@PathVariable String contentid) {
         TouristAttractionDetail detail = touristAttractionsService.getTouristAttractionDetailFromDB(contentid);
@@ -69,5 +71,17 @@ public class TouristAttractionController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(similarEvents);
+    }
+
+    // 퍼스트 이미지 가져오기
+    @GetMapping("/firstimage/{contentid}")
+    public ResponseEntity<String> fetchFirstImage(@PathVariable String contentid) {
+        Optional<TouristAttraction> eventOptional = touristAttractionRepository.findByContentid(contentid);
+        if (eventOptional.isPresent()) {
+            TouristAttraction event = eventOptional.get();
+            return ResponseEntity.ok(event.getFirstimage());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
