@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,9 +33,13 @@ public class NaverController {
     @Autowired
     private UserService userService;
 
-    private final String clientId = "cAxVyC6eWpTfHY6rLFwK"; // 네이버 클라이언트 ID
-    private final String clientSecret = "MzaDRXyw9H"; // 네이버 클라이언트 시크릿
-    private final String redirectUri = "http://localhost:8080/api/naver/login"; // 리다이렉트 URI
+    @Value("${naver.client.id}")
+    private String clientId; // 네이버 클라이언트 ID
+
+    @Value("${naver.client.secret}")
+    private String clientSecret; // 네이버 클라이언트 시크릿
+
+    private String redirectUri = "http://localhost:8080/api/naver/login"; // 리다이렉트 URI
 
     @GetMapping("/api/naver/login")
     public ResponseEntity<?> naverCallback(@RequestParam String code, @RequestParam String state) {

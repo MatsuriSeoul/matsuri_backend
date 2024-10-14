@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import side.side.model.FoodEvent;
 import side.side.model.LeisureSportsEvent;
 import side.side.model.LeisureSportsEventDetail;
 import side.side.model.ShoppingEvent;
@@ -11,6 +12,7 @@ import side.side.repository.LeisureSportsEventRepository;
 import side.side.service.LeisureSportsEventService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/leisure-sports")
@@ -47,6 +49,19 @@ public class LeisureSportsEventController {
         }
         return ResponseEntity.ok(images);
     }
+
+    // 퍼스트 이미지 가져오기
+    @GetMapping("/firstimage/{contentid}")
+    public ResponseEntity<String> fetchFirstImage(@PathVariable String contentid) {
+        Optional<LeisureSportsEvent> eventOptional = leisureSportsEventRepository.findByContentid(contentid);
+        if (eventOptional.isPresent()) {
+            LeisureSportsEvent event = eventOptional.get();
+            return ResponseEntity.ok(event.getFirstimage());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     // contentypeid가 28인 서비스 실행
     @GetMapping("/category/{category}")
     public ResponseEntity<List<LeisureSportsEvent>> getLeisureSportsEventsByCategory(@PathVariable String category) {

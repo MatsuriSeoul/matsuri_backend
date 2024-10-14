@@ -5,12 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.model.CulturalFacilityDetail;
+import side.side.model.FoodEvent;
 import side.side.model.ShoppingEvent;
 import side.side.model.ShoppingEventDetail;
 import side.side.repository.ShoppingEventRepository;
 import side.side.service.ShoppingEventService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/shopping-events")
@@ -49,6 +51,18 @@ public class ShoppingEventController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(images);
+    }
+
+    // 퍼스트 이미지 가져오기
+    @GetMapping("/firstimage/{contentid}")
+    public ResponseEntity<String> fetchFirstImage(@PathVariable String contentid) {
+        Optional<ShoppingEvent> eventOptional = shoppingEventRepository.findByContentid(contentid);
+        if (eventOptional.isPresent()) {
+            ShoppingEvent event = eventOptional.get();
+            return ResponseEntity.ok(event.getFirstimage());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // 쇼핑 이벤트 카테고리별 리스트 가져오기

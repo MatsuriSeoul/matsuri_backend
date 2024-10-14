@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import side.side.model.*;
@@ -14,6 +16,7 @@ import side.side.repository.ShoppingEventRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -31,6 +34,7 @@ public class ShoppingEventService {
     private final String baseUrl = "http://apis.data.go.kr/B551011/KorService1/areaBasedList1";
 
     // 쇼핑 API 호출 및 데이터 저장
+    @Transactional(propagation = Propagation.REQUIRED)
     public List<ShoppingEvent> fetchAndSaveShoppingEvents(String numOfRows, String pageNo) {
         List<ShoppingEvent> allShoppingEvents = new ArrayList<>();
         boolean moreData = true;
@@ -50,20 +54,14 @@ public class ShoppingEventService {
                 .build()
                 .toUriString();
 
-        logger.info("요청 URL: " + url);
-
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            logger.info("응답 상태: " + response.getStatusCode());
-            logger.info("응답 본문: " + response.getBody());
-
             if (response.getStatusCode().is2xxSuccessful()) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode rootNode = objectMapper.readTree(response.getBody());
                 JsonNode itemsNode = rootNode.path("response").path("body").path("items").path("item");
 
                 if (itemsNode.isArray()) {
-                    List<ShoppingEvent> shoppingEvents = new ArrayList<>();
                     for (JsonNode node : itemsNode) {
                         ShoppingEvent event = new ShoppingEvent();
                         event.setTitle(node.path("title").asText());
@@ -77,10 +75,26 @@ public class ShoppingEventService {
                         event.setSigungucode(node.path("sigungucode").asText());
                         event.setTel(node.path("tel").asText());
                         event.setOverview(node.path("overview").asText());
-                        shoppingEvents.add(event);
+
+
+                        Optional<ShoppingEvent> existingDetail = shoppingEventRepository.findByContentidForUpdate(event.getContentid());
+                        if (existingDetail.isPresent()) {
+                            continue;
+                        }
+
+                        shoppingEventRepository.upsertShoppingEvent(
+                                event.getContentid(),
+                                event.getTitle(),
+                                event.getAddr1(),
+                                event.getFirstimage(),
+                                event.getMapx(),
+                                event.getMapy(),
+                                event.getContenttypeid()
+                        );
+
+                        allShoppingEvents.add(event);
                     }
-                    shoppingEventRepository.saveAll(shoppingEvents);
-                    allShoppingEvents.addAll(shoppingEvents);
+
                 }
             }
         } catch (Exception e) {
@@ -160,6 +174,7 @@ public class ShoppingEventService {
 //        return allShoppingEvents;
 //    }
     // 쇼핑 이벤트 상세 정보 저장
+    @Transactional(propagation = Propagation.REQUIRED)
     public void fetchAndSaveShoppingEventDetail(String contentid) {
         RestTemplate restTemplate = new RestTemplate();
 
@@ -181,22 +196,12 @@ public class ShoppingEventService {
 
         try {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            logger.info("API 응답: " + response.getBody());
-
             if (response.getStatusCode().is2xxSuccessful()) {
                 ObjectMapper objectMapper = new ObjectMapper();
                 JsonNode rootNode = objectMapper.readTree(response.getBody());
-                JsonNode itemsNode = rootNode.path("response").path("body").path("items");
+                JsonNode itemNode = rootNode.path("response").path("body").path("items").path("item").get(0);
 
-                if (itemsNode.isMissingNode() || !itemsNode.has("item")) {
-                    logger.warning("해당 contentId에 대한 쇼핑 이벤트 상세 정보가 없습니다: " + contentid);
-                    return;
-                }
-
-                JsonNode itemNode = itemsNode.path("item").get(0);
-
-                if (itemNode == null) {
-                    logger.warning("해당 contentId에 대한 항목이 없습니다: " + contentid);
+                if (itemNode.isMissingNode()) {
                     return;
                 }
 
@@ -212,7 +217,6 @@ public class ShoppingEventService {
                 eventDetail.setTitle(itemNode.path("title").asText());
                 eventDetail.setFirstimage(itemNode.path("firstimage").asText());
                 eventDetail.setFirstimage2(itemNode.path("firstimage2").asText());
-                eventDetail.setCpyrhtDivCd(itemNode.path("cpyrhtDivCd").asText());
                 eventDetail.setAreacode(itemNode.path("areacode").asText());
                 eventDetail.setSigungucode(itemNode.path("sigungucode").asText());
                 eventDetail.setCat1(itemNode.path("cat1").asText());
@@ -226,13 +230,42 @@ public class ShoppingEventService {
                 eventDetail.setMlevel(itemNode.path("mlevel").asText());
                 eventDetail.setOverview(itemNode.path("overview").asText());
 
-                shoppingEventDetailRepository.save(eventDetail);
-                logger.info("쇼핑 이벤트 상세 정보가 저장되었습니다: contentId = " + contentid);
+                // 데이터에 락 걸기
+                Optional<ShoppingEventDetail> existingDetail = shoppingEventDetailRepository.findByContentidForUpdate(contentid);
+                if (existingDetail.isPresent()) {
+                    return;
+                }
+
+                // Upsert 사용하여 데이터 삽입 또는 업데이트
+                shoppingEventDetailRepository.upsertShoppingEventDetail(
+                        eventDetail.getContentid(),
+                        eventDetail.getContenttypeid(),
+                        eventDetail.getBooktour(),
+                        eventDetail.getCreatedtime(),
+                        eventDetail.getHomepage(),
+                        eventDetail.getModifiedtime(),
+                        eventDetail.getTel(),
+                        eventDetail.getTelname(),
+                        eventDetail.getTitle(),
+                        eventDetail.getFirstimage(),
+                        eventDetail.getFirstimage2(),
+                        eventDetail.getAreacode(),
+                        eventDetail.getSigungucode(),
+                        eventDetail.getCat1(),
+                        eventDetail.getCat2(),
+                        eventDetail.getCat3(),
+                        eventDetail.getAddr1(),
+                        eventDetail.getAddr2(),
+                        eventDetail.getZipcode(),
+                        eventDetail.getMapx(),
+                        eventDetail.getMapy(),
+                        eventDetail.getMlevel(),
+                        eventDetail.getOverview()
+                );
             } else {
-                logger.warning("해당 contentId에 대한 쇼핑 이벤트 상세 정보를 가져오지 못했습니다: " + contentid);
+                logger.warning("contentID에 따른 데이터 불러오지 못함 : " + contentid);
             }
         } catch (Exception e) {
-            logger.severe("contentId: " + contentid + "에 대한 쇼핑 이벤트 상세 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -306,11 +339,13 @@ public class ShoppingEventService {
         return null;
     }
     // 데이터베이스에서 숙박 시설 상세 정보 추출
+    @Transactional
     public ShoppingEventDetail getShoppingEventDetailFromDB(String contentid) {
         return shoppingEventDetailRepository.findByContentid(contentid);
     }
 
     // 카테고리 기반 숙박 시설 리스트 반환
+    @Transactional
     public List<ShoppingEvent> getShoppingEventsByCategory(String category) {
         // 카테고리 맵핑 로직에 따라 contentTypeId를 설정
         String contentTypeId = "38"; // 38 쇼핑  설정
@@ -318,15 +353,24 @@ public class ShoppingEventService {
         return shoppingEventRepository.findByContenttypeid(contentTypeId); // 필요에 따라 로직 변경
     }
     // '서울특별시'에 해당하는 쇼핑 이벤트 가져오기
+    @Transactional
     public List<ShoppingEvent> getShoppingEventsByRegion(String region) {
         return shoppingEventRepository.findAll().stream()
                 .filter(event -> event.getAddr1().contains(region))
                 .collect(Collectors.toList());
     }
     // 유사한 여행지 정보 가져오기
+    @Transactional
     public List<ShoppingEvent> getSimilarShoppingEvents(String contenttypeid) {
         return shoppingEventRepository.findByContenttypeid(contenttypeid);
     }
+
+    // contentid로 ShoppingEvent 조회
+    @Transactional
+    public List<ShoppingEvent> findBycontentid(String contentid) {
+        return shoppingEventRepository.findBycontentid(contentid);
+    }
+
 }
 
 

@@ -244,9 +244,22 @@ public class EventController {
         return ResponseEntity.ok(events);
     }
 
+    // 퍼스트 이미지 가져오기
+    @GetMapping("/firstimage/{contentid}")
+    public ResponseEntity<String> fetchFirstImage(@PathVariable String contentid) {
+        Optional<TourEvent> eventOptional = tourEventRepository.findByContentid(contentid);
+        if (eventOptional.isPresent()) {
+            TourEvent event = eventOptional.get();
+            return ResponseEntity.ok(event.getFirstimage());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     // 키워드 추출
     @GetMapping("/by-region")
     public List<TourEvent> getTourEventsByRegion(@RequestParam String region) {
+
         return eventService.getTourEventsByRegion(region);
     }
 
@@ -257,6 +270,14 @@ public class EventController {
         List<?> events = eventService.fetchEventsByCategory(region, category);
         return ResponseEntity.ok(events);
     }
+
+    // 월별 및 지역별 행사를 가져오는 엔드포인트
+    @GetMapping("/by-month-and-region")
+    public List<TourEvent> getEventsByMonthAndRegion(@RequestParam String month, @RequestParam String region) {
+
+        return tourEventService.getEventsByMonthAndRegion(month, region);
+    }
+
     @GetMapping("/random-by-region")
     public List<TourEvent> getRandomEventsByRegion(@RequestParam("region") String region) {
         return eventService.getRandomEventsByRegion(region);
