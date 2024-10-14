@@ -25,5 +25,11 @@ public class CommentImage {
 
     private String category;
     private String contentid;
+
+    private String svcid;
+
+    @ManyToOne
+    @JoinColumn(name = "gyeonggi_event_id")
+    private GyeonggiEvent gyeonggiEvent;
 }
 

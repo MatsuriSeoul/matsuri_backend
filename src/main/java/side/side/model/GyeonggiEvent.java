@@ -5,9 +5,12 @@
 
 package side.side.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -60,4 +63,9 @@ public class GyeonggiEvent {
 
     @Column(name = "writng_de", length = 20)
     private String writngDe;
+
+    // 댓글
+    @OneToMany(mappedBy = "gyeonggiEvent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Comment> comments;
 }

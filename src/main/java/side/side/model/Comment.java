@@ -26,6 +26,8 @@ public class Comment {
 
     private String content;
 
+    private String svcid;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private UserInfo author;  // 작성자 정보
@@ -38,5 +40,14 @@ public class Comment {
 
     @CreationTimestamp
     private LocalDateTime createdAt; // 댓글 작성 날짜
+
+    @ManyToOne
+    @JoinColumn(name = "svcid", referencedColumnName = "svcid", insertable = false, updatable = false)
+    private SeoulEvent seoulEvent;
+
+    @ManyToOne
+    @JoinColumn(name = "gyeonggi_event_id")
+    private GyeonggiEvent gyeonggiEvent;
+
 
 }

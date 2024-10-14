@@ -12,6 +12,7 @@ import side.side.config.JwtUtils;
 import side.side.model.*;
 import side.side.service.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -59,12 +60,20 @@ public class CommentController {
     @Autowired
     private LocalBasedService localBasedService;
 
+    @Autowired
+    private SeoulEventService seoulEventService;
+
+    @Autowired
+    private GyeonggiEventService gyeonggiEventService;
+
     // 댓글 작성
     @PostMapping
     public ResponseEntity<?> createComment(
             @RequestParam("content") String content,
             @RequestParam(value = "noticeId", required = false) Long noticeId,
             @RequestParam(value = "contentid", required = false) String contentid,
+            @RequestParam(value = "svcid", required = false) String svcid,
+            @RequestParam(value = "gyeonggiEventId", required = false) Long gyeonggiEventId,
             @RequestParam(value = "category", required = false) String category,
             @RequestParam(value = "images", required = false) List<MultipartFile> images,
             @RequestHeader("Authorization") String token) {
@@ -84,7 +93,6 @@ public class CommentController {
             comment.setContent(content);
             comment.setAuthor(user);  // 댓글 작성자 정보 저장
             comment.setMaskedAuthor(maskedName);
-            comment.setContentid(contentid);
 
             // 공지사항 댓글 작성
             if (noticeId != null) {
@@ -93,87 +101,70 @@ public class CommentController {
                 comment.setNotice(notice);
             }
 
-            // 행사, 문화시설 등 다른 콘텐츠에 대한 댓글 작성
-            switch (category) {
-                case "events":
-                    List<TourEvent> events = tourEventService.findBycontentid(contentid);
-                    if (events.isEmpty()) {
-                        throw new RuntimeException("해당 콘텐츠 ID에 대한 이벤트를 찾을 수 없습니다.");
+            //경기도 이벤트 댓글 작성
+            if (gyeonggiEventId != null) {
+                GyeonggiEvent gyeonggiEvent = gyeonggiEventService.findById(gyeonggiEventId)
+                        .orElseThrow(() -> new RuntimeException("경기도 이벤트를 찾을 수 없습니다."));
+                comment.setGyeonggiEvent(gyeonggiEvent);
+            } else if ("gyeonggi-events".equals(category) && contentid != null) {
+                GyeonggiEvent gyeonggiEvent = gyeonggiEventService.findById(Long.parseLong(contentid))
+                        .orElseThrow(() -> new RuntimeException("경기도 이벤트를 찾을 수 없습니다."));
+                comment.setGyeonggiEvent(gyeonggiEvent);
+            } else {
+                // 행사, 문화시설 등 다른 콘텐츠에 대한 댓글 작성
+                if (category != null) {
+                    boolean isValidCategory = validateCategory(category, contentid, svcid, gyeonggiEventId);
+                    if (!isValidCategory) {
+                        throw new RuntimeException("해당 콘텐츠에 대한 데이터를 찾을 수 없습니다.");
                     }
-                    break;
-
-                case "cultural-facilities":
-                    List<CulturalFacility> culturalFacilities = culturalFacilityService.findBycontentid(contentid);
-                    if (culturalFacilities.isEmpty()) {
-                        throw new RuntimeException("해당 콘텐츠 ID에 대한 문화시설을 찾을 수 없습니다.");
-                    }
-                    break;
-
-                case "tourist-attractions":
-                    List<TouristAttraction> touristAttractions = touristAttractionsService.findBycontentid(contentid);
-                    if (touristAttractions.isEmpty()) {
-                        throw new RuntimeException("해당 콘텐츠 ID에 대한 관광지를 찾을 수 없습니다.");
-                    }
-                    break;
-
-                case "travel-courses":
-                    List<TravelCourse> travelCourses = travelCourseService.findBycontentid(contentid);
-                    if (travelCourses.isEmpty()) {
-                        throw new RuntimeException("해당 콘텐츠 ID에 대한 여행 코스를 찾을 수 없습니다.");
-                    }
-                    break;
-
-                case "leisure-sports":
-                    List<LeisureSportsEvent> leisureSports = leisureSportsEventService.findBycontentid(contentid);
-                    if (leisureSports.isEmpty()) {
-                        throw new RuntimeException("해당 콘텐츠 ID에 대한 레저 스포츠를 찾을 수 없습니다.");
-                    }
-                    break;
-
-                case "local-events":
-                    List<LocalEvent> localEvents = localEventService.findBycontentid(contentid);
-                    if (localEvents.isEmpty()) {
-                        throw new RuntimeException("해당 콘텐츠 ID에 대한 지역 행사를 찾을 수 없습니다.");
-                    }
-                    break;
-
-                case "shopping-events":
-                    List<ShoppingEvent> shoppingEvents = shoppingEventService.findBycontentid(contentid);
-                    if (shoppingEvents.isEmpty()) {
-                        throw new RuntimeException("해당 콘텐츠 ID에 대한 쇼핑 이벤트를 찾을 수 없습니다.");
-                    }
-                    break;
-
-                case "food-events":
-                    List<FoodEvent> foodEvents = foodEventService.findBycontentid(contentid);
-                    if (foodEvents.isEmpty()) {
-                        throw new RuntimeException("해당 콘텐츠 ID에 대한 음식 이벤트를 찾을 수 없습니다.");
-                    }
-                        break;
-
-                    case "district":
-                        localBasedService.findBycontentid(contentid)
-                                .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 음식 이벤트를 찾을 수 없습니다."));
-                        break;
-
-                    default:
-                        throw new RuntimeException("알 수 없는 카테고리입니다.");
-
+                    comment.setContentid(contentid);
+                    comment.setSvcid(svcid);
+                }
             }
-
 
             // 댓글 저장
             Comment savedComment = commentService.createComment(comment);
 
-            // 이미지 저장
+            // 이미지 저장 (svcid, contentid, gyeonggiEventId 중 사용 가능한 값을 저장)
+            String idForImage = svcid != null ? svcid : (contentid != null ? contentid : String.valueOf(gyeonggiEventId));
             if (images != null && !images.isEmpty()) {
-                commentService.saveCommentImages(savedComment, images, category, contentid);
+                commentService.saveCommentImages(savedComment, images, category, idForImage);
             }
 
             return ResponseEntity.ok("댓글이 작성되었습니다.");
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("댓글 작성 실패: " + e.getMessage());
+        }
+    }
+
+    // 카테고리 검증 및 데이터 존재 여부 확인
+    private boolean validateCategory(String category, String contentid, String svcid, Long gyeonggiEventId) {
+        switch (category) {
+            case "events":
+                return !tourEventService.findBycontentid(contentid).isEmpty();
+            case "cultural-facilities":
+                return !culturalFacilityService.findBycontentid(contentid).isEmpty();
+            case "tourist-attractions":
+                return !touristAttractionsService.findBycontentid(contentid).isEmpty();
+            case "travel-courses":
+                return !travelCourseService.findBycontentid(contentid).isEmpty();
+            case "leisure-sports":
+                return !leisureSportsEventService.findBycontentid(contentid).isEmpty();
+            case "local-events":
+                return !localEventService.findBycontentid(contentid).isEmpty();
+            case "shopping-events":
+                return !shoppingEventService.findBycontentid(contentid).isEmpty();
+            case "food-events":
+                return !foodEventService.findBycontentid(contentid).isEmpty();
+            case "district":
+                return !localBasedService.findBycontentid(contentid).isEmpty();
+            case "seoul-events":
+                return seoulEventService.findBySvcid(svcid) != null;
+            case "gyeonggi-events":
+                return gyeonggiEventService.findById(gyeonggiEventId).isPresent();
+            default:
+                return false;
         }
     }
 
@@ -220,11 +211,30 @@ public class CommentController {
         return commentService.getCommentByNoticeId(noticeId);
     }
 
+    @GetMapping("/gyeonggi-events/{gyeonggiEventId}/detail")
+    public ResponseEntity<List<Comment>> getCommentsByGyeonggiEvent(
+            @PathVariable Long gyeonggiEventId) {
+        try {
+            List<Comment> comments = commentService.getCommentByGyeonggiEventId(gyeonggiEventId);
+            return ResponseEntity.ok(comments);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
+
+    @GetMapping("/seoul-events/{svcid}/detail")
+    public ResponseEntity<List<Comment>> getCommentsBySeoulEvent(@PathVariable String svcid) {
+        try {
+            List<Comment> comments = commentService.getCommentBySeoulEvent(svcid);
+            return ResponseEntity.ok(comments);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
     @GetMapping("/{category}/{contentid}/{contenttypeid}/detail")
-    public ResponseEntity<List<Comment>> getCommentsByCategory(
-            @PathVariable String category,
-            @PathVariable String contentid
-    ) {
+    public ResponseEntity<List<Comment>> getCommentsByCategory(@PathVariable String category, @PathVariable String contentid) {
         try {
             List<Comment> comments;
             switch (category) {
@@ -255,7 +265,6 @@ public class CommentController {
                 case "district":
                     comments = commentService.getCommentByDistrict(contentid);
                     break;
-
                 default:
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
             }

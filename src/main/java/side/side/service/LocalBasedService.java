@@ -2,6 +2,7 @@ package side.side.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -231,7 +232,8 @@ public class LocalBasedService {
     }
 
     // contentid로 LocalBase 조회
-    public Optional<LocalBase> findBycontentid(String contentid) {
+    @Transactional
+    public List<LocalBase> findBycontentid(String contentid) {
         return localBasedRepository.findBycontentid(contentid);
     }
 }

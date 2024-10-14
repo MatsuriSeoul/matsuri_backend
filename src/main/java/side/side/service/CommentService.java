@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import side.side.model.Comment;
 import side.side.model.CommentImage;
+import side.side.model.GyeonggiEvent;
 import side.side.model.TourEvent;
 import side.side.repository.CommentImageRepository;
 import side.side.repository.CommentRepository;
@@ -26,6 +27,9 @@ public class CommentService {
     @Autowired
     private CommentImageRepository commentImageRepository;
 
+    @Autowired
+    private GyeonggiEventService gyeonggiEventService;
+
     private final String uploadDir = System.getProperty("user.home") + "/Desktop/uploads/commentImage/";
 
     public String uploadCommentImage(MultipartFile image) throws IOException {
@@ -43,7 +47,7 @@ public class CommentService {
     }
 
     // 댓글 작성 시 이미지 저장
-    public void saveCommentImages(Comment comment, List<MultipartFile> images, String category, String contentid) throws IOException {
+    public void saveCommentImages(Comment comment, List<MultipartFile> images, String category, String idForImage) throws IOException {
         if (images == null || images.isEmpty()) return;
 
         for (MultipartFile image : images) {
@@ -53,12 +57,30 @@ public class CommentService {
             commentImage.setImagePath(imagePath);
             commentImage.setComment(comment);
             commentImage.setCategory(category);
-            commentImage.setContentid(contentid);
+
+            if (category.equals("seoul-events")) {
+                commentImage.setSvcid(idForImage);
+            } else if (category.equals("gyeonggi-events")) {
+                Long gyeonggiEventId = Long.parseLong(idForImage);
+                GyeonggiEvent gyeonggiEvent = gyeonggiEventService.findById(gyeonggiEventId)
+                        .orElseThrow(() -> new RuntimeException("경기도 이벤트를 찾을 수 없습니다."));
+                commentImage.setGyeonggiEvent(gyeonggiEvent);
+            } else {
+                commentImage.setContentid(idForImage);
+            }
+
             commentImageRepository.save(commentImage);
         }
     }
 
+
     public Comment createComment(Comment comment) {
+
+        // 경기 이벤트 댓글일 경우 contentid를 설정하지 않음
+        if (comment.getGyeonggiEvent() != null) {
+            comment.setContentid(null);
+        }
+
         return commentRepository.save(comment);
     }
 
@@ -95,7 +117,6 @@ public class CommentService {
         return commentRepository.findBycontentid(contentid);
     }
 
-
     public List<Comment> getCommentByTouristAttraction(String contentid) {
         return commentRepository.findBycontentid(contentid);
     }
@@ -131,4 +152,13 @@ public class CommentService {
     public Optional<Comment> findCommentById(long id){
         return commentRepository.findById(id);
     }
+
+    public List<Comment> getCommentBySeoulEvent(String svcid) {
+        return commentRepository.findBySvcid(svcid);
+    }
+
+    public List<Comment> getCommentByGyeonggiEventId(Long gyeonggiEventId) {
+        return commentRepository.findByGyeonggiEventId(gyeonggiEventId);
+    }
+
 }
