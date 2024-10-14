@@ -30,7 +30,6 @@ public class LeisureSportsEvent {
     private String regionNm;
     private String imageUrl;
 
-    @Column(unique = true, nullable = false)
     private String contentid;
 
     //   댓글

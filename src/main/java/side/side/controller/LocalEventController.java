@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import side.side.model.FoodEvent;
 import side.side.model.LocalEvent;
 import side.side.model.LocalEventDetail;
 import side.side.model.TouristAttraction;
@@ -11,6 +12,7 @@ import side.side.repository.LocalEventRepository;
 import side.side.service.LocalEventService;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/local-events")
@@ -69,5 +71,17 @@ public class LocalEventController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(similarEvents);
+    }
+
+    // 퍼스트 이미지 가져오기
+    @GetMapping("/firstimage/{contentid}")
+    public ResponseEntity<String> fetchFirstImage(@PathVariable String contentid) {
+        Optional<LocalEvent> eventOptional = localEventRepository.findByContentid(contentid);
+        if (eventOptional.isPresent()) {
+            LocalEvent event = eventOptional.get();
+            return ResponseEntity.ok(event.getFirstimage());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

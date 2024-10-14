@@ -31,9 +31,10 @@ public class LocalEvent {
     private String regionNm;
     private String imageUrl;
 
-    @Column(unique = true, nullable = false)
     private String contentid;
 
+    private String mapx;
+    private String mapy;
     //   댓글
     @OneToMany(mappedBy = "contentid", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
