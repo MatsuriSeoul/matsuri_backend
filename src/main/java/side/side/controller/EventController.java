@@ -165,26 +165,60 @@ public class EventController {
     }
 
     // 무료 행사 가져오기
+//    @GetMapping("/free")
+//    public List<?> getFreeEvents(@RequestParam("region") String region) {
+//        if ("경기도".equals(region)) {
+//            return eventService.getGyeonggiFreeEvents();
+//        } else if ("서울특별시".equals(region)) {
+//            return eventService.getSeoulFreeEvents();
+//        }
+//        return new ArrayList<>();
+//    }
+
     @GetMapping("/free")
-    public List<?> getFreeEvents(@RequestParam("region") String region) {
-        if ("경기도".equals(region)) {
-            return eventService.getGyeonggiFreeEvents();
+    public List<?> getFreeEvents(@RequestParam(value = "region", required = false) String region) {
+        List<Object> freeEvents = new ArrayList<>();
+
+        if (region == null) {
+            freeEvents.addAll(eventService.getGyeonggiFreeEvents());
+            freeEvents.addAll(eventService.getSeoulFreeEvents());
+        } else if ("경기도".equals(region)) {
+            freeEvents.addAll(eventService.getGyeonggiFreeEvents());
         } else if ("서울특별시".equals(region)) {
-            return eventService.getSeoulFreeEvents();
+            freeEvents.addAll(eventService.getSeoulFreeEvents());
         }
-        return new ArrayList<>();
+        return freeEvents;
     }
 
     // 유료 행사 가져오기
+//    @GetMapping("/paid")
+//    public List<?> getPaidEvents(@RequestParam("region") String region) {
+//        if ("경기도".equals(region)) {
+//            return eventService.getGyeonggiPaidEvents();
+//        } else if ("서울특별시".equals(region)) {
+//            return eventService.getSeoulPaidEvents();
+//        }
+//        return new ArrayList<>();
+//    }
+
+    // 유료 행사 가져오기
     @GetMapping("/paid")
-    public List<?> getPaidEvents(@RequestParam("region") String region) {
-        if ("경기도".equals(region)) {
-            return eventService.getGyeonggiPaidEvents();
+    public List<?> getPaidEvents(@RequestParam(value = "region", required = false) String region) {
+        List<Object> paidEvents = new ArrayList<>();
+
+        if (region == null) {
+            // region이 없을 경우 경기도와 서울의 유료 이벤트를 모두 가져오기
+            paidEvents.addAll(eventService.getGyeonggiPaidEvents());
+            paidEvents.addAll(eventService.getSeoulPaidEvents());
+        } else if ("경기도".equals(region)) {
+            paidEvents.addAll(eventService.getGyeonggiPaidEvents());
         } else if ("서울특별시".equals(region)) {
-            return eventService.getSeoulPaidEvents();
+            paidEvents.addAll(eventService.getSeoulPaidEvents());
         }
-        return new ArrayList<>();
+
+        return paidEvents;
     }
+
     // 진행 중인 행사 및 예정된 행사 가져오기
     @GetMapping("/scheduled")
     public List<?> getScheduledEvents(@RequestParam("region") String region) {
@@ -209,6 +243,9 @@ public class EventController {
         }
         return ResponseEntity.ok(detail);
     }
+
+
+
 
     // 행사 소개 정보 불러오기 (외부 API에서)
     @GetMapping("/{contentid}/{contenttypeid}/intro")

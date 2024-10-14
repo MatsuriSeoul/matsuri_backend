@@ -87,13 +87,13 @@ public class DataLoader implements ApplicationRunner {
         String token = jwtUtils.generateToken(user.getUserName(), user.getId(), user.getRole());
         System.out.println("Test User Token: " + token);
 
-//         eventService.fetchAndSaveGyeonggiEvents();
-//         eventService.fetchAndSaveSeoulEvents();
+         eventService.fetchAndSaveGyeonggiEvents();
+         eventService.fetchAndSaveSeoulEvents();
 
         // 서버 시작 시 지역별 관광정보를 가져와 저장
         fetchAllLocalEvents();
 
-//        // 축제/공연/행사 데이터 호출
+        // 축제/공연/행사 데이터 호출
         String eventNumOfRows = "10"; // 한 페이지에 가져올 이벤트 수
         String eventPageNo = "1"; // 시작 페이지 번호
         String eventStartDate = "20240101"; // 이벤트 시작 날짜 (YYYYMMDD 형식)
@@ -167,23 +167,23 @@ public class DataLoader implements ApplicationRunner {
         int numOfRows = EventFetchConfig.DEFAULT_NUM_OF_ROWS;
 
         // 지역별로 관광 정보를 가져와 저장
-//        fetchAndSaveLocalGyeonggiEvents(numOfRows);
+        fetchAndSaveLocalGyeonggiEvents(numOfRows);
         fetchAndSaveLocalSeoulEvents(numOfRows);
-//        fetchAndSaveLocalGangwonEvents(numOfRows);
-//        fetchAndSaveLocalInchoenEvents(numOfRows);
-//        fetchAndSaveLocalChungbukEvents(numOfRows);
-//        fetchAndSaveLocalChungnamEvents(numOfRows);
-//        fetchAndSaveLocalDaejeonEvents(numOfRows);
-//        fetchAndSaveLocalDaeguEvents(numOfRows);
-//        fetchAndSaveLocalGyeongbukEvents(numOfRows);
-//        fetchAndSaveLocalGyeongnamEvents(numOfRows);
-//        fetchAndSaveLocalGwangjuEvents(numOfRows);
-//        fetchAndSaveLocalJeonnamEvents(numOfRows);
-//        fetchAndSaveLocalJeonbukEvents(numOfRows);
-//        fetchAndSaveLocalUlsanEvents(numOfRows);
-//        fetchAndSaveLocalSejongEvents(numOfRows);
-//        fetchAndSaveLocalJejuEvents(numOfRows);
-//        fetchAndSaveLocalBusanEvents(numOfRows);
+        fetchAndSaveLocalGangwonEvents(numOfRows);
+        fetchAndSaveLocalInchoenEvents(numOfRows);
+        fetchAndSaveLocalChungbukEvents(numOfRows);
+        fetchAndSaveLocalChungnamEvents(numOfRows);
+        fetchAndSaveLocalDaejeonEvents(numOfRows);
+        fetchAndSaveLocalDaeguEvents(numOfRows);
+        fetchAndSaveLocalGyeongbukEvents(numOfRows);
+        fetchAndSaveLocalGyeongnamEvents(numOfRows);
+        fetchAndSaveLocalGwangjuEvents(numOfRows);
+        fetchAndSaveLocalJeonnamEvents(numOfRows);
+        fetchAndSaveLocalJeonbukEvents(numOfRows);
+        fetchAndSaveLocalUlsanEvents(numOfRows);
+        fetchAndSaveLocalSejongEvents(numOfRows);
+        fetchAndSaveLocalJejuEvents(numOfRows);
+        fetchAndSaveLocalBusanEvents(numOfRows);
 
     }
 
