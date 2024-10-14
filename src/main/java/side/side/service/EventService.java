@@ -88,61 +88,61 @@ public class EventService {
     private final String seoulApiKey = "754578757270626739386969624e71";
     private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
 
-    // 경기도 행사 API
-    public void fetchAndSaveGyeonggiEvents() {
-        int pageSize = 50;  // 가져올 데이터 개수를 10개로 설정
-        int startIndex = 1;
-        boolean moreData = true;
-        RestTemplate restTemplate = new RestTemplate();
-
-        while (moreData) {
-            String url = String.format("https://openapi.gg.go.kr/GGCULTUREVENTSTUS?KEY=%s&Type=json&pIndex=%d&pSize=%d",
-                    gyeonggiApiKey, startIndex, pageSize);
-            try {
-                String response = restTemplate.getForObject(url, String.class);
-                System.out.println("경기도 API 응답" + response);
-
-                if (response.startsWith("<")) {
-                    throw new IllegalArgumentException("존재하지 않는 응답 API");
-                }
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode rootNode = objectMapper.readTree(response);
-                JsonNode dataNode = rootNode.path("GGCULTUREVENTSTUS").path(1).path("row");
-
-                if (dataNode.isArray()) {
-                    List<GyeonggiEvent> events = new ArrayList<>();
-                    for (JsonNode node : dataNode) {
-                        GyeonggiEvent event = new GyeonggiEvent();
-                        event.setInstNm(node.path("INST_NM").asText());
-                        event.setTitle(node.path("TITLE").asText());
-                        event.setCategoryNm(node.path("CATEGORY_NM").asText());
-                        event.setUrl(node.path("URL").asText());
-                        event.setImageUrl(node.path("IMAGE_URL").asText());
-                        event.setBeginDe(node.path("BEGIN_DE").asText());
-                        event.setEndDe(node.path("END_DE").asText());
-                        event.setAddr(node.path("ADDR").asText());
-                        event.setEventTmInfo(node.path("EVENT_TM_INFO").asText());
-                        event.setPartcptExpnInfo(node.path("PARTCPT_EXPN_INFO").asText());
-                        event.setTelnoInfo(node.path("TELNO_INFO").asText());
-                        event.setHostInstNm(node.path("HOST_INST_NM").asText());
-                        event.setHmpgUrl(node.path("HMPG_URL").asText());
-                        event.setWritngDe(node.path("WRITNG_DE").asText());
-                        events.add(event);
-                    }
-                    gyeonggiEventRepository.saveAll(events);
-
-                    // 10개씩 가져오는 것으로 설정했으므로 한 번만 가져오고 종료
-                    moreData = false;
-                } else {
-                    moreData = false;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                moreData = false;
-            }
-        }
-    }
+//    // 경기도 행사 API
+//    public void fetchAndSaveGyeonggiEvents() {
+//        int pageSize = 50;  // 가져올 데이터 개수를 10개로 설정
+//        int startIndex = 1;
+//        boolean moreData = true;
+//        RestTemplate restTemplate = new RestTemplate();
+//
+//        while (moreData) {
+//            String url = String.format("https://openapi.gg.go.kr/GGCULTUREVENTSTUS?KEY=%s&Type=json&pIndex=%d&pSize=%d",
+//                    gyeonggiApiKey, startIndex, pageSize);
+//            try {
+//                String response = restTemplate.getForObject(url, String.class);
+//                System.out.println("경기도 API 응답" + response);
+//
+//                if (response.startsWith("<")) {
+//                    throw new IllegalArgumentException("존재하지 않는 응답 API");
+//                }
+//
+//                ObjectMapper objectMapper = new ObjectMapper();
+//                JsonNode rootNode = objectMapper.readTree(response);
+//                JsonNode dataNode = rootNode.path("GGCULTUREVENTSTUS").path(1).path("row");
+//
+//                if (dataNode.isArray()) {
+//                    List<GyeonggiEvent> events = new ArrayList<>();
+//                    for (JsonNode node : dataNode) {
+//                        GyeonggiEvent event = new GyeonggiEvent();
+//                        event.setInstNm(node.path("INST_NM").asText());
+//                        event.setTitle(node.path("TITLE").asText());
+//                        event.setCategoryNm(node.path("CATEGORY_NM").asText());
+//                        event.setUrl(node.path("URL").asText());
+//                        event.setImageUrl(node.path("IMAGE_URL").asText());
+//                        event.setBeginDe(node.path("BEGIN_DE").asText());
+//                        event.setEndDe(node.path("END_DE").asText());
+//                        event.setAddr(node.path("ADDR").asText());
+//                        event.setEventTmInfo(node.path("EVENT_TM_INFO").asText());
+//                        event.setPartcptExpnInfo(node.path("PARTCPT_EXPN_INFO").asText());
+//                        event.setTelnoInfo(node.path("TELNO_INFO").asText());
+//                        event.setHostInstNm(node.path("HOST_INST_NM").asText());
+//                        event.setHmpgUrl(node.path("HMPG_URL").asText());
+//                        event.setWritngDe(node.path("WRITNG_DE").asText());
+//                        events.add(event);
+//                    }
+//                    gyeonggiEventRepository.saveAll(events);
+//
+//                    // 10개씩 가져오는 것으로 설정했으므로 한 번만 가져오고 종료
+//                    moreData = false;
+//                } else {
+//                    moreData = false;
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//                moreData = false;
+//            }
+//        }
+//    }
 
     // 서울 행사 API
     public void fetchAndSaveSeoulEvents() {
@@ -576,6 +576,23 @@ public class EventService {
         }
         return seoulEventRepository.findAll();  // 카테고리가 없으면 전체 조회
     }
+
+    // 월과 카테고리에 맞는 데이터를 조회
+    public List<SeoulEvent> getSeoulEventsByMonthAndCategory(String month, String category) {
+        // 월 정보가 있는 경우 "MM" 형식으로 생성
+        String beginDatePattern = String.format("%02d", Integer.parseInt(month));
+
+        // 리포지토리 메소드 호출하여 월과 카테고리에 맞는 데이터 조회
+        return seoulEventRepository.findByCategoryAndMonth(beginDatePattern, category);
+    }
+
+    // 카테고리에 맞는 모든 데이터를 조회
+    public List<SeoulEvent> getSeoulEventsByCategoryMonthNull(String category) {
+        // 리포지토리 메소드 호출하여 해당 카테고리의 모든 데이터 조회
+        return seoulEventRepository.findByEventInCategory(category);
+    }
+
+
     public List<TourEvent> getRandomEventsByRegion(String region) {
         return tourEventRepository.findRandomEventsByRegion(region, 4);
     }
@@ -598,6 +615,8 @@ public class EventService {
     public List<SeoulEvent> getSeoulPaidEvents() {
         return seoulEventRepository.findPaidEventsInSeoul(4);
     }
+
+
     // 경기도 진행 중 및 예정된 행사 가져오기
     public List<GyeonggiEvent> getGyeonggiScheduledEvents() {
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -613,6 +632,22 @@ public class EventService {
     public List<TourEvent> getSimilarTourEvent(String contenttypeid) {
         return tourEventRepository.findByContenttypeid(contenttypeid);
     }
+
+    // 월과 카테고리에 맞는 데이터를 조회
+    public List<GyeonggiEvent> getGyeonggiEventsByMonthAndCategory(String month, String category) {
+        // 월 정보가 있는 경우 "MM" 형식으로 생성
+        String beginDatePattern = String.format("%02d", Integer.parseInt(month));
+
+        // 리포지토리 메소드 호출하여 월과 카테고리에 맞는 데이터 조회
+        return gyeonggiEventRepository.findByCategoryAndMonth(beginDatePattern, category);
+    }
+
+    // 카테고리에 맞는 모든 데이터를 조회
+    public List<GyeonggiEvent> getGyeonggiEventsByCategoryMonthNull(String category) {
+        // 리포지토리 메소드 호출하여 해당 카테고리의 모든 데이터 조회
+        return gyeonggiEventRepository.findByEventInCategory(category);
+    }
+
 
     @Transactional
     public EventDTO findEventDetailFromAllSources(String contentId) {
@@ -733,6 +768,8 @@ public class EventService {
 
         return null; // 해당 이벤트를 찾지 못한 경우
     }
+
+
 }
 
 

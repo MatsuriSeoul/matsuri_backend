@@ -18,6 +18,16 @@ public interface SeoulEventRepository extends JpaRepository<SeoulEvent, Long> {
     List<SeoulEvent> findByMinclassnm(String minclassnm);
     SeoulEvent findBySvcid(String svcid);
 
+    // 월, 카테고리를 기준으로 데이터 조회
+    @Query("SELECT e FROM SeoulEvent e WHERE " +
+            "(:category IS NULL OR e.minclassnm = :category) AND " +
+            "(:month IS NULL OR SUBSTRING(e.svcopnbgndt, 6, 2) = :month)")
+    List<SeoulEvent> findByCategoryAndMonth(@Param("month") String month, @Param("category") String category);
+
+    // 카테고리에 맞는 모든 데이터를 조회
+    @Query("SELECT e FROM SeoulEvent e WHERE e.minclassnm = :category")
+    List<SeoulEvent> findByEventInCategory(@Param("category") String category);
+
     // 서울특별시의 무료 행사 가져오기
     @Query(value = "SELECT * FROM seoul_event WHERE PAYATNM = '무료' ORDER BY RAND() LIMIT :limit", nativeQuery = true)
     List<SeoulEvent> findFreeEventsInSeoul(@Param("limit") int limit);
