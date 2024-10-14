@@ -8,11 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponentsBuilder;
+import side.side.model.CulturalFacility;
 import side.side.model.LocalBase;
 import side.side.repository.LocalBasedRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class LocalBasedService {
@@ -226,5 +228,10 @@ public class LocalBasedService {
     // 유사한 이벤트를 가져오는 메소드
     public List<LocalBase> getSimilarEventsByContentType(String contenttypeid) {
         return localBasedRepository.findByContentTypeId(contenttypeid);
+    }
+
+    // contentid로 LocalBase 조회
+    public Optional<LocalBase> findBycontentid(String contentid) {
+        return localBasedRepository.findBycontentid(contentid);
     }
 }

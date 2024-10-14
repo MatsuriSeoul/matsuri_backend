@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import side.side.model.LocalBase;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LocalBasedRepository extends JpaRepository<LocalBase, Long> {
@@ -32,4 +33,7 @@ public interface LocalBasedRepository extends JpaRepository<LocalBase, Long> {
 
     // contenttypeid로 유사한 이벤트 조회
     List<LocalBase> findByContentTypeId(String contenttypeid);
+
+    //여행톡
+    Optional<LocalBase> findBycontentid(String contentid);
 }

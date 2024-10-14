@@ -124,6 +124,9 @@ public class CommentService {
         return commentRepository.findBycontentid(contentid);
     }
 
+    public List<Comment> getCommentByDistrict(String contentid) {
+        return commentRepository.findBycontentid(contentid);
+    }
 
     public Optional<Comment> findCommentById(long id){
         return commentRepository.findById(id);

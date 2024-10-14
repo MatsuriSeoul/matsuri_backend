@@ -56,6 +56,9 @@ public class CommentController {
     @Autowired
     private FoodEventService foodEventService;
 
+    @Autowired
+    private LocalBasedService localBasedService;
+
     // 댓글 작성
     @PostMapping
     public ResponseEntity<?> createComment(
@@ -126,6 +129,12 @@ public class CommentController {
                         foodEventService.findBycontentid(contentid)
                                 .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 음식 이벤트를 찾을 수 없습니다."));
                         break;
+
+                    case "district":
+                        localBasedService.findBycontentid(contentid)
+                                .orElseThrow(() -> new RuntimeException("해당 콘텐츠 ID에 대한 음식 이벤트를 찾을 수 없습니다."));
+                        break;
+
                     default:
                         throw new RuntimeException("알 수 없는 카테고리입니다.");
                 }
@@ -221,6 +230,10 @@ public class CommentController {
                 case "food-events":
                     comments = commentService.getCommentByFood(contentid);
                     break;
+                case "district":
+                    comments = commentService.getCommentByDistrict(contentid);
+                    break;
+
                 default:
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
             }
