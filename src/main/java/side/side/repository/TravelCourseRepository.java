@@ -6,9 +6,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import side.side.model.TravelCourse;
-import side.side.model.LeisureSportsEvent;
-import side.side.model.TouristAttraction;
+import side.side.model.*;
 import side.side.model.TravelCourse;
 
 import java.util.List;
@@ -49,4 +47,7 @@ public interface TravelCourseRepository  extends JpaRepository<TravelCourse, Lon
                             @Param("mapx") String mapx,
                             @Param("mapy") String mapy,
                             @Param("contenttypeid") String contenttypeid);
+    // addr1에서 부분 문자열 검색 및 contenttypeid로 필터링
+    List<TravelCourse> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
+
 }

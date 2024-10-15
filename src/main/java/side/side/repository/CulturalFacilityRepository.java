@@ -55,5 +55,7 @@ public interface CulturalFacilityRepository extends JpaRepository<CulturalFacili
             @Param("tel") String tel,
             @Param("overview") String overview);
 
+    // addr1에서 부분 문자열 검색 및 contenttypeid로 필터링
+    List<CulturalFacility> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
 
 }
