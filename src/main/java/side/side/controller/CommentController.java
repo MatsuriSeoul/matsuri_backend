@@ -1,8 +1,5 @@
 package side.side.controller;
 
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +9,7 @@ import side.side.config.JwtUtils;
 import side.side.model.*;
 import side.side.service.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/comment")
@@ -78,30 +72,26 @@ public class CommentController {
             @RequestParam(value = "images", required = false) List<MultipartFile> images,
             @RequestHeader("Authorization") String token) {
         try {
-            // JWT 토큰에서 사용자 정보 추출
             Long userId = jwtUtils.extractUserId(token);
-
-            // 사용자 정보 조회
             UserInfo user = userService.getUserById(userId)
                     .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-            // 이름 마스킹 처리 (예: 홍길동 -> 홍OO)
             String maskedName = maskName(user.getUserName());
 
             // 댓글 생성 및 저장
             Comment comment = new Comment();
             comment.setContent(content);
-            comment.setAuthor(user);  // 댓글 작성자 정보 저장
+            comment.setAuthor(user);
             comment.setMaskedAuthor(maskedName);
 
-            // 공지사항 댓글 작성
+            // 공지사항 댓글
             if (noticeId != null) {
                 Notice notice = noticeService.getNoticeById(noticeId)
                         .orElseThrow(() -> new RuntimeException("공지사항을 찾을 수 없습니다."));
                 comment.setNotice(notice);
             }
 
-            //경기도 이벤트 댓글 작성
+            // 경기도 이벤트 댓글
             if (gyeonggiEventId != null) {
                 GyeonggiEvent gyeonggiEvent = gyeonggiEventService.findById(gyeonggiEventId)
                         .orElseThrow(() -> new RuntimeException("경기도 이벤트를 찾을 수 없습니다."));
@@ -110,22 +100,18 @@ public class CommentController {
                 GyeonggiEvent gyeonggiEvent = gyeonggiEventService.findById(Long.parseLong(contentid))
                         .orElseThrow(() -> new RuntimeException("경기도 이벤트를 찾을 수 없습니다."));
                 comment.setGyeonggiEvent(gyeonggiEvent);
-            } else {
-                // 행사, 문화시설 등 다른 콘텐츠에 대한 댓글 작성
-                if (category != null) {
-                    boolean isValidCategory = validateCategory(category, contentid, svcid, gyeonggiEventId);
-                    if (!isValidCategory) {
-                        throw new RuntimeException("해당 콘텐츠에 대한 데이터를 찾을 수 없습니다.");
-                    }
-                    comment.setContentid(contentid);
-                    comment.setSvcid(svcid);
+            } else if (category != null) {
+                boolean isValidCategory = validateCategory(category, contentid, svcid, gyeonggiEventId);
+                if (!isValidCategory) {
+                    throw new RuntimeException("해당 콘텐츠에 대한 데이터를 찾을 수 없습니다.");
                 }
+                comment.setContentid(contentid);
+                comment.setSvcid(svcid);
+                comment.setCategory(category);
             }
 
-            // 댓글 저장
             Comment savedComment = commentService.createComment(comment);
 
-            // 이미지 저장 (svcid, contentid, gyeonggiEventId 중 사용 가능한 값을 저장)
             String idForImage = svcid != null ? svcid : (contentid != null ? contentid : String.valueOf(gyeonggiEventId));
             if (images != null && !images.isEmpty()) {
                 commentService.saveCommentImages(savedComment, images, category, idForImage);
@@ -138,7 +124,7 @@ public class CommentController {
         }
     }
 
-    // 카테고리 검증 및 데이터 존재 여부 확인
+    // 카테고리 검증
     private boolean validateCategory(String category, String contentid, String svcid, Long gyeonggiEventId) {
         switch (category) {
             case "events":
@@ -171,25 +157,33 @@ public class CommentController {
     // 이름 마스킹
     private String maskName(String name) {
         if (name == null || name.length() < 2) {
-            return name;  // 이름이 너무 짧거나 없는 경우 그대로 반환
+            return name;
         }
-
-        // 성 뒤에 모든 글자를 O로 마스킹 처리 (홍길동 -> 홍OO)
         return name.charAt(0) + "O".repeat(name.length() - 1);
     }
 
     // 댓글 수정
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateComment(@PathVariable Long id, @RequestBody Map<String, String> payload, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> updateComment(
+            @PathVariable Long id,
+            @RequestParam("content") String newContent,
+            @RequestParam(value = "newImages", required = false) List<MultipartFile> newImages,
+            @RequestParam(value = "removeImageIds", required = false) List<Long> removeImageIds,
+            @RequestHeader("Authorization") String token) {
         try {
-            Long userId = jwtUtils.extractUserId(token);  // JWT에서 사용자 ID 추출
-            String newContent = payload.get("content");
+            Long userId = jwtUtils.extractUserId(token);
 
-            // 작성자 확인 및 댓글 수정
-            Comment updatedComment = commentService.updateComment(id, newContent, userId);
+            // 댓글 수정
+            Comment updatedComment = commentService.updateComment(id, newContent, userId, newImages);
+
+            // 이미지 삭제
+            if (removeImageIds != null && !removeImageIds.isEmpty()) {
+                commentService.removeCommentImages(removeImageIds);
+            }
+
             return ResponseEntity.ok(updatedComment);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("댓글 수정 실패");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("댓글 수정 실패: " + e.getMessage());
         }
     }
 
@@ -197,11 +191,22 @@ public class CommentController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteComment(@PathVariable Long id, @RequestHeader("Authorization") String token) {
         try {
-            Long userId = jwtUtils.extractUserId(token);  // JWT에서 사용자 ID 추출
-            commentService.deleteComment(id, userId);  // 작성자 확인 후 삭제
+            Long userId = jwtUtils.extractUserId(token);
+            commentService.deleteComment(id, userId);
             return ResponseEntity.ok("댓글이 삭제되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("댓글 삭제 실패");
+        }
+    }
+
+    @DeleteMapping("/image/{imageId}")
+    public ResponseEntity<?> deleteCommentImage(@PathVariable Long imageId, @RequestHeader("Authorization") String token) {
+        try {
+            Long userId = jwtUtils.extractUserId(token);  // JWT에서 사용자 정보 추출
+            commentService.deleteCommentImage(imageId, userId);  // 이미지 삭제 서비스 호출
+            return ResponseEntity.ok("이미지가 삭제되었습니다.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("이미지 삭제 실패: " + e.getMessage());
         }
     }
 
@@ -212,8 +217,7 @@ public class CommentController {
     }
 
     @GetMapping("/gyeonggi-events/{gyeonggiEventId}/detail")
-    public ResponseEntity<List<Comment>> getCommentsByGyeonggiEvent(
-            @PathVariable Long gyeonggiEventId) {
+    public ResponseEntity<List<Comment>> getCommentsByGyeonggiEvent(@PathVariable Long gyeonggiEventId) {
         try {
             List<Comment> comments = commentService.getCommentByGyeonggiEventId(gyeonggiEventId);
             return ResponseEntity.ok(comments);
@@ -221,7 +225,6 @@ public class CommentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
-
 
     @GetMapping("/seoul-events/{svcid}/detail")
     public ResponseEntity<List<Comment>> getCommentsBySeoulEvent(@PathVariable String svcid) {
@@ -275,10 +278,11 @@ public class CommentController {
         }
     }
 
+    // 이미지 업로드
     @PostMapping("/upload-comment-image")
     public ResponseEntity<?> uploadCommentImage(@RequestParam("file") MultipartFile file) {
         try {
-            String filePath = commentService.uploadCommentImage(file);  // 파일 경로 설정
+            String filePath = commentService.uploadCommentImage(file);
             return ResponseEntity.ok().body(filePath);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("이미지 업로드 실패");
