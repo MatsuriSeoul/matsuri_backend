@@ -22,6 +22,18 @@ public interface GyeonggiEventRepository extends JpaRepository<GyeonggiEvent, Lo
     // category_nm 필드를 기준으로 카테고리 필터링
     List<GyeonggiEvent> findByCategoryNm(String categoryNm);
 
+
+    // 월, 카테고리를 기준으로 데이터 조회
+    @Query("SELECT e FROM GyeonggiEvent e WHERE " +
+            "(:category IS NULL OR e.categoryNm = :category) AND " +
+            "(:month IS NULL OR SUBSTRING(e.beginDe, 6, 2) = :month)")
+    List<GyeonggiEvent> findByCategoryAndMonth(@Param("month") String month, @Param("category") String category);
+
+    // 카테고리에 맞는 모든 데이터를 조회
+    @Query("SELECT e FROM GyeonggiEvent e WHERE e.categoryNm = :category")
+    List<GyeonggiEvent> findByEventInCategory(@Param("category") String category);
+
+
     // 경기도의 무료 행사 가져오기
     @Query(value = "SELECT * FROM gyeonggi_event WHERE partcpt_expn_info LIKE '%무료%' ORDER BY RAND() LIMIT :limit", nativeQuery = true)
     List<GyeonggiEvent> findFreeEventsInGyeonggi(@Param("limit") int limit);

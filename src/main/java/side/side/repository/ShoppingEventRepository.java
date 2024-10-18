@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import side.side.model.ShoppingEvent;
+import side.side.model.TourEvent;
 
 
 import java.util.List;
@@ -50,6 +51,9 @@ public interface ShoppingEventRepository extends JpaRepository<ShoppingEvent, Lo
                              @Param("mapx") String mapx,
                              @Param("mapy") String mapy,
                              @Param("contenttypeid") String contenttypeid);
+
+    // addr1에서 부분 문자열 검색 및 contenttypeid로 필터링
+    List<ShoppingEvent> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
 
 
 }

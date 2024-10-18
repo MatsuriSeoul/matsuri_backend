@@ -13,13 +13,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import side.side.config.JwtUtils;
 import side.side.model.*;
+import side.side.model.DTO.CommentDTO;
 import side.side.model.DTO.EventDTO;
 import side.side.repository.*;
 import side.side.response.LoginResponse;
-import side.side.service.EventService;
-import side.side.service.LikeService;
-import side.side.service.ProfileImageService;
-import side.side.service.UserService;
+import side.side.service.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,6 +27,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -79,6 +78,9 @@ public class UserController {
     private TravelCourseRepository travelCourseRepository;
     @Autowired
     private TravelCourseDetailRepository travelCourseDetailRepository;
+
+    @Autowired
+    private CommentService commentService;
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     @Autowired
@@ -322,6 +324,98 @@ public class UserController {
 
         return ResponseEntity.ok(likedEvents);
     }
+
+    //사용자가 좋아요 누른 댓글목록 조회
+    @GetMapping("/liked-comments")
+    public ResponseEntity<List<CommentDTO>> getLikedComments(@RequestHeader("Authorization") String token) {
+        Long userId = jwtUtils.extractUserId(token);
+        List<Like> likedComments = likeService.getLikedContentsByUser(userId)
+                .stream()
+                .filter(like -> "Comment".equals(like.getContentType()))
+                .collect(Collectors.toUnmodifiableList());
+
+        List<CommentDTO> comments = likedComments.stream()
+                .map(like -> commentService.findCommentById(Long.parseLong(like.getContentId())))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(comment -> {
+                    String contenttypeid = null;
+                    String contentid = null;
+                    String svcid = null;
+                    Long id = null;
+
+                    // 각 댓글에 달린 콘텐츠나 이벤트에서 contenttypeid 가져오기
+                    if (comment.getNotice() != null) {
+                        contenttypeid = "Notice";  // 공지사항에 대한 댓글일 경우
+                    } else if (comment.getCategory() != null) {
+                        // 카테고리에 따른 contenttypeid 설정
+                        switch (comment.getCategory()) {
+                            case "seoul-events":
+                                svcid = comment.getSvcid();
+                                contenttypeid = eventService.findEventDetailFromAllSources(comment.getSvcid()).getContenttypeid();
+                                break;
+                            case "gyeonggi-events":
+                                id = comment.getGyeonggiEvent().getId();
+                                contentid = comment.getGyeonggiEvent().getId().toString();
+                                contenttypeid = eventService.findEventDetailFromAllSources(id.toString()).getContenttypeid();
+                                break;
+                            default:
+                                contentid = comment.getContentid();
+                                contenttypeid = eventService.findEventDetailFromAllSources(contentid).getContenttypeid();
+                        }
+                    }
+
+                    // CommentDTO로 변환하면서 contenttypeid, contentid, svcid, id 추가
+                    return new CommentDTO(comment, contenttypeid, contentid, svcid, id);
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(comments);
+    }
+
+    // 내가 작성한 댓글 조회
+    @GetMapping("/authored-comments")
+    public ResponseEntity<List<CommentDTO>> getAuthoredComments(@RequestHeader("Authorization") String token) {
+        Long userId = jwtUtils.extractUserId(token);
+        List<Comment> authoredComments = commentService.getCommentsByUserId(userId);
+
+        // 댓글을 CommentDTO로 매핑하면서 contenttypeid를 설정
+        List<CommentDTO> authoredCommentsWithContentTypeId = authoredComments.stream()
+                .map(comment -> {
+                    String contenttypeid = null;
+                    String contentid = null;
+                    String svcid = null;
+                    Long id = null;
+
+                    // 각 댓글에 달린 콘텐츠나 이벤트에서 contenttypeid 가져오기
+                    if (comment.getNotice() != null) {
+                        contenttypeid = "Notice";  // 공지사항에 대한 댓글일 경우
+                    } else if (comment.getCategory() != null) {
+                        // 카테고리에 따른 contenttypeid 설정
+                        switch (comment.getCategory()) {
+                            case "seoul-events":
+                                svcid = comment.getSvcid();
+                                contenttypeid = eventService.findEventDetailFromAllSources(comment.getSvcid()).getContenttypeid();
+                                break;
+                            case "gyeonggi-events":
+                                id = comment.getGyeonggiEvent().getId();
+                                contentid = comment.getGyeonggiEvent().getId().toString();
+                                contenttypeid = eventService.findEventDetailFromAllSources(id.toString()).getContenttypeid();
+                                break;
+                            default:
+                                contentid = comment.getContentid();
+                                contenttypeid = eventService.findEventDetailFromAllSources(contentid).getContenttypeid();
+                        }
+                    }
+
+                    // CommentDTO로 변환하면서 contenttypeid 추가
+                    return new CommentDTO(comment, contenttypeid, contentid, svcid, id);
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(authoredCommentsWithContentTypeId);
+    }
+
 
 
 

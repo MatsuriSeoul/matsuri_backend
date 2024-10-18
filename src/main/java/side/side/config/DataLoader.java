@@ -10,9 +10,7 @@ import side.side.repository.LocalBasedRepository;
 import side.side.service.*;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Component
 public class DataLoader implements ApplicationRunner {
@@ -95,7 +93,7 @@ public class DataLoader implements ApplicationRunner {
         // 서버 시작 시 지역별 관광정보를 가져와 저장
         fetchAllLocalEvents();
 
-//        // 축제/공연/행사 데이터 호출
+        // 축제/공연/행사 데이터 호출
         String eventNumOfRows = "10"; // 한 페이지에 가져올 이벤트 수
         String eventPageNo = "1"; // 시작 페이지 번호
         String eventStartDate = "20240101"; // 이벤트 시작 날짜 (YYYYMMDD 형식)
@@ -160,7 +158,6 @@ public class DataLoader implements ApplicationRunner {
         for (FoodEvent foodEvent : foodEvents) {
             foodEventService.fetchAndSaveFoodEventDetail(foodEvent.getContentid());
         }
-
         // 저장된 이벤트의 상세 정보를 업데이트
         updateEventDetails();
     }

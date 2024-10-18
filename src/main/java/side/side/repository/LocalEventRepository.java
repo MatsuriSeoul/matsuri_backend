@@ -67,6 +67,8 @@ public interface LocalEventRepository extends JpaRepository<LocalEvent, Long> {
                           @Param("mapx") String mapx,
                           @Param("mapy") String mapy);
 
+    // addr1에서 부분 문자열 검색 및 contenttypeid로 필터링
+    List<LocalEvent> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
 
 
 }

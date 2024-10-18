@@ -25,5 +25,25 @@ public class CommentImage {
 
     private String category;
     private String contentid;
+
+    private String svcid;
+
+    @ManyToOne
+    @JoinColumn(name = "gyeonggi_event_id")
+    private GyeonggiEvent gyeonggiEvent;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CommentImage that = (CommentImage) o;
+        return id != null && id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
 }
 
