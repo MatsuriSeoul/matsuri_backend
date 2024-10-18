@@ -96,10 +96,13 @@ public class CommentController {
                 GyeonggiEvent gyeonggiEvent = gyeonggiEventService.findById(gyeonggiEventId)
                         .orElseThrow(() -> new RuntimeException("경기도 이벤트를 찾을 수 없습니다."));
                 comment.setGyeonggiEvent(gyeonggiEvent);
+                comment.setCategory("gyeonggi-events");  // 카테고리 설정 추가
             } else if ("gyeonggi-events".equals(category) && contentid != null) {
                 GyeonggiEvent gyeonggiEvent = gyeonggiEventService.findById(Long.parseLong(contentid))
                         .orElseThrow(() -> new RuntimeException("경기도 이벤트를 찾을 수 없습니다."));
                 comment.setGyeonggiEvent(gyeonggiEvent);
+                comment.setCategory("gyeonggi-events");
+
             } else if (category != null) {
                 boolean isValidCategory = validateCategory(category, contentid, svcid, gyeonggiEventId);
                 if (!isValidCategory) {
@@ -148,7 +151,8 @@ public class CommentController {
             case "seoul-events":
                 return seoulEventService.findBySvcid(svcid) != null;
             case "gyeonggi-events":
-                return gyeonggiEventService.findById(gyeonggiEventId).isPresent();
+                return gyeonggiEventId != null || (contentid != null && gyeonggiEventService.findById(Long.parseLong(contentid)).isPresent());
+
             default:
                 return false;
         }

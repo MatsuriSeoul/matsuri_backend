@@ -12,5 +12,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     List<Comment> findBySvcid(String svcid);
     List<Comment> findByGyeonggiEventId(Long gyeonggiEventId);
+    List<Comment> findByAuthorId(Long userId);
 
 }

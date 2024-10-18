@@ -119,19 +119,6 @@ public class CommentService {
     }
 
     // 댓글 수정
-//    public Comment updateComment(Long commentId, String content, Long userId) {
-//        Comment comment = commentRepository.findById(commentId)
-//                .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
-//
-//        // 댓글 작성자 확인
-//        if (!comment.getAuthor().getId().equals(userId)) {
-//            throw new RuntimeException("수정 권한이 없습니다.");
-//        }
-//
-//        comment.setContent(content);
-//        return commentRepository.save(comment);
-//    }
-
     public Comment updateComment(Long commentId, String content, Long userId, List<MultipartFile> newImages) throws IOException {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new RuntimeException("댓글을 찾을 수 없습니다."));
@@ -163,6 +150,10 @@ public class CommentService {
         }
 
         commentRepository.delete(comment);
+    }
+
+    public List<Comment> getCommentsByUserId(Long userId) {
+        return commentRepository.findByAuthorId(userId);
     }
 
     // 특정 이벤트에 대한 댓글 조회
