@@ -2,10 +2,7 @@ package side.side.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import side.side.model.*;
@@ -88,16 +85,13 @@ public class OpenAIService {
         String mappedCategory = categoryMap.getOrDefault(category, null);
 
         // 매핑된 값 확인
-        System.out.println("매핑된 지역: " + mappedRegion);
-        System.out.println("매핑된 카테고리: " + mappedCategory);
-
         if (mappedRegion == null || mappedCategory == null) {
             return "잘못된 지역 또는 카테고리입니다. 다시 선택해 주세요.";
         }
 
-        // 지역에 따라 검색할 문자열 변환 (예: '경남' -> '경상남도')
+        // 지역을 queryRegion로 변환 (예: '서울' -> '서울특별시')
         String queryRegion = switch (mappedRegion) {
-            case "서울" -> "서울특별시";
+            case "서울" -> "서울";
             case "경남" -> "경상남도";
             case "경북" -> "경상북도";
             case "전남" -> "전라남도";
@@ -122,11 +116,31 @@ public class OpenAIService {
             titles = facilities.stream().map(CulturalFacility::getTitle).toList();
         }
 
-        // 행사("15") 관련 데이터 처리
+// 행사("15") 관련 데이터 처리
         else if ("15".equals(mappedCategory)) {
-            List<TourEvent> events = tourEventRepository.findByAddr1ContainingAndContenttypeid(queryRegion, mappedCategory);
-            titles = events.stream().map(TourEvent::getTitle).toList();
+            String[] possibleRegions = {"서울특별시", "서울"};
+
+            List<TourEvent> events = null;
+            for (String possibleRegion : possibleRegions) {
+                String queryRegionWithWildcard = "%" + possibleRegion + "%";
+                events = tourEventRepository.findEventsByAddr1AndContenttypeid(queryRegionWithWildcard, mappedCategory);
+
+                if (events != null && !events.isEmpty()) {
+                    break;
+                }
+            }
+
+            if (events == null || events.isEmpty()) {
+                return String.valueOf(new ResponseEntity<>(Map.of("message", "해당 지역(" + region + ")과 카테고리(" + category + ")에 대한 정보를 찾을 수 없습니다."), HttpStatus.NOT_FOUND));
+            }
+
+            // 이벤트 제목 리스트 추출 (기존의 titles 변수명을 다른 이름으로 변경)
+            List<String> eventTitles = events.stream().map(TourEvent::getTitle).toList();
+
+            // 클라이언트가 기대하는 형식으로 반환
+            return String.valueOf(new ResponseEntity<>(Map.of("titles", eventTitles), HttpStatus.OK));
         }
+
 
         // 여행코스("25") 관련 데이터 처리
         else if ("25".equals(mappedCategory)) {
@@ -163,19 +177,23 @@ public class OpenAIService {
             for (String title : titles) {
                 eventList.append(generateRecommendation(title)).append("\n");
             }
+        } else {
+            return "해당 지역(" + region + ")과 카테고리(" + category + ")에 대한 정보를 찾을 수 없습니다.";
         }
 
+        System.out.println("Query Region: " + queryRegion);
+        System.out.println("Mapped Category: " + mappedCategory);
+
         // OpenAI API 호출 준비
-        String prompt = "다음은 " + region + "에서 열리는 행사 목록입니다. 이 목록을 잘 포맷된 정보로 요약해 주세요:\n\n" + eventList.toString();
+        String prompt = "다음은 " + region + "에서 열리는 " + category + " 목록입니다:\n\n" + eventList.toString();
 
         String url = "https://api.openai.com/v1/chat/completions";
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + openaiApiKey);
         headers.set("Content-Type", "application/json");
 
-        // GPT-4 모델 사용
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "gpt-4");
+        requestBody.put("model", "gpt-3.5-turbo");
         requestBody.put("messages", List.of(
                 Map.of("role", "system", "content", prompt)
         ));
@@ -188,7 +206,7 @@ public class OpenAIService {
         return response.getBody();
     }
 
-    // OpenAI API를 통해 추천 문구를 생성하는 메서드
+    // 추가된 generateRecommendation 메서드
     private String generateRecommendation(String title) {
         // OpenAI에게 요청할 추천 문구 생성 요청
         String prompt = "행사 제목 '" + title + "'을 기반으로 매력적인 추천 문구를 생성해 주세요.";
@@ -199,7 +217,7 @@ public class OpenAIService {
         headers.set("Content-Type", "application/json");
 
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "gpt-4");
+        requestBody.put("model", "gpt-3.5-turbo");
         requestBody.put("messages", List.of(
                 Map.of("role", "system", "content", prompt)
         ));

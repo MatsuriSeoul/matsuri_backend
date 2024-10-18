@@ -74,7 +74,8 @@ public interface TourEventRepository extends JpaRepository<TourEvent, Long> {
 
 
     // addr1에서 부분 문자열 검색 및 contenttypeid로 필터링
-    List<TourEvent> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
+    @Query("SELECT te FROM TourEvent te WHERE te.addr1 LIKE %:addr1% AND te.contenttypeid = :contenttypeid")
+    List<TourEvent> findEventsByAddr1AndContenttypeid(@Param("addr1") String addr1, @Param("contenttypeid") String contenttypeid);
 
 }
 
