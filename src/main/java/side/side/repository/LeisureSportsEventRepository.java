@@ -54,4 +54,8 @@ public interface LeisureSportsEventRepository extends JpaRepository<LeisureSport
                                   @Param("cat2") String cat2,
                                   @Param("cat3") String cat3,
                                   @Param("contenttypeid") String contenttypeid);
+
+    // addr1에서 부분 문자열 검색 및 contenttypeid로 필터링
+    List<LeisureSportsEvent> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
+
 }
