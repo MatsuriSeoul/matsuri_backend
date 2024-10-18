@@ -28,6 +28,9 @@ public class Comment {
 
     private String svcid;
 
+    private String category;
+
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private UserInfo author;  // 작성자 정보
@@ -49,5 +52,28 @@ public class Comment {
     @JoinColumn(name = "gyeonggi_event_id")
     private GyeonggiEvent gyeonggiEvent;
 
+    // 연관 관계 편의 메서드
+    public void addImage(CommentImage image) {
+        images.add(image);
+        image.setComment(this);
+    }
+
+    public void removeImage(CommentImage image) {
+        images.remove(image);
+        image.setComment(null);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Comment comment = (Comment) o;
+        return id != null && id.equals(comment.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 
 }
