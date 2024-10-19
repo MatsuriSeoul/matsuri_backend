@@ -46,15 +46,7 @@ public interface GyeonggiEventRepository extends JpaRepository<GyeonggiEvent, Lo
     @Query("SELECT e FROM GyeonggiEvent e WHERE e.beginDe <= :today AND e.endDe >= :today OR e.beginDe > :today")
     List<GyeonggiEvent> findScheduledEvents(@Param("today") String today);
 
-    // 월, 카테고리를 기준으로 데이터 조회
-    @Query("SELECT e FROM GyeonggiEvent e WHERE " +
-            "(:category IS NULL OR e.categoryNm = :category) AND " +
-            "(:month IS NULL OR SUBSTRING(e.beginDe, 6, 2) = :month)")
-    List<GyeonggiEvent> findByCategoryAndMonth(@Param("month") String month, @Param("category") String category);
 
-    // 카테고리에 맞는 모든 데이터를 조회
-    @Query("SELECT e FROM GyeonggiEvent e WHERE e.categoryNm = :category")
-    List<GyeonggiEvent> findByEventInCategory(@Param("category") String category);
 
 
 }
