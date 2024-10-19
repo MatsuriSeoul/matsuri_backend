@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import side.side.model.TravelCourseDetail;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface TravelCourseDetailRepository extends JpaRepository<TravelCourseDetail, Integer> {
@@ -71,4 +72,7 @@ public interface TravelCourseDetailRepository extends JpaRepository<TravelCourse
                                   @Param("mapy") String mapy,
                                   @Param("mlevel") String mlevel,
                                   @Param("overview") String overview);
+
+
+    List<TravelCourseDetail> findByAddr1Containing(String overview);
 }

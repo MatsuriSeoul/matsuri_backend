@@ -1,16 +1,19 @@
 package side.side.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import side.side.model.*;
 import side.side.repository.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class OpenAIService {
@@ -19,25 +22,25 @@ public class OpenAIService {
     private TourEventRepository tourEventRepository;
 
     @Autowired
-    private TouristAttractionRepository touristAttractionRepository;
-
-    @Autowired
-    private FoodEventRepository foodEventRepository;
-
-    @Autowired
-    private LocalEventRepository localEventRepository;
+    private CulturalFacilityRepository culturalFacilityRepository;
 
     @Autowired
     private ShoppingEventRepository shoppingEventRepository;
 
     @Autowired
-    private TravelCourseRepository travelCourseRepository;
+    private FoodEventRepository foodEventRepository;
+
+    @Autowired
+    private TouristAttractionRepository touristAttractionRepository;
 
     @Autowired
     private LeisureSportsEventRepository leisureSportsEventRepository;
 
     @Autowired
-    private CulturalFacilityRepository culturalFacilityRepository;
+    private TravelCourseDetailRepository travelCourseDetailRepository;
+
+    @Autowired
+    private LocalEventRepository localEventRepository;
 
     @Value("${openai.api.key}")
     private String openaiApiKey;
@@ -58,12 +61,12 @@ public class OpenAIService {
             Map.entry("부산", "부산"),
             Map.entry("울산", "울산"),
             Map.entry("대구", "대구"),
-            Map.entry("전남", "전남"),
-            Map.entry("전북", "전북"),
-            Map.entry("충남", "충남"),
-            Map.entry("충북", "충북"),
-            Map.entry("경남", "경남"),
-            Map.entry("경북", "경북"),
+            Map.entry("전남", "전라남도"),
+            Map.entry("전북", "전북특별자치도"),
+            Map.entry("충남", "충청남도"),
+            Map.entry("충북", "충청북도"),
+            Map.entry("경남", "경상남도"),
+            Map.entry("경북", "경상북도"),
             Map.entry("제주", "제주")
     );
 
@@ -79,138 +82,131 @@ public class OpenAIService {
             "음식", "39"
     );
 
-    public String getResponseFromOpenAI(String region, String category) {
-        // 지역과 카테고리를 매핑된 값으로 변환
-        String mappedRegion = regionMap.getOrDefault(region, null);
+    public ResponseEntity<Map<String, Object>> getResponse(String region, String category) {
+        // 프론트엔드에서 전달된 값 확인
+        System.out.println("전달된 지역: " + region);
+        System.out.println("전달된 카테고리: " + category);
+
+        // 지역과 카테고리를 매핑된 값으로 변환 (소문자 변환)
+        String mappedRegion = regionMap.getOrDefault(region.toLowerCase(), null);
         String mappedCategory = categoryMap.getOrDefault(category, null);
 
         // 매핑된 값 확인
+        System.out.println("매핑된 지역: " + mappedRegion);
+        System.out.println("매핑된 카테고리: " + mappedCategory);
+
         if (mappedRegion == null || mappedCategory == null) {
-            return "잘못된 지역 또는 카테고리입니다. 다시 선택해 주세요.";
+            return ResponseEntity.badRequest().body(Map.of("message", "잘못된 지역 또는 카테고리입니다."));
         }
 
-        // 지역을 queryRegion로 변환 (예: '서울' -> '서울특별시')
-        String queryRegion = switch (mappedRegion) {
-            case "서울" -> "서울";
-            case "경남" -> "경상남도";
-            case "경북" -> "경상북도";
-            case "전남" -> "전라남도";
-            case "충남" -> "충청남도";
-            case "충북" -> "충청북도";
-            default -> mappedRegion;
-        };
+        // DB에서 지역과 카테고리에 맞는 데이터를 조회
+        List<TourEvent> events = tourEventRepository.findByAddr1ContainingAndContenttypeid(mappedRegion, mappedCategory);
+        List<CulturalFacility> facilities = culturalFacilityRepository.findByAddr1ContainingAndContenttypeid(mappedRegion, mappedCategory);
+        List<ShoppingEvent> shoppings = shoppingEventRepository.findByAddr1ContainingAndContenttypeid(mappedRegion, mappedCategory);
+        List<FoodEvent> foods = foodEventRepository.findByAddr1ContainingAndContenttypeid(mappedRegion, mappedCategory);
+        List<TouristAttraction> touristattractions = touristAttractionRepository.findByAddr1ContainingAndContenttypeid(mappedRegion, mappedCategory);
+        List<LocalEvent> locals = localEventRepository.findByAddr1ContainingAndContenttypeid(mappedRegion, mappedCategory);
+        List<TravelCourseDetail> travelCourseDetails = travelCourseDetailRepository.findByAddr1Containing(mappedRegion); // 여행코스 관련 데이터 조회
+        List<LeisureSportsEvent> leisureSportsEvents = leisureSportsEventRepository.findByAddr1ContainingAndContenttypeid(mappedRegion, mappedCategory);
 
-        // DB에서 지역과 카테고리에 맞는 데이터를 조회 (카테고리별로 분리된 로직)
-        StringBuilder eventList = new StringBuilder();
-        List<String> titles = null;
+        // 조회 결과 통합
+        List<Map<String, String>> combinedResults = new ArrayList<>();
 
-        // 관광지("12") 관련 데이터 처리
-        if ("12".equals(mappedCategory)) {
-            List<TouristAttraction> attractions = touristAttractionRepository.findByAddr1ContainingAndContenttypeid(queryRegion, mappedCategory);
-            titles = attractions.stream().map(TouristAttraction::getTitle).toList();
+        // TourEvent 처리
+        for (TourEvent event : events) {
+            String recommendation = getRecommendationForTitle(event.getTitle()); // OpenAI API 호출
+            combinedResults.add(Map.of(
+                    "title", event.getTitle(),
+                    "image", event.getFirstimage() != null ? event.getFirstimage() : "이미지 없음",
+                    "recommendation", recommendation  // 추천 문구 추가
+            ));
         }
 
-        // 문화시설("14") 관련 데이터 처리
-        else if ("14".equals(mappedCategory)) {
-            List<CulturalFacility> facilities = culturalFacilityRepository.findByAddr1ContainingAndContenttypeid(queryRegion, mappedCategory);
-            titles = facilities.stream().map(CulturalFacility::getTitle).toList();
+        // CulturalFacility 처리
+        for (CulturalFacility facility : facilities) {
+            String recommendation = getRecommendationForTitle(facility.getTitle()); // OpenAI API 호출
+            combinedResults.add(Map.of(
+                    "title", facility.getTitle(),
+                    "image", facility.getFirstimage() != null ? facility.getFirstimage() : "이미지 없음",
+                    "recommendation", recommendation  // 추천 문구 추가
+            ));
         }
 
-// 행사("15") 관련 데이터 처리
-        else if ("15".equals(mappedCategory)) {
-            String[] possibleRegions = {"서울특별시", "서울"};
-
-            List<TourEvent> events = null;
-            for (String possibleRegion : possibleRegions) {
-                String queryRegionWithWildcard = "%" + possibleRegion + "%";
-                events = tourEventRepository.findEventsByAddr1AndContenttypeid(queryRegionWithWildcard, mappedCategory);
-
-                if (events != null && !events.isEmpty()) {
-                    break;
-                }
-            }
-
-            if (events == null || events.isEmpty()) {
-                return String.valueOf(new ResponseEntity<>(Map.of("message", "해당 지역(" + region + ")과 카테고리(" + category + ")에 대한 정보를 찾을 수 없습니다."), HttpStatus.NOT_FOUND));
-            }
-
-            // 이벤트 제목 리스트 추출 (기존의 titles 변수명을 다른 이름으로 변경)
-            List<String> eventTitles = events.stream().map(TourEvent::getTitle).toList();
-
-            // 클라이언트가 기대하는 형식으로 반환
-            return String.valueOf(new ResponseEntity<>(Map.of("titles", eventTitles), HttpStatus.OK));
+        // 쇼핑 이벤트
+        for (ShoppingEvent shopping : shoppings) {
+            String recommendation = getRecommendationForTitle(shopping.getTitle()); // OpenAI API 호출
+            combinedResults.add(Map.of(
+                    "title", shopping.getTitle(),
+                    "image", shopping.getFirstimage() != null ? shopping.getFirstimage() : "이미지없음",
+                    "recommendation", recommendation  // 추천 문구 추가
+            ));
         }
 
-
-        // 여행코스("25") 관련 데이터 처리
-        else if ("25".equals(mappedCategory)) {
-            List<TravelCourse> courses = travelCourseRepository.findByAddr1ContainingAndContenttypeid(queryRegion, mappedCategory);
-            titles = courses.stream().map(TravelCourse::getTitle).toList();
+        // 음식 이벤트
+        for (FoodEvent food : foods) {
+            String recommendation = getRecommendationForTitle(food.getTitle()); // OpenAI API 호출
+            combinedResults.add(Map.of(
+                    "title", food.getTitle(),
+                    "image", food.getFirstimage() != null ? food.getFirstimage() : "이미지없음",
+                    "recommendation", recommendation  // 추천 문구 추가
+            ));
         }
 
-        // 레포츠("28") 관련 데이터 처리
-        else if ("28".equals(mappedCategory)) {
-            List<LeisureSportsEvent> sports = leisureSportsEventRepository.findByAddr1ContainingAndContenttypeid(queryRegion, mappedCategory);
-            titles = sports.stream().map(LeisureSportsEvent::getTitle).toList();
+        // 관광지 이벤트
+        for (TouristAttraction touristAttraction : touristattractions) {
+            String recommendation = getRecommendationForTitle(touristAttraction.getTitle()); // OpenAI API 호출
+            combinedResults.add(Map.of(
+                    "title", touristAttraction.getTitle(),
+                    "image", touristAttraction.getFirstimage() != null ? touristAttraction.getFirstimage() : "이미지없음",
+                    "recommendation", recommendation  // 추천 문구 추가
+            ));
         }
 
-        // 숙박("32") 관련 데이터 처리
-        else if ("32".equals(mappedCategory)) {
-            List<LocalEvent> accommodations = localEventRepository.findByAddr1ContainingAndContenttypeid(queryRegion, mappedCategory);
-            titles = accommodations.stream().map(LocalEvent::getTitle).toList();
+        // 숙박 이벤트
+        for (LocalEvent local : locals) {
+            String recommendation = getRecommendationForTitle(local.getTitle()); // OpenAI API 호출
+            combinedResults.add(Map.of(
+                    "title", local.getTitle(),
+                    "image", local.getFirstimage() != null ? local.getFirstimage() : "이미지없음",
+                    "recommendation", recommendation  // 추천 문구 추가
+            ));
         }
 
-        // 쇼핑("38") 관련 데이터 처리
-        else if ("38".equals(mappedCategory)) {
-            List<ShoppingEvent> shopping = shoppingEventRepository.findByAddr1ContainingAndContenttypeid(queryRegion, mappedCategory);
-            titles = shopping.stream().map(ShoppingEvent::getTitle).toList();
+        // 레저스포츠
+        for (LeisureSportsEvent leisureSportsEvent : leisureSportsEvents) {
+            String recommendation = getRecommendationForTitle(leisureSportsEvent.getTitle()); // OpenAI API 호출
+            combinedResults.add(Map.of(
+                    "title", leisureSportsEvent.getTitle(),
+                    "image", leisureSportsEvent.getFirstimage() != null ? leisureSportsEvent.getFirstimage() : "이미지없음",
+                    "recommendation", recommendation  // 추천 문구 추가
+            ));
         }
 
-        // 음식("39") 관련 데이터 처리
-        else if ("39".equals(mappedCategory)) {
-            List<FoodEvent> foods = foodEventRepository.findByAddr1ContainingAndContenttypeid(queryRegion, mappedCategory);
-            titles = foods.stream().map(FoodEvent::getTitle).toList();
+        // 여행코스
+        for (TravelCourseDetail travelcoursedetail : travelCourseDetails) {
+            String recommendation = getRecommendationForTitle(travelcoursedetail.getTitle()); // OpenAI API 호출
+            combinedResults.add(Map.of(
+                    "title", travelcoursedetail.getTitle(),
+                    "overview", travelcoursedetail.getOverview(),
+                    "recommendation", recommendation  // 추천 문구 추가
+            ));
         }
 
-        // OpenAI API를 사용하여 추천 문구 생성
-        if (titles != null && !titles.isEmpty()) {
-            for (String title : titles) {
-                eventList.append(generateRecommendation(title)).append("\n");
-            }
-        } else {
-            return "해당 지역(" + region + ")과 카테고리(" + category + ")에 대한 정보를 찾을 수 없습니다.";
+        // 조회된 결과가 없을 경우 처리
+        if (combinedResults.isEmpty()) {
+            return ResponseEntity.ok(Map.of("message", String.format("%s에서 %s에 해당하는 데이터가 없습니다.", mappedRegion, category)));
         }
 
-        System.out.println("Query Region: " + queryRegion);
-        System.out.println("Mapped Category: " + mappedCategory);
+        // 모든 카테고리 결과 클라이언트에 전달
+        List<Map<String, String>> limitedResults = combinedResults.stream().limit(2).toList();
 
-        // OpenAI API 호출 준비
-        String prompt = "다음은 " + region + "에서 열리는 " + category + " 목록입니다:\n\n" + eventList.toString();
-
-        String url = "https://api.openai.com/v1/chat/completions";
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + openaiApiKey);
-        headers.set("Content-Type", "application/json");
-
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", "gpt-3.5-turbo");
-        requestBody.put("messages", List.of(
-                Map.of("role", "system", "content", prompt)
+        return ResponseEntity.ok(Map.of(
+                "events", limitedResults
         ));
-        requestBody.put("max_tokens", 500);
-        requestBody.put("temperature", 0);
-
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-
-        return response.getBody();
     }
 
-    // 추가된 generateRecommendation 메서드
-    private String generateRecommendation(String title) {
-        // OpenAI에게 요청할 추천 문구 생성 요청
-        String prompt = "행사 제목 '" + title + "'을 기반으로 매력적인 추천 문구를 생성해 주세요.";
-
+    // OpenAI API를 사용하여 제목에 대한 추천 문구 생성
+    public String getRecommendationForTitle(String title) {
         String url = "https://api.openai.com/v1/chat/completions";
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + openaiApiKey);
@@ -219,15 +215,26 @@ public class OpenAIService {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", "gpt-3.5-turbo");
         requestBody.put("messages", List.of(
-                Map.of("role", "system", "content", prompt)
+                Map.of("role", "system", "content", "당신은 여행 제목에 대한 사용자가 매력적으로 느끼게 제목을 입력해주는 조수에요."),
+                Map.of("role", "user", "content", "다음 제목에 대한 추천을 생성해 주세요: " + title)
         ));
-        requestBody.put("max_tokens", 100);
-        requestBody.put("temperature", 0.7); // 창의적인 응답을 유도하기 위한 설정
+        requestBody.put("max_tokens", 100);  // 간결한 문구를 위해 토큰 제한
+        requestBody.put("temperature", 0.7);  // 창의적인 응답을 위해
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 
-        // 결과를 반환
-        return response.getBody();
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+            // OpenAI의 응답을 받아 추천 문구로 반환
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonResponse = objectMapper.readTree(response.getBody());
+            String recommendation = jsonResponse.get("choices").get(0).get("message").get("content").asText();
+
+            return recommendation;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "추천 문구 생성에 실패했습니다.";
+        }
     }
 }

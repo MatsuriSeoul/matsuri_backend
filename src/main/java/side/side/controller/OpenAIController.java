@@ -1,5 +1,6 @@
 package side.side.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.service.OpenAIService;
 
@@ -17,9 +18,22 @@ public class OpenAIController {
 
     // 지역과 카테고리를 기반으로 OpenAI API 호출
     @PostMapping("/prompt")
-    public String getOpenAIResponse(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> getOpenAIResponse(@RequestBody Map<String, String> request) {
         String region = request.get("region");
         String category = request.get("category");
-        return openAIService.getResponseFromOpenAI(region, category);
+        return openAIService.getResponse(region, category);
+    }
+
+    // POST 요청을 처리하는 메소드
+    @PostMapping("/recommendation")
+    public ResponseEntity<Map<String, String>> getRecommendation(@RequestBody Map<String, String> requestBody) {
+        // requestBody에서 title 가져오기
+        String title = requestBody.get("title");
+
+        // OpenAI 서비스 호출하여 추천 문구 생성
+        String recommendation = openAIService.getRecommendationForTitle(title);
+
+        // 결과를 Map으로 리턴
+        return ResponseEntity.ok(Map.of("recommendation", recommendation));
     }
 }
