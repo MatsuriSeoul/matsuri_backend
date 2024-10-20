@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import side.side.model.TravelCourseDetail;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface TravelCourseDetailRepository extends JpaRepository<TravelCourseDetail, Integer> {
@@ -75,4 +76,8 @@ public interface TravelCourseDetailRepository extends JpaRepository<TravelCourse
 
 
     List<TravelCourseDetail> findByAddr1Containing(String overview);
+
+    @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image) " +
+            "FROM TravelCourseDetail t WHERE t.contenttypeid = '25'")
+    List<Map<String, Object>> findTopTravelCourses();
 }

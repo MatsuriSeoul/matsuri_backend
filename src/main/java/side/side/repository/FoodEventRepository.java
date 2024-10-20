@@ -12,6 +12,7 @@ import side.side.model.LocalEventDetail;
 import side.side.model.TourEvent;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
     public interface FoodEventRepository extends JpaRepository<FoodEvent, String> {
@@ -58,6 +59,10 @@ import java.util.Optional;
         List<FoodEvent> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
 
 
+        // 문화시설 데이터 조회 (contenttypeid = 14)
+        @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image) " +
+                "FROM FoodEvent t WHERE t.contenttypeid = '39'")
+        List<Map<String, Object>> findTopFoodEvents();
     }
 
 

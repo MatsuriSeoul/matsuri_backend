@@ -7,10 +7,9 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import side.side.model.CulturalFacility;
-import side.side.model.TourEvent;
-import side.side.model.TouristAttraction;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface CulturalFacilityRepository extends JpaRepository<CulturalFacility, Long> {
@@ -57,5 +56,10 @@ public interface CulturalFacilityRepository extends JpaRepository<CulturalFacili
 
     // addr1에서 부분 문자열 검색 및 contenttypeid로 필터링
     List<CulturalFacility> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
+
+    // 문화시설 데이터 조회 (contenttypeid = 14)
+    @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image) " +
+            "FROM CulturalFacility t WHERE t.contenttypeid = '14'")
+    List<Map<String, Object>> findTopCulturalFacilities();
 
 }

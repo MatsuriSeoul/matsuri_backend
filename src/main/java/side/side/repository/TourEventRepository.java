@@ -11,6 +11,7 @@ import side.side.model.TourEvent;
 
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -75,5 +76,9 @@ public interface TourEventRepository extends JpaRepository<TourEvent, Long> {
 
     // addr1에서 부분 문자열 검색 및 contenttypeid로 필터링
     List<TourEvent> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
+
+    @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image) " +
+            "FROM TourEvent t WHERE t.contenttypeid = '15'")
+    List<Map<String, Object>> findTopEvents();
 }
 

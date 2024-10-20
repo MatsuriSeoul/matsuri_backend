@@ -11,6 +11,7 @@ import side.side.model.TourEvent;
 
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface ShoppingEventRepository extends JpaRepository<ShoppingEvent, Long> {
@@ -54,6 +55,12 @@ public interface ShoppingEventRepository extends JpaRepository<ShoppingEvent, Lo
 
     // addr1에서 부분 문자열 검색 및 contenttypeid로 필터링
     List<ShoppingEvent> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
+
+
+    // 문화시설 데이터 조회 (contenttypeid = 14)
+    @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image) " +
+            "FROM ShoppingEvent t WHERE t.contenttypeid = '38'")
+    List<Map<String, Object>> findTopShoppingEvents();
 
 
 }

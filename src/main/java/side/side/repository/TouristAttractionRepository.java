@@ -12,6 +12,7 @@ import side.side.model.TouristAttraction;
 import side.side.model.TravelCourse;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface TouristAttractionRepository extends JpaRepository<TouristAttraction, Long> {
@@ -55,4 +56,7 @@ public interface TouristAttractionRepository extends JpaRepository<TouristAttrac
     List<TouristAttraction> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
 
 
+    @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image) " +
+            "FROM TouristAttraction t WHERE t.contenttypeid = '12'")
+    List<Map<String, Object>> findTopTouristAttractions();
 }
