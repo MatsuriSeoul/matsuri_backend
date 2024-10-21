@@ -60,7 +60,7 @@ public interface LeisureSportsEventRepository extends JpaRepository<LeisureSport
     List<LeisureSportsEvent> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
 
     // 문화시설 데이터 조회 (contenttypeid = 14)
-    @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image) " +
+    @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image, t.contenttypeid as contenttypeid) " +
             "FROM LeisureSportsEvent t WHERE t.contenttypeid = '28'")
     List<Map<String, Object>> findTopLeisureSports();
 

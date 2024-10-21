@@ -60,7 +60,7 @@ import java.util.Optional;
 
 
         // 문화시설 데이터 조회 (contenttypeid = 14)
-        @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image) " +
+        @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image, t.contenttypeid as contenttypeid) " +
                 "FROM FoodEvent t WHERE t.contenttypeid = '39'")
         List<Map<String, Object>> findTopFoodEvents();
     }

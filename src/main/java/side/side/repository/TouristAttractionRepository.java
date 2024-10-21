@@ -56,7 +56,7 @@ public interface TouristAttractionRepository extends JpaRepository<TouristAttrac
     List<TouristAttraction> findByAddr1ContainingAndContenttypeid(String addr1, String contenttypeid);
 
 
-    @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image) " +
+    @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image, t.contenttypeid as contenttypeid) " +
             "FROM TouristAttraction t WHERE t.contenttypeid = '12'")
     List<Map<String, Object>> findTopTouristAttractions();
 }
