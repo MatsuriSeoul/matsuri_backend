@@ -6,10 +6,7 @@ import side.side.model.UserClickLog;
 import side.side.model.UserInfo;
 import side.side.repository.*;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 @Service
 public class UserClickLogService {
@@ -60,6 +57,29 @@ public class UserClickLogService {
         return userClickLogRepository.findTopCategoryByUserId(userId).get(0)[0].toString();
     }
 
+    //  인기있는 행사 메서드에서 새로운 메서드 호출
+    public List<Map<String, Object>> findTopContentByAllUsers() {
+        List<Object[]> topContentLogs = userClickLogRepository.findTopContentByAllUsers();
+        List<Map<String, Object>> topContentData = new ArrayList<>();
+
+        for (Object[] log : topContentLogs) {
+            String contentid = log[0].toString();
+            String contenttypeid = log[1].toString();
+
+            // 새로 추가된 메서드 호출
+            List<Map<String, Object>> categoryData = getCategoryDataById(contenttypeid, contentid);
+            if (!categoryData.isEmpty()) {
+                topContentData.addAll(categoryData);
+            }
+
+            if (topContentData.size() >= 4) {  // 4개 이상만 반환
+                break;
+            }
+        }
+
+        return topContentData;
+    }
+
     // 카테고리 데이터를 반환하는 메서드
     public List<Map<String, Object>> getCategoryData(String contenttypeid) {
         List<Map<String, Object>> data;
@@ -88,4 +108,28 @@ public class UserClickLogService {
         Collections.shuffle(data, new Random());
         return data;
     }
+    // 인기있는 행사 추천
+    public List<Map<String, Object>> getCategoryDataById(String contenttypeid, String contentid) {
+        switch (contenttypeid) {
+            case "12":
+                return touristAttractionRepository.findTopTouristAttractionsByContentid(contentid);
+            case "14":
+                return culturalFacilityRepository.findTopCulturalFacilitiesByContentid(contentid);
+            case "15":
+                return tourEventRepository.findTopTourEventsByContentid(contentid);
+            case "25":
+                return travelCourseDetailRepository.findTopTravelCoursesByContentid(contentid);
+            case "28":
+                return leisureSportsEventRepository.findTopLeisureSportsEventsByContentid(contentid);
+            case "32":
+                return localEventRepository.findTopLocalEventsByContentid(contentid);
+            case "38":
+                return shoppingEventRepository.findTopShoppingEventsByContentid(contentid);
+            case "39":
+                return foodEventRepository.findTopFoodEventsByContentid(contentid);
+            default:
+                return List.of();
+        }
+    }
+
 }

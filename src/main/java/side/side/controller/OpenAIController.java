@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.service.OpenAIService;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -35,5 +36,14 @@ public class OpenAIController {
 
         // 결과를 Map으로 리턴
         return ResponseEntity.ok(Map.of("recommendation", recommendation));
+    }
+    // 사용자별 맞춤 추천 데이터 제공하는 API
+    @GetMapping("/personalized-recommendation/{userId}")
+    public ResponseEntity<List<Map<String, Object>>> getPersonalizedRecommendations(@PathVariable Long userId) {
+        List<Map<String, Object>> recommendations = openAIService.getPersonalizedRecommendations(userId);
+        if (recommendations.isEmpty()) {
+            return ResponseEntity.ok(List.of(Map.of("message", "추천할 데이터가 없습니다.")));
+        }
+        return ResponseEntity.ok(recommendations);
     }
 }

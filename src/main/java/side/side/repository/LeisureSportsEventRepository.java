@@ -64,5 +64,10 @@ public interface LeisureSportsEventRepository extends JpaRepository<LeisureSport
             "FROM LeisureSportsEvent t WHERE t.contenttypeid = '28'")
     List<Map<String, Object>> findTopLeisureSports();
 
+    @Query("SELECT new map(le.contentid as contentid, le.title as title, le.firstimage as image, le.contenttypeid as contenttypeid) " +
+            "FROM LeisureSportsEvent le WHERE le.contentid = :contentid")
+    List<Map<String, Object>> findTopLeisureSportsEventsByContentid(@Param("contentid") String contentid);
+
+
 
 }

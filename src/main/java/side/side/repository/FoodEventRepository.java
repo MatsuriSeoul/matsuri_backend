@@ -63,6 +63,11 @@ import java.util.Optional;
         @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image, t.contenttypeid as contenttypeid) " +
                 "FROM FoodEvent t WHERE t.contenttypeid = '39'")
         List<Map<String, Object>> findTopFoodEvents();
+
+        @Query("SELECT new map(fe.contentid as contentid, fe.title as title, fe.firstimage as image, fe.contenttypeid as contenttypeid) " +
+                "FROM FoodEvent fe WHERE fe.contentid = :contentid")
+        List<Map<String, Object>> findTopFoodEventsByContentid(@Param("contentid") String contentid);
+
     }
 
 

@@ -80,4 +80,9 @@ public interface TravelCourseDetailRepository extends JpaRepository<TravelCourse
     @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image) " +
             "FROM TravelCourseDetail t WHERE t.contenttypeid = '25'")
     List<Map<String, Object>> findTopTravelCourses();
+
+    @Query("SELECT new map(tc.contentid as contentid, tc.title as title, tc.firstimage as image, tc.contenttypeid as contenttypeid) " +
+            "FROM TravelCourseDetail tc WHERE tc.contentid = :contentid")
+    List<Map<String, Object>> findTopTravelCoursesByContentid(@Param("contentid") String contentid);
+
 }

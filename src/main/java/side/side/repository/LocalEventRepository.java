@@ -76,4 +76,8 @@ public interface LocalEventRepository extends JpaRepository<LocalEvent, Long> {
             "FROM LocalEvent t WHERE t.contenttypeid = '32'")
     List<Map<String, Object>> findTopAccommodations();
 
+    @Query("SELECT new map(le.contentid as contentid, le.title as title, le.firstimage as image, le.contenttypeid as contenttypeid) " +
+            "FROM LocalEvent le WHERE le.contentid = :contentid")
+    List<Map<String, Object>> findTopLocalEventsByContentid(@Param("contentid") String contentid);
+
 }

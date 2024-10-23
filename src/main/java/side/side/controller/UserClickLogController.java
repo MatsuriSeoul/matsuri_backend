@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import side.side.config.JwtUtils;
-import side.side.model.UserInfo;
 import side.side.service.UserClickLogService;
 
 import java.util.Collections;
@@ -52,7 +51,12 @@ public class UserClickLogController {
         }
 
         // 사용자가 가장 많이 조회한 contenttypeid 가져오기
-        String mostViewedCategory = userClickLogService.findMostViewedCategoryByUser(userId);
+        String mostViewedCategory;
+        try {
+            mostViewedCategory = userClickLogService.findMostViewedCategoryByUser(userId);
+        } catch (IndexOutOfBoundsException e) {
+            return ResponseEntity.ok(Map.of("message", "사용자의 클릭 로그가 없습니다."));
+        }
 
         // 가장 많이 조회한 카테고리에 맞는 데이터를 반환
         if (mostViewedCategory != null) {
@@ -69,8 +73,20 @@ public class UserClickLogController {
 
             String categoryName = categoryMapping.get(mostViewedCategory);
 
-            // 해당 카테고리의 데이터를 랜덤으로 3~4개 가져오기
-            List<Map<String, Object>> categoryData = userClickLogService.getCategoryData(mostViewedCategory);
+            // 해당 카테고리의 데이터를 가져오기
+            List<Map<String, Object>> categoryData;
+            try {
+                categoryData = userClickLogService.getCategoryData(mostViewedCategory);
+            } catch (Exception e) {
+                return ResponseEntity.ok(Map.of("message", "해당 카테고리에 대한 데이터를 찾을 수 없습니다."));
+            }
+
+            // 데이터가 없는 경우 처리
+            if (categoryData == null || categoryData.isEmpty()) {
+                return ResponseEntity.ok(Map.of("message", "추천할 데이터가 없습니다."));
+            }
+
+            // 데이터가 4개 이상일 경우 무작위로 4개만 선택
             if (categoryData.size() > 4) {
                 Random rand = new Random();
                 categoryData = categoryData.stream()
@@ -87,6 +103,7 @@ public class UserClickLogController {
             return ResponseEntity.ok(Map.of("message", "추천할 카테고리가 없습니다."));
         }
     }
+
     @GetMapping("/category-data")
     public ResponseEntity<List<Map<String, Object>>> getCategoryData(
             @RequestHeader("Authorization") String token) {
@@ -106,6 +123,13 @@ public class UserClickLogController {
         } else {
             return ResponseEntity.ok(Collections.emptyList());
         }
+    }
+
+    // 모든 사용자들의 선호 데이터를 기반으로 인기 있는 콘텐츠를 반환
+    @GetMapping("/popular")
+    public ResponseEntity<List<Map<String, Object>>> getPopularContent() {
+        List<Map<String, Object>> popularContent = userClickLogService.findTopContentByAllUsers();
+        return ResponseEntity.ok(popularContent);
     }
 
     @Getter

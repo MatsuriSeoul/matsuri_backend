@@ -62,4 +62,9 @@ public interface CulturalFacilityRepository extends JpaRepository<CulturalFacili
             "FROM CulturalFacility t WHERE t.contenttypeid = '14'")
     List<Map<String, Object>> findTopCulturalFacilities();
 
+    @Query("SELECT new map(cf.contentid as contentid, cf.title as title, cf.firstimage as image, cf.contenttypeid as contenttypeid) " +
+            "FROM CulturalFacility cf WHERE cf.contentid = :contentid")
+    List<Map<String, Object>> findTopCulturalFacilitiesByContentid(@Param("contentid") String contentid);
+
+
 }

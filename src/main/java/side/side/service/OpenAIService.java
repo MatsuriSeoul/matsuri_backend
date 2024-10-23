@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -14,9 +15,14 @@ import side.side.model.*;
 import side.side.repository.*;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 public class OpenAIService {
+
+    @Autowired
+    private UserClickLogService userClickLogService;
 
     @Autowired
     private TourEventRepository tourEventRepository;
@@ -83,17 +89,8 @@ public class OpenAIService {
     );
 
     public ResponseEntity<Map<String, Object>> getResponse(String region, String category) {
-        // 프론트엔드에서 전달된 값 확인
-        System.out.println("전달된 지역: " + region);
-        System.out.println("전달된 카테고리: " + category);
-
-        // 지역과 카테고리를 매핑된 값으로 변환 (소문자 변환)
         String mappedRegion = regionMap.getOrDefault(region.toLowerCase(), null);
         String mappedCategory = categoryMap.getOrDefault(category, null);
-
-        // 매핑된 값 확인
-        System.out.println("매핑된 지역: " + mappedRegion);
-        System.out.println("매핑된 카테고리: " + mappedCategory);
 
         if (mappedRegion == null || mappedCategory == null) {
             return ResponseEntity.badRequest().body(Map.of("message", "잘못된 지역 또는 카테고리입니다."));
@@ -106,106 +103,72 @@ public class OpenAIService {
         List<FoodEvent> foods = foodEventRepository.findByAddr1ContainingAndContenttypeid(mappedRegion, mappedCategory);
         List<TouristAttraction> touristattractions = touristAttractionRepository.findByAddr1ContainingAndContenttypeid(mappedRegion, mappedCategory);
         List<LocalEvent> locals = localEventRepository.findByAddr1ContainingAndContenttypeid(mappedRegion, mappedCategory);
-        List<TravelCourseDetail> travelCourseDetails = travelCourseDetailRepository.findByAddr1Containing(mappedRegion); // 여행코스 관련 데이터 조회
+        List<TravelCourseDetail> travelCourseDetails = travelCourseDetailRepository.findByAddr1Containing(mappedRegion);
         List<LeisureSportsEvent> leisureSportsEvents = leisureSportsEventRepository.findByAddr1ContainingAndContenttypeid(mappedRegion, mappedCategory);
 
         // 조회 결과 통합
         List<Map<String, String>> combinedResults = new ArrayList<>();
 
+        // OpenAI API 호출을 병렬로 처리
+        List<CompletableFuture<Map<String, String>>> futures = new ArrayList<>();
+
         // TourEvent 처리
-        for (TourEvent event : events) {
-            String recommendation = getRecommendationForTitle(event.getTitle()); // OpenAI API 호출
-            combinedResults.add(Map.of(
-                    "title", event.getTitle(),
-                    "image", event.getFirstimage() != null ? event.getFirstimage() : "이미지 없음",
-                    "recommendation", recommendation  // 추천 문구 추가
-            ));
-        }
+        events.forEach(event -> futures.add(
+                CompletableFuture.supplyAsync(() -> createResultMap(event.getTitle(), event.getFirstimage()))
+        ));
 
         // CulturalFacility 처리
-        for (CulturalFacility facility : facilities) {
-            String recommendation = getRecommendationForTitle(facility.getTitle()); // OpenAI API 호출
-            combinedResults.add(Map.of(
-                    "title", facility.getTitle(),
-                    "image", facility.getFirstimage() != null ? facility.getFirstimage() : "이미지 없음",
-                    "recommendation", recommendation  // 추천 문구 추가
-            ));
-        }
+        facilities.forEach(facility -> futures.add(
+                CompletableFuture.supplyAsync(() -> createResultMap(facility.getTitle(), facility.getFirstimage()))
+        ));
 
         // 쇼핑 이벤트
-        for (ShoppingEvent shopping : shoppings) {
-            String recommendation = getRecommendationForTitle(shopping.getTitle()); // OpenAI API 호출
-            combinedResults.add(Map.of(
-                    "title", shopping.getTitle(),
-                    "image", shopping.getFirstimage() != null ? shopping.getFirstimage() : "이미지없음",
-                    "recommendation", recommendation  // 추천 문구 추가
-            ));
-        }
+        shoppings.forEach(shopping -> futures.add(
+                CompletableFuture.supplyAsync(() -> createResultMap(shopping.getTitle(), shopping.getFirstimage()))
+        ));
 
         // 음식 이벤트
-        for (FoodEvent food : foods) {
-            String recommendation = getRecommendationForTitle(food.getTitle()); // OpenAI API 호출
-            combinedResults.add(Map.of(
-                    "title", food.getTitle(),
-                    "image", food.getFirstimage() != null ? food.getFirstimage() : "이미지없음",
-                    "recommendation", recommendation  // 추천 문구 추가
-            ));
-        }
+        foods.forEach(food -> futures.add(
+                CompletableFuture.supplyAsync(() -> createResultMap(food.getTitle(), food.getFirstimage()))
+        ));
 
         // 관광지 이벤트
-        for (TouristAttraction touristAttraction : touristattractions) {
-            String recommendation = getRecommendationForTitle(touristAttraction.getTitle()); // OpenAI API 호출
-            combinedResults.add(Map.of(
-                    "title", touristAttraction.getTitle(),
-                    "image", touristAttraction.getFirstimage() != null ? touristAttraction.getFirstimage() : "이미지없음",
-                    "recommendation", recommendation  // 추천 문구 추가
-            ));
-        }
+        touristattractions.forEach(touristAttraction -> futures.add(
+                CompletableFuture.supplyAsync(() -> createResultMap(touristAttraction.getTitle(), touristAttraction.getFirstimage()))
+        ));
 
         // 숙박 이벤트
-        for (LocalEvent local : locals) {
-            String recommendation = getRecommendationForTitle(local.getTitle()); // OpenAI API 호출
-            combinedResults.add(Map.of(
-                    "title", local.getTitle(),
-                    "image", local.getFirstimage() != null ? local.getFirstimage() : "이미지없음",
-                    "recommendation", recommendation  // 추천 문구 추가
-            ));
-        }
+        locals.forEach(local -> futures.add(
+                CompletableFuture.supplyAsync(() -> createResultMap(local.getTitle(), local.getFirstimage()))
+        ));
 
-        // 레저스포츠
-        for (LeisureSportsEvent leisureSportsEvent : leisureSportsEvents) {
-            String recommendation = getRecommendationForTitle(leisureSportsEvent.getTitle()); // OpenAI API 호출
-            combinedResults.add(Map.of(
-                    "title", leisureSportsEvent.getTitle(),
-                    "image", leisureSportsEvent.getFirstimage() != null ? leisureSportsEvent.getFirstimage() : "이미지없음",
-                    "recommendation", recommendation  // 추천 문구 추가
-            ));
-        }
+        // 레저스포츠 이벤트
+        leisureSportsEvents.forEach(leisureSportsEvent -> futures.add(
+                CompletableFuture.supplyAsync(() -> createResultMap(leisureSportsEvent.getTitle(), leisureSportsEvent.getFirstimage()))
+        ));
 
         // 여행코스
-        for (TravelCourseDetail travelcoursedetail : travelCourseDetails) {
-            String recommendation = getRecommendationForTitle(travelcoursedetail.getTitle()); // OpenAI API 호출
-            combinedResults.add(Map.of(
-                    "title", travelcoursedetail.getTitle(),
-                    "overview", travelcoursedetail.getOverview(),
-                    "recommendation", recommendation  // 추천 문구 추가
-            ));
-        }
+        travelCourseDetails.forEach(travelCourseDetail -> futures.add(
+                CompletableFuture.supplyAsync(() -> createResultMap(travelCourseDetail.getTitle(), travelCourseDetail.getOverview()))
+        ));
 
-        // 조회된 결과가 없을 경우 처리
+        // 비동기 작업이 모두 끝나기를 기다림
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+        // 결과 수집
+        futures.forEach(future -> combinedResults.add(future.join()));
+
         if (combinedResults.isEmpty()) {
-            return ResponseEntity.ok(Map.of("message", String.format("%s에서 %s에 해당하는 데이터가 없습니다.", mappedRegion, category)));
+            return ResponseEntity.ok(Map.of("message", String.format("%s에서 %s에 해당하는 데이터가 없습니다.", mappedRegion, mappedCategory)));
         }
 
-        // 모든 카테고리 결과 클라이언트에 전달
         List<Map<String, String>> limitedResults = combinedResults.stream().limit(2).toList();
 
-        return ResponseEntity.ok(Map.of(
-                "events", limitedResults
-        ));
+        return ResponseEntity.ok(Map.of("events", limitedResults));
     }
 
-    // OpenAI API를 사용하여 제목에 대한 추천 문구 생성
+    // OpenAI API를 사용하여 제목에 대한 추천 문구 생성 (캐시 적용)
+    @Cacheable(value = "recommendations", key = "#title")
     public String getRecommendationForTitle(String title) {
         String url = "https://api.openai.com/v1/chat/completions";
         HttpHeaders headers = new HttpHeaders();
@@ -218,23 +181,56 @@ public class OpenAIService {
                 Map.of("role", "system", "content", "당신은 여행 제목에 대한 사용자가 매력적으로 느끼게 제목을 입력해주는 조수에요."),
                 Map.of("role", "user", "content", "다음 제목에 대한 추천을 생성해 주세요: " + title)
         ));
-        requestBody.put("max_tokens", 100);  // 간결한 문구를 위해 토큰 제한
-        requestBody.put("temperature", 0.7);  // 창의적인 응답을 위해
+        requestBody.put("max_tokens", 100);
+        requestBody.put("temperature", 0.7);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
         try {
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 
-            // OpenAI의 응답을 받아 추천 문구로 반환
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonResponse = objectMapper.readTree(response.getBody());
-            String recommendation = jsonResponse.get("choices").get(0).get("message").get("content").asText();
-
-            return recommendation;
+            return jsonResponse.get("choices").get(0).get("message").get("content").asText();
         } catch (Exception e) {
             e.printStackTrace();
             return "추천 문구 생성에 실패했습니다.";
         }
     }
+
+    // 추천 데이터를 반환하는 비동기 작업
+    private Map<String, String> createResultMap(String title, String imageUrl) {
+        String recommendation = getRecommendationForTitle(title);
+        return Map.of(
+                "title", title,
+                "image", imageUrl != null ? imageUrl : "이미지 없음",
+                "recommendation", recommendation
+        );
+    }
+
+    // 사용자별 맞춤 추천 문구를 포함한 추천 데이터 반환
+    public List<Map<String, Object>> getPersonalizedRecommendations(Long userId) {
+        List<Map<String, Object>> recommendations = new ArrayList<>();
+        String mostViewedCategory = userClickLogService.findMostViewedCategoryByUser(userId);
+
+        if (mostViewedCategory != null) {
+            List<Map<String, Object>> categoryData = userClickLogService.getCategoryData(mostViewedCategory);
+
+            List<CompletableFuture<Map<String, Object>>> futures = categoryData.stream()
+                    .map(event -> CompletableFuture.supplyAsync(() -> {
+                        String title = event.get("title").toString();
+                        String aiRecommendation = getRecommendationForTitle(title);
+                        event.put("aiRecommendation", aiRecommendation);
+                        return event;
+                    }))
+                    .collect(Collectors.toList());
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+            futures.forEach(future -> recommendations.add(future.join()));
+        }
+
+        return recommendations;
+    }
 }
+

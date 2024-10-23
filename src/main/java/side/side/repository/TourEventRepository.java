@@ -80,5 +80,10 @@ public interface TourEventRepository extends JpaRepository<TourEvent, Long> {
     @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image, t.contenttypeid as contenttypeid) " +
             "FROM TourEvent t WHERE t.contenttypeid = '15'")
     List<Map<String, Object>> findTopEvents();
+
+    @Query("SELECT new map(te.contentid as contentid, te.title as title, te.firstimage as image, te.contenttypeid as contenttypeid) " +
+            "FROM TourEvent te WHERE te.contentid = :contentid")
+    List<Map<String, Object>> findTopTourEventsByContentid(@Param("contentid") String contentid);
+
 }
 

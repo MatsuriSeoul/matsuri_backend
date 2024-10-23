@@ -16,4 +16,11 @@ public interface UserClickLogRepository extends JpaRepository<UserClickLog, Long
             "ORDER BY cnt DESC")
     List<Object[]> findTopCategoryByUserId(Long userId);
 
+    // 모든 사용자들의 가장 많이 클릭된 contentid와 contenttypeid를 조회하는 쿼리
+    @Query("SELECT ucl.contentid, ucl.contenttypeid, COUNT(ucl.id) as click_count " +
+            "FROM UserClickLog ucl " +
+            "GROUP BY ucl.contentid, ucl.contenttypeid " +
+            "ORDER BY click_count DESC")
+    List<Object[]> findTopContentByAllUsers();
+
 }

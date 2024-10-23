@@ -6,10 +6,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import side.side.model.FoodEvent;
-import side.side.model.TourEvent;
 import side.side.model.TouristAttraction;
-import side.side.model.TravelCourse;
 
 import java.util.List;
 import java.util.Map;
@@ -18,12 +15,16 @@ import java.util.Optional;
 public interface TouristAttractionRepository extends JpaRepository<TouristAttraction, Long> {
     // 특정 contentTypeId에 따라 TouristAttraction 리스트를 가져오는 메소드
     List<TouristAttraction> findByContenttypeid(String contenttypeid);
-
     Optional<TouristAttraction> findFirstByContentid(String contentid);
 
     //여행톡
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<TouristAttraction> findBycontentid(String contentid);
+
+    // 새로운 메서드 이름을 추가해서 중복 피함
+    @Query("SELECT new map(t.contentid as contentid, t.title as title, t.firstimage as image, t.contenttypeid as contenttypeid) " +
+            "FROM TouristAttraction t WHERE t.contentid = :contentid")
+    List<Map<String, Object>> findTopTouristAttractionsByContentid(@Param("contentid") String contentid);
 
     @Query("SELECT t FROM TouristAttraction t WHERE t.contentid = :contentid")
     Optional<TouristAttraction> findByContentid(@Param("contentid") String contentid);

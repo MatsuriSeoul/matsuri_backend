@@ -62,5 +62,9 @@ public interface ShoppingEventRepository extends JpaRepository<ShoppingEvent, Lo
             "FROM ShoppingEvent t WHERE t.contenttypeid = '38'")
     List<Map<String, Object>> findTopShoppingEvents();
 
-
+    @Query("SELECT new map(se.contentid as contentid, se.title as title, se.firstimage as image, se.contenttypeid as contenttypeid) " +
+            "FROM ShoppingEvent se WHERE se.contentid = :contentid")
+    List<Map<String, Object>> findTopShoppingEventsByContentid(@Param("contentid") String contentid);
 }
+
+
