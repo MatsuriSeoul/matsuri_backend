@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import side.side.model.*;
@@ -232,5 +229,140 @@ public class OpenAIService {
 
         return recommendations;
     }
-}
 
+    // 사용자가 입력한 지역, 여러 카테고리, 기간에 맞는 일정을 생성
+    public Map<String, Object> generateAIPlan(String region, List<String> categories, String duration) {
+        // 1. 지역 매핑
+        String mappedRegion = regionMap.getOrDefault(region, null);
+        if (mappedRegion == null) {
+            throw new IllegalArgumentException("잘못된 지역입니다.");
+        }
+
+        // 2. 카테고리별 데이터 병합
+        List<Map<String, String>> eventList = new ArrayList<>();
+
+        for (String category : categories) {
+            String mappedCategory = categoryMap.getOrDefault(category, null);
+            if (mappedCategory != null) {
+                eventList.addAll(fetchEventsForCategory(mappedRegion, mappedCategory));
+            }
+        }
+
+        if (eventList.isEmpty()) {
+            throw new IllegalArgumentException("해당 지역 및 카테고리에 맞는 데이터가 없습니다.");
+        }
+
+        // 3. 이벤트 목록을 필터링하여 같은 지역에 있는 데이터만 유지 (같은 구에 속하는 데이터만)
+        List<Map<String, String>> filteredEvents = filterEventsByAddress(eventList);
+
+        // 4. 여행 기간에 따른 이벤트 제한
+        int maxEvents = getMaxEventsBasedOnDuration(duration);
+        List<Map<String, String>> limitedEvents = filteredEvents.stream().limit(maxEvents).collect(Collectors.toList());
+
+        // 5. OpenAI API 호출 프롬프트 생성
+        String prompt = String.format(
+                "사용자가 %s 지역에서 %s 카테고리로 %s 동안 여행할 계획입니다. "
+                        + "다음과 같은 이벤트를 추천해 주세요: %s",
+                region, String.join(", ", categories), duration, limitedEvents.stream().map(event -> event.get("title")).collect(Collectors.joining(", "))
+        );
+
+        // 6. OpenAI API 호출
+        String aiResponse = callOpenAI(prompt);
+
+        // 7. 결과 반환
+        Map<String, Object> result = new HashMap<>();
+        result.put("events", limitedEvents);
+        result.put("aiResponse", aiResponse);
+
+        return result;
+    }
+
+    // 카테고리에 따른 이벤트를 조회하는 메서드
+    private List<Map<String, String>> fetchEventsForCategory(String region, String mappedCategory) {
+        List<Map<String, String>> eventList = new ArrayList<>();
+
+        // 각 카테고리에 맞는 데이터를 조회
+        List<FoodEvent> foodEvents = foodEventRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
+        List<TourEvent> tourEvents = tourEventRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
+        List<CulturalFacility> culturalFacilities = culturalFacilityRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
+        List<ShoppingEvent> shoppingEvents = shoppingEventRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
+        List<TouristAttraction> touristAttractions = touristAttractionRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
+        List<LeisureSportsEvent> leisureSportsEvents = leisureSportsEventRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
+
+        // 각 이벤트를 맵으로 변환하여 추가
+        foodEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1())));
+        tourEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1())));
+        culturalFacilities.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1())));
+        shoppingEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1())));
+        touristAttractions.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1())));
+        leisureSportsEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1())));
+
+        return eventList;
+    }
+    // 거리 기준으로 이벤트 필터링 (같은 구에 속하는지 여부)
+    private List<Map<String, String>> filterEventsByAddress(List<Map<String, String>> events) {
+        // 예시 필터링 로직 (여기서는 addr1 필드를 기반으로 같은 구에 있는지 확인)
+        String baseAddr = events.get(0).get("addr1");  // 첫 번째 이벤트의 주소 기준으로 필터링
+        return events.stream()
+                .filter(event -> event.get("addr1").contains(baseAddr.split(" ")[1])) // 구 기준으로 비교
+                .collect(Collectors.toList());
+    }
+    // 여행 기간에 따라 최대 이벤트 개수 결정
+    private int getMaxEventsBasedOnDuration(String duration) {
+        switch (duration) {
+            case "당일":
+                return 3; // 당일 여행의 경우 3개 이벤트 추천
+            case "1박 2일":
+                return 5; // 1박 2일은 최대 5개 추천
+            case "2박 3일":
+                return 7; // 2박 3일의 경우 7개 이벤트 추천
+            default:
+                return 3;
+        }
+    }
+
+    // 이벤트 데이터를 맵으로 변환하는 유틸리티 메서드
+    private Map<String, String> createEventMap(String title, String imageUrl, String addr1) {
+        Map<String, String> eventMap = new HashMap<>();
+        eventMap.put("title", title);
+        eventMap.put("image", imageUrl != null ? imageUrl : "이미지 없음");
+        eventMap.put("addr1", addr1);
+        return eventMap;
+    }
+
+    // OpenAI API 호출 로직
+    private String callOpenAI(String prompt) {
+        String url = "https://api.openai.com/v1/chat/completions";  // 엔드포인트 수정
+
+        // HTTP 요청 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + openaiApiKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        // OpenAI 요청 내용 설정
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "gpt-3.5-turbo");
+        requestBody.put("messages", List.of(
+                Map.of("role", "system", "content", "당신은 여행 플래너입니다. 사용자가 입력한 정보를 바탕으로 여행 계획을 작성해 주세요."),
+                Map.of("role", "user", "content", prompt)
+        ));
+        requestBody.put("max_tokens", 500);
+        requestBody.put("temperature", 0.7);
+
+        // HTTP 요청 생성
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            // OpenAI API로 POST 요청 보내기
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+
+            // 응답 파싱
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonResponse = objectMapper.readTree(response.getBody());
+            return jsonResponse.get("choices").get(0).get("message").get("content").asText();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "OpenAI API 호출 중 오류가 발생했습니다.";
+        }
+    }
+}

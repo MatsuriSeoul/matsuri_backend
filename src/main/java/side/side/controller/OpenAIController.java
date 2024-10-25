@@ -69,15 +69,33 @@ public class OpenAIController {
 
     // 지역과 카테고리를 기반으로 여행 계획을 처리하는 메서드
     @PostMapping("/plan")
-    public ResponseEntity<Map<String, Object>> getPlanResponse(@RequestBody Map<String, String> request) {
-        String region = request.get("region");
-        String category = request.get("category");
+    public ResponseEntity<Map<String, Object>> getPlanResponse(@RequestBody Map<String, Object> request) {
+        String region = (String) request.get("region");
+        List<String> categories = (List<String>) request.get("categories");
 
         // 로그 추가 (클라이언트에서 받은 지역 및 카테고리 정보)
         logger.info("요청된 지역: {}", region);
-        logger.info("요청된 카테고리: {}", category);
+        logger.info("요청된 카테고리: {}", categories);
 
-        // AIService를 호출해 계획 생성
-        return openAIService.getResponse(region, category);
+        // 이 단계에서는 duration을 기다리지 않고, 먼저 카테고리만 준비해둠
+        return ResponseEntity.ok(Map.of("message", "카테고리 선택 완료, 다음 단계로 이동하세요."));
+    }
+
+    // 지역, 카테고리, 기간을 받아서 AI가 여행 계획을 생성
+    @PostMapping("/result")
+    public ResponseEntity<Map<String, Object>> getAIPlanResult(@RequestBody Map<String, Object> request) {
+        String region = (String) request.get("region");
+        List<String> categories = (List<String>) request.get("categories"); // 다중 카테고리
+        String duration = (String) request.get("duration");
+
+        // 로그 추가 (사용자가 선택한 지역, 카테고리, 기간)
+        logger.info("요청된 지역: {}", region);
+        logger.info("요청된 카테고리: {}", categories);
+        logger.info("요청된 기간: {}", duration);
+
+        // OpenAIService를 호출하여 결과 생성
+        Map<String, Object> aiPlanResult = openAIService.generateAIPlan(region, categories, duration);
+
+        return ResponseEntity.ok(aiPlanResult);
     }
 }
