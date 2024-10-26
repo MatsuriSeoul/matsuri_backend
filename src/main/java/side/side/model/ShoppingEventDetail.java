@@ -17,6 +17,7 @@ public class ShoppingEventDetail {
     private String contenttypeid;
     private String booktour;
     private String createdtime;
+    @Column(length = 65535)
     private String homepage;
     private String modifiedtime;
     private String tel;

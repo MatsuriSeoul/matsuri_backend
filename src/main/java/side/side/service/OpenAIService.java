@@ -178,7 +178,7 @@ public class OpenAIService {
                 Map.of("role", "system", "content", "당신은 여행 제목에 대한 사용자가 매력적으로 느끼게 제목을 입력해주는 조수에요."),
                 Map.of("role", "user", "content", "다음 제목에 대한 추천을 생성해 주세요: " + title)
         ));
-        requestBody.put("max_tokens", 100);
+        requestBody.put("max_tokens", 500);
         requestBody.put("temperature", 0.7);
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
@@ -232,15 +232,13 @@ public class OpenAIService {
 
     // 사용자가 입력한 지역, 여러 카테고리, 기간에 맞는 일정을 생성
     public Map<String, Object> generateAIPlan(String region, List<String> categories, String duration) {
-        // 1. 지역 매핑
         String mappedRegion = regionMap.getOrDefault(region, null);
         if (mappedRegion == null) {
             throw new IllegalArgumentException("잘못된 지역입니다.");
         }
 
-        // 2. 카테고리별 데이터 병합
+        // 선택된 카테고리에서 이벤트를 조회
         List<Map<String, String>> eventList = new ArrayList<>();
-
         for (String category : categories) {
             String mappedCategory = categoryMap.getOrDefault(category, null);
             if (mappedCategory != null) {
@@ -248,65 +246,187 @@ public class OpenAIService {
             }
         }
 
-        if (eventList.isEmpty()) {
-            throw new IllegalArgumentException("해당 지역 및 카테고리에 맞는 데이터가 없습니다.");
+        // 가까운 거리로 이벤트를 그룹화
+        if (duration.equals("당일")) {
+            eventList = groupEventsByProximity(eventList, 5.0); // 당일 여행의 경우, 5km 이내로 제한
+        } else {
+            eventList = groupEventsByProximity(eventList, 10.0); // 1박 2일 이상 여행의 경우, 10km 이내로 제한
         }
 
-        // 3. 이벤트 목록을 필터링하여 같은 지역에 있는 데이터만 유지 (같은 구에 속하는 데이터만)
-        List<Map<String, String>> filteredEvents = filterEventsByAddress(eventList);
 
-        // 4. 여행 기간에 따른 이벤트 제한
+
+        // 첫 이벤트를 기준으로 거리 제한 적용 (예: 5km 이내)
+        if (!eventList.isEmpty()) {
+            Map<String, String> baseEvent = eventList.get(0);
+            double baseLat = Double.parseDouble(baseEvent.get("mapx"));
+            double baseLon = Double.parseDouble(baseEvent.get("mapy"));
+            double maxDistance = 5.0; // 거리 제한 (단위: km)
+
+            eventList = filterEventsByDistance(eventList, baseLat, baseLon, maxDistance);
+        }
+
+        // 최대 이벤트 수 제한
+        // 여행 기간에 따라 최대 이벤트 수 결정
         int maxEvents = getMaxEventsBasedOnDuration(duration);
-        List<Map<String, String>> limitedEvents = filteredEvents.stream().limit(maxEvents).collect(Collectors.toList());
+        eventList = eventList.stream().limit(maxEvents).collect(Collectors.toList());
 
-        // 5. OpenAI API 호출 프롬프트 생성
+        // 여행이 1박 2일 이상이면 숙박 시설 추가
+        if (!categories.contains("숙박") && (duration.equals("1박 2일") || duration.equals("2박 3일"))) {
+            String accommodationCategory = categoryMap.get("숙박");
+            List<Map<String, String>> accommodations = fetchEventsForCategory(mappedRegion, accommodationCategory);
+
+            // 숙박 시설 정보에 이미지가 있는지 확인 후 추가
+            if (!eventList.isEmpty() && !accommodations.isEmpty()) {  // eventList와 accommodations가 비어있지 않은지 확인
+                Map<String, String> selectedAccommodation = findNearestAccommodation(eventList.get(eventList.size() - 1), accommodations);
+                eventList.add(selectedAccommodation);  // 마지막에 숙박시설 추가
+            }
+        }
+
+        // 일정 나누기
+        LinkedHashMap<String, List<Map<String, String>>> dayPlans = createDayPlans(eventList, duration);
+
+        // OpenAI API 호출용 프롬프트 생성
         String prompt = String.format(
-                "사용자가 %s 지역에서 %s 카테고리로 %s 동안 여행할 계획입니다. "
-                        + "다음과 같은 이벤트를 추천해 주세요: %s",
-                region, String.join(", ", categories), duration, limitedEvents.stream().map(event -> event.get("title")).collect(Collectors.joining(", "))
+                "사용자가 %s 지역에서 %s 카테고리로 %s 동안 여행할 계획입니다. 추천 이벤트 목록은 다음과 같습니다: %s",
+                region, String.join(", ", categories), duration, eventList.stream().map(e -> e.get("title")).collect(Collectors.joining(", "))
         );
 
-        // 6. OpenAI API 호출
+        // OpenAI API 호출
         String aiResponse = callOpenAI(prompt);
 
-        // 7. 결과 반환
+        // 결과 반환
         Map<String, Object> result = new HashMap<>();
-        result.put("events", limitedEvents);
+        result.put("events", eventList);
+        result.put("dayPlans", dayPlans); // 나누어진 일정을 반환
         result.put("aiResponse", aiResponse);
 
         return result;
+    }
+    // 일정 정보를 문자열로 변환하여 프롬프트에 삽입하는 메서드
+    private String dayPlansToString(LinkedHashMap<String, List<Map<String, String>>> dayPlans) {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, List<Map<String, String>>> entry : dayPlans.entrySet()) {
+            sb.append(entry.getKey()).append(":\n");
+            for (Map<String, String> event : entry.getValue()) {
+                sb.append("  - ").append(event.get("title")).append(": ").append(event.get("recommendation")).append("\n");
+            }
+        }
+        return sb.toString();
+    }
+
+
+    // 일차별로 렌더링 하기 위한 함수
+    private LinkedHashMap<String, List<Map<String, String>>> createDayPlans(List<Map<String, String>> events, String duration) {
+        LinkedHashMap<String, List<Map<String, String>>> dayPlans = new LinkedHashMap<>();
+        int days = duration.equals("당일") ? 1 : duration.equals("1박 2일") ? 2 : 3;
+
+        for (int i = 0; i < days; i++) {
+            String dayLabel = i == 0 ? "당일" : (i + 1) + "일차";
+            dayPlans.put(dayLabel, new ArrayList<>());
+        }
+
+        for (int i = 0; i < events.size(); i++) {
+            int dayIndex = Math.min(i / (events.size() / days), days - 1);
+            String dayLabel = dayIndex == 0 ? "당일" : (dayIndex + 1) + "일차";
+            dayPlans.get(dayLabel).add(events.get(i));
+        }
+
+        return dayPlans;
+    }
+
+
+    // 좌표 간 거리 계산 (단위: km)
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // 지구 반지름 (단위: km)
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon1 - lon2);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+    // 거리 기준으로 이벤트 필터링
+    private List<Map<String, String>> filterEventsByDistance(List<Map<String, String>> events, double baseLat, double baseLon, double maxDistance) {
+        return events.stream()
+                .filter(event -> {
+                    double eventLat = Double.parseDouble(event.get("mapx"));
+                    double eventLon = Double.parseDouble(event.get("mapy"));
+                    return calculateDistance(baseLat, baseLon, eventLat, eventLon) <= maxDistance;
+                })
+                .collect(Collectors.toList());
+    }
+
+
+    // 가까운 거리로 이벤트를 그룹화하는 메서드
+    private List<Map<String, String>> groupEventsByProximity(List<Map<String, String>> events, double maxDistance) {
+        List<Map<String, String>> groupedEvents = new ArrayList<>();
+        Set<Map<String, String>> processed = new HashSet<>();
+
+        for (Map<String, String> event : events) {
+            if (processed.contains(event)) continue;
+
+            double baseLat = Double.parseDouble(event.get("mapx"));
+            double baseLon = Double.parseDouble(event.get("mapy"));
+            List<Map<String, String>> closeEvents = new ArrayList<>();
+
+            for (Map<String, String> targetEvent : events) {
+                if (!processed.contains(targetEvent)) {
+                    double targetLat = Double.parseDouble(targetEvent.get("mapx"));
+                    double targetLon = Double.parseDouble(targetEvent.get("mapy"));
+                    double distance = calculateDistance(baseLat, baseLon, targetLat, targetLon);
+
+                    if (distance <= maxDistance) {
+                        closeEvents.add(targetEvent);
+                        processed.add(targetEvent);
+                    }
+                }
+            }
+            groupedEvents.addAll(closeEvents);
+        }
+
+        return groupedEvents;
     }
 
     // 카테고리에 따른 이벤트를 조회하는 메서드
     private List<Map<String, String>> fetchEventsForCategory(String region, String mappedCategory) {
         List<Map<String, String>> eventList = new ArrayList<>();
 
-        // 각 카테고리에 맞는 데이터를 조회
+        // 각 카테고리에 맞는 데이터를 조회하고 mapx, mapy를 포함해 변환
         List<FoodEvent> foodEvents = foodEventRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
         List<TourEvent> tourEvents = tourEventRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
         List<CulturalFacility> culturalFacilities = culturalFacilityRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
         List<ShoppingEvent> shoppingEvents = shoppingEventRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
         List<TouristAttraction> touristAttractions = touristAttractionRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
         List<LeisureSportsEvent> leisureSportsEvents = leisureSportsEventRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
+        List<LocalEvent> localEvents = localEventRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
 
-        // 각 이벤트를 맵으로 변환하여 추가
-        foodEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1())));
-        tourEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1())));
-        culturalFacilities.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1())));
-        shoppingEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1())));
-        touristAttractions.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1())));
-        leisureSportsEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1())));
+        // 각 이벤트를 맵으로 변환하여 추가 (mapx, mapy 포함)
+        foodEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
+        tourEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
+        culturalFacilities.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
+        shoppingEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
+        touristAttractions.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
+        localEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
+        //leisureSportsEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
 
         return eventList;
     }
-    // 거리 기준으로 이벤트 필터링 (같은 구에 속하는지 여부)
-    private List<Map<String, String>> filterEventsByAddress(List<Map<String, String>> events) {
-        // 예시 필터링 로직 (여기서는 addr1 필드를 기반으로 같은 구에 있는지 확인)
-        String baseAddr = events.get(0).get("addr1");  // 첫 번째 이벤트의 주소 기준으로 필터링
-        return events.stream()
-                .filter(event -> event.get("addr1").contains(baseAddr.split(" ")[1])) // 구 기준으로 비교
-                .collect(Collectors.toList());
+    // 가장 가까운 숙박 시설 찾기
+    private Map<String, String> findNearestAccommodation(Map<String, String> lastEvent, List<Map<String, String>> accommodations) {
+        double lastLat = Double.parseDouble(lastEvent.get("mapx"));
+        double lastLon = Double.parseDouble(lastEvent.get("mapy"));
+
+        return accommodations.stream()
+                .min(Comparator.comparingDouble(accommodation -> {
+                    double accLat = Double.parseDouble(accommodation.get("mapx"));
+                    double accLon = Double.parseDouble(accommodation.get("mapy"));
+                    return calculateDistance(lastLat, lastLon, accLat, accLon);
+                }))
+                .orElse(accommodations.get(0));
     }
+
     // 여행 기간에 따라 최대 이벤트 개수 결정
     private int getMaxEventsBasedOnDuration(String duration) {
         switch (duration) {
@@ -322,11 +442,13 @@ public class OpenAIService {
     }
 
     // 이벤트 데이터를 맵으로 변환하는 유틸리티 메서드
-    private Map<String, String> createEventMap(String title, String imageUrl, String addr1) {
+    private Map<String, String> createEventMap(String title, String imageUrl, String addr1, String mapx, String mapy) {
         Map<String, String> eventMap = new HashMap<>();
         eventMap.put("title", title);
         eventMap.put("image", imageUrl != null ? imageUrl : "이미지 없음");
         eventMap.put("addr1", addr1);
+        eventMap.put("mapx", mapx != null ? mapx : "0");
+        eventMap.put("mapy", mapy != null ? mapy : "0");
         return eventMap;
     }
 
@@ -346,7 +468,7 @@ public class OpenAIService {
                 Map.of("role", "system", "content", "당신은 여행 플래너입니다. 사용자가 입력한 정보를 바탕으로 여행 계획을 작성해 주세요."),
                 Map.of("role", "user", "content", prompt)
         ));
-        requestBody.put("max_tokens", 500);
+        requestBody.put("max_tokens", 1000);
         requestBody.put("temperature", 0.7);
 
         // HTTP 요청 생성
