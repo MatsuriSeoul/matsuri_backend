@@ -238,13 +238,16 @@ public class OpenAIService {
         }
 
         // 선택된 카테고리에서 이벤트를 조회
+        // 카테고리별로 이벤트 수집 후 이미지가 있는 것을 우선으로 정렬
         List<Map<String, String>> eventList = new ArrayList<>();
         for (String category : categories) {
             String mappedCategory = categoryMap.getOrDefault(category, null);
             if (mappedCategory != null) {
-                eventList.addAll(fetchEventsForCategory(mappedRegion, mappedCategory));
+                List<Map<String, String>> events = fetchEventsForCategory(mappedRegion, mappedCategory);
+                eventList.addAll(prioritizeEventsWithImages(events));  // 이미지 우선 정렬
             }
         }
+
 
         // 가까운 거리로 이벤트를 그룹화
         if (duration.equals("당일")) {
@@ -285,6 +288,9 @@ public class OpenAIService {
         // 일정 나누기
         LinkedHashMap<String, List<Map<String, String>>> dayPlans = createDayPlans(eventList, duration);
 
+        // 각 일차에 숙박 추가
+        addAccommodationToDayPlans(dayPlans, mappedRegion, duration);
+
         // OpenAI API 호출용 프롬프트 생성
         String prompt = String.format(
                 "사용자가 %s 지역에서 %s 카테고리로 %s 동안 여행할 계획입니다. 추천 이벤트 목록은 다음과 같습니다: %s",
@@ -315,23 +321,54 @@ public class OpenAIService {
     }
 
 
-    // 일차별로 렌더링 하기 위한 함수
+    // 일정 분할 함수에서 일차 표기 수정
     private LinkedHashMap<String, List<Map<String, String>>> createDayPlans(List<Map<String, String>> events, String duration) {
         LinkedHashMap<String, List<Map<String, String>>> dayPlans = new LinkedHashMap<>();
         int days = duration.equals("당일") ? 1 : duration.equals("1박 2일") ? 2 : 3;
 
+        // 일정 레이블 생성
         for (int i = 0; i < days; i++) {
-            String dayLabel = i == 0 ? "당일" : (i + 1) + "일차";
+            String dayLabel = (duration.equals("당일") && i == 0) ? "당일" : (i + 1) + "일차";
             dayPlans.put(dayLabel, new ArrayList<>());
         }
 
+        // 이벤트를 일정에 배분
         for (int i = 0; i < events.size(); i++) {
             int dayIndex = Math.min(i / (events.size() / days), days - 1);
-            String dayLabel = dayIndex == 0 ? "당일" : (dayIndex + 1) + "일차";
+            String dayLabel = (duration.equals("당일") && dayIndex == 0) ? "당일" : (dayIndex + 1) + "일차";
             dayPlans.get(dayLabel).add(events.get(i));
         }
 
         return dayPlans;
+    }
+
+    // 이벤트를 정렬할 때 firstimage가 있는 데이터를 우선으로 정렬하는 메서드 추가
+    private List<Map<String, String>> prioritizeEventsWithImages(List<Map<String, String>> events) {
+        return events.stream()
+                .sorted((e1, e2) -> {
+                    boolean hasImage1 = e1.get("firstimage") != null && !e1.get("firstimage").isEmpty();
+                    boolean hasImage2 = e2.get("firstimage") != null && !e2.get("firstimage").isEmpty();
+                    return Boolean.compare(hasImage2, hasImage1);  // 이미지가 있는 데이터 우선
+                })
+                .collect(Collectors.toList());
+    }
+
+    // 각 날짜에 숙박 시설을 적절히 추가하는 메서드
+    private void addAccommodationToDayPlans(LinkedHashMap<String, List<Map<String, String>>> dayPlans, String mappedRegion, String duration) {
+        String accommodationCategory = categoryMap.get("숙박");
+        List<Map<String, String>> accommodations = fetchEventsForCategory(mappedRegion, accommodationCategory);
+
+        // 첫째 날 숙박 추가
+        if (!accommodations.isEmpty() && dayPlans.containsKey("1일차")) {
+            Map<String, String> firstNightAccommodation = findNearestAccommodation(dayPlans.get("1일차").get(dayPlans.get("1일차").size() - 1), accommodations);
+            dayPlans.get("1일차").add(firstNightAccommodation);
+        }
+
+        // 둘째 날 숙박 추가 (2박 3일일 경우에만)
+        if (duration.equals("2박 3일") && dayPlans.containsKey("2일차") && !accommodations.isEmpty()) {
+            Map<String, String> secondNightAccommodation = findNearestAccommodation(dayPlans.get("2일차").get(dayPlans.get("2일차").size() - 1), accommodations);
+            dayPlans.get("2일차").add(secondNightAccommodation);
+        }
     }
 
 
