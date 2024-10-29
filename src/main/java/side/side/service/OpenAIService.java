@@ -353,7 +353,7 @@ public class OpenAIService {
                 .collect(Collectors.toList());
     }
 
-    // 각 날짜에 숙박 시설을 적절히 추가하는 메서드
+    // 각 날짜에 숙박 시설을 가하는 메서드
     private void addAccommodationToDayPlans(LinkedHashMap<String, List<Map<String, String>>> dayPlans, String mappedRegion, String duration) {
         String accommodationCategory = categoryMap.get("숙박");
         List<Map<String, String>> accommodations = fetchEventsForCategory(mappedRegion, accommodationCategory);
@@ -364,13 +364,19 @@ public class OpenAIService {
             dayPlans.get("1일차").add(firstNightAccommodation);
         }
 
-        // 둘째 날 숙박 추가 (2박 3일일 경우에만)
+        // 둘째 날 숙박 추가 (2박 3일일 경우에만), 마지막 날 제외
         if (duration.equals("2박 3일") && dayPlans.containsKey("2일차") && !accommodations.isEmpty()) {
             Map<String, String> secondNightAccommodation = findNearestAccommodation(dayPlans.get("2일차").get(dayPlans.get("2일차").size() - 1), accommodations);
             dayPlans.get("2일차").add(secondNightAccommodation);
         }
-    }
 
+        // 마지막 날 숙박 데이터 제거 조건
+        if (duration.equals("1박 2일") && dayPlans.containsKey("2일차")) {
+            dayPlans.get("2일차").removeIf(event -> "숙박".equals(event.get("category")));
+        } else if (duration.equals("2박 3일") && dayPlans.containsKey("3일차")) {
+            dayPlans.get("3일차").removeIf(event -> event.get("title").contains("호텔") || "숙박".equals(event.get("category")));
+        }
+    }
 
     // 좌표 간 거리 계산 (단위: km)
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
