@@ -569,6 +569,8 @@ public class UserService {
         return userRepository.findBySocialIdAndSocialProvider(socialId, provider);
     }
 
+    public boolean checkUserNameExists(String userName) { return  userRepository.existsByUserName(userName); }
+
     public boolean checkUserIdExists(String userId) {
         return userRepository.existsByUserId(userId);
     }
