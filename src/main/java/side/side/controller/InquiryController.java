@@ -74,6 +74,15 @@ public class InquiryController {
         return ResponseEntity.ok(updatedInquiry);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Inquiry> getInquiryById(@PathVariable Long id) {
+        Inquiry inquiry = inquiryService.getInquiryById(id);
+        if (inquiry == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(inquiry);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteInquiry(@RequestHeader("Authorization") String token, @PathVariable Long id) {
         Long userId = jwtUtils.extractUserId(token);

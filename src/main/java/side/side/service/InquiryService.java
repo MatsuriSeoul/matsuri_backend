@@ -60,6 +60,10 @@ public class InquiryService {
         inquiryRepository.delete(inquiry);
     }
 
+    public Inquiry getInquiryById(Long id) {
+        return inquiryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Inquiry not found with id " + id));
+    }
     public List<Inquiry> getInquiriesByUserId(Long userId) {
         return inquiryRepository.findByUserId(userId);
     }
