@@ -127,6 +127,13 @@ public class UserController {
         }
     }
 
+    // 회원가입 and 닉네임 변경 시 중복 검사
+    @GetMapping("/check-name/{userName}")
+    public  ResponseEntity<?> checkUserName(@PathVariable String userName) {
+        boolean exists = userService.checkUserNameExists(userName);
+        return ResponseEntity.ok().body(new CheckResponse(exists));
+    }
+
     //  회원가입 시 아이디 중복 검사
     @GetMapping("/check-id/{userId}")
     public ResponseEntity<?> checkUserId(@PathVariable String userId) {
