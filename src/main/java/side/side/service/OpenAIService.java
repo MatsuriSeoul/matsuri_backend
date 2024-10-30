@@ -474,11 +474,11 @@ public class OpenAIService {
     private int getMaxEventsBasedOnDuration(String duration) {
         switch (duration) {
             case "당일":
-                return 3; // 당일 여행의 경우 3개 이벤트 추천
+                return 5; // 당일 여행의 경우 5개 이벤트 추천
             case "1박 2일":
-                return 5; // 1박 2일은 최대 5개 추천
+                return 7; // 1박 2일은 최대 7개 추천
             case "2박 3일":
-                return 7; // 2박 3일의 경우 7개 이벤트 추천
+                return 10; // 2박 3일의 경우 10개 이벤트 추천
             default:
                 return 3;
         }
