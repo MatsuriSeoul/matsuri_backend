@@ -1,5 +1,7 @@
 package side.side.controller;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -166,8 +168,31 @@ public class CommentController {
         return name.charAt(0) + "O".repeat(name.length() - 1);
     }
 
-    // 댓글 수정
-    @PutMapping("/{id}")
+    // 공지사항 댓글 수정
+    @PutMapping("/noticeComment/{id}")
+    public ResponseEntity<?> updateComment(
+            @PathVariable Long id,
+            @RequestBody CommentUpdateRequest request,
+            @RequestHeader("Authorization") String token) {
+        try {
+            Long userId = jwtUtils.extractUserId(token);
+
+            // 댓글 수정
+            Comment updatedComment = commentService.updateComment(id, request.getContent(), userId, request.getNewImages());
+
+            // 이미지 삭제
+            if (request.getRemoveImageIds() != null && !request.getRemoveImageIds().isEmpty()) {
+                commentService.removeCommentImages(request.getRemoveImageIds());
+            }
+
+            return ResponseEntity.ok(updatedComment);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("댓글 수정 실패: " + e.getMessage());
+        }
+    }
+
+    // 여행톡 댓글 수정
+    @PutMapping("/TravelTalkComment/{id}")
     public ResponseEntity<?> updateComment(
             @PathVariable Long id,
             @RequestParam("content") String newContent,
@@ -291,5 +316,15 @@ public class CommentController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("이미지 업로드 실패");
         }
+    }
+
+    @Getter
+    @Setter
+    public static class CommentUpdateRequest {
+        private String content;
+        private List<MultipartFile> newImages;
+        private List<Long> removeImageIds;
+
+
     }
 }
