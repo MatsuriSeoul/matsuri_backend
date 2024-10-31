@@ -86,14 +86,8 @@ public class UserClickLogController {
                 return ResponseEntity.ok(Map.of("message", "추천할 데이터가 없습니다."));
             }
 
-            // 데이터가 4개 이상일 경우 무작위로 4개만 선택
-            if (categoryData.size() > 4) {
-                Random rand = new Random();
-                categoryData = categoryData.stream()
-                        .sorted((a, b) -> rand.nextInt(2) - 1)  // 무작위 순서로 정렬
-                        .limit(4)  // 4개의 데이터만 가져오기
-                        .toList();
-            }
+            // 갯수 제한 없이 무작위로 섞기
+            Collections.shuffle(categoryData); // 전체 데이터를 무작위로 섞음
 
             return ResponseEntity.ok(Map.of(
                     "categoryName", categoryName,
@@ -103,6 +97,7 @@ public class UserClickLogController {
             return ResponseEntity.ok(Map.of("message", "추천할 카테고리가 없습니다."));
         }
     }
+
 
     @GetMapping("/category-data")
     public ResponseEntity<List<Map<String, Object>>> getCategoryData(

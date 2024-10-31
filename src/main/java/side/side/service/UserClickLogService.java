@@ -71,10 +71,6 @@ public class UserClickLogService {
             if (!categoryData.isEmpty()) {
                 topContentData.addAll(categoryData);
             }
-
-            if (topContentData.size() >= 4) {  // 4개 이상만 반환
-                break;
-            }
         }
 
         return topContentData;
