@@ -111,42 +111,42 @@ public class OpenAIService {
 
         // TourEvent 처리
         events.forEach(event -> futures.add(
-                CompletableFuture.supplyAsync(() -> createResultMap(event.getTitle(), event.getFirstimage()))
+                CompletableFuture.supplyAsync(() -> createResultMap(event.getTitle(), event.getFirstimage(), event.getContentid(), event.getContenttypeid()))
         ));
 
         // CulturalFacility 처리
         facilities.forEach(facility -> futures.add(
-                CompletableFuture.supplyAsync(() -> createResultMap(facility.getTitle(), facility.getFirstimage()))
+                CompletableFuture.supplyAsync(() -> createResultMap(facility.getTitle(), facility.getFirstimage(), facility.getContentid(), facility.getContenttypeid()))
         ));
 
         // 쇼핑 이벤트
         shoppings.forEach(shopping -> futures.add(
-                CompletableFuture.supplyAsync(() -> createResultMap(shopping.getTitle(), shopping.getFirstimage()))
+                CompletableFuture.supplyAsync(() -> createResultMap(shopping.getTitle(), shopping.getFirstimage(), shopping.getContentid(), shopping.getContenttypeid()))
         ));
 
         // 음식 이벤트
         foods.forEach(food -> futures.add(
-                CompletableFuture.supplyAsync(() -> createResultMap(food.getTitle(), food.getFirstimage()))
+                CompletableFuture.supplyAsync(() -> createResultMap(food.getTitle(), food.getFirstimage(), food.getContentid(), food.getContenttypeid()))
         ));
 
         // 관광지 이벤트
         touristattractions.forEach(touristAttraction -> futures.add(
-                CompletableFuture.supplyAsync(() -> createResultMap(touristAttraction.getTitle(), touristAttraction.getFirstimage()))
+                CompletableFuture.supplyAsync(() -> createResultMap(touristAttraction.getTitle(), touristAttraction.getFirstimage(), touristAttraction.getContentid(), touristAttraction.getContenttypeid()))
         ));
 
         // 숙박 이벤트
         locals.forEach(local -> futures.add(
-                CompletableFuture.supplyAsync(() -> createResultMap(local.getTitle(), local.getFirstimage()))
+                CompletableFuture.supplyAsync(() -> createResultMap(local.getTitle(), local.getFirstimage(), local.getContentid(), local.getContenttypeid()))
         ));
 
         // 레저스포츠 이벤트
         leisureSportsEvents.forEach(leisureSportsEvent -> futures.add(
-                CompletableFuture.supplyAsync(() -> createResultMap(leisureSportsEvent.getTitle(), leisureSportsEvent.getFirstimage()))
+                CompletableFuture.supplyAsync(() -> createResultMap(leisureSportsEvent.getTitle(), leisureSportsEvent.getFirstimage(), leisureSportsEvent.getContentid(), leisureSportsEvent.getContenttypeid()))
         ));
 
         // 여행코스
         travelCourseDetails.forEach(travelCourseDetail -> futures.add(
-                CompletableFuture.supplyAsync(() -> createResultMap(travelCourseDetail.getTitle(), travelCourseDetail.getOverview()))
+                CompletableFuture.supplyAsync(() -> createResultMap(travelCourseDetail.getTitle(), travelCourseDetail.getOverview(), travelCourseDetail.getContentid(), travelCourseDetail.getContenttypeid()))
         ));
 
         // 비동기 작업이 모두 끝나기를 기다림
@@ -196,12 +196,14 @@ public class OpenAIService {
     }
 
     // 추천 데이터를 반환하는 비동기 작업
-    private Map<String, String> createResultMap(String title, String imageUrl) {
+    private Map<String, String> createResultMap(String title, String imageUrl, String contentid, String contenttypeid) {
         String recommendation = getRecommendationForTitle(title);
         return Map.of(
                 "title", title,
                 "image", imageUrl != null ? imageUrl : "이미지 없음",
-                "recommendation", recommendation
+                "recommendation", recommendation,
+                "contentid", contentid,
+                "contenttypeid", contenttypeid
         );
     }
 
@@ -446,12 +448,12 @@ public class OpenAIService {
         List<LocalEvent> localEvents = localEventRepository.findByAddr1ContainingAndContenttypeid(region, mappedCategory);
 
         // 각 이벤트를 맵으로 변환하여 추가 (mapx, mapy 포함)
-        foodEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
-        tourEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
-        culturalFacilities.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
-        shoppingEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
-        touristAttractions.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
-        localEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
+        foodEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy(), event.getContentid(), event.getContenttypeid())));
+        tourEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy(), event.getContentid(), event.getContenttypeid())));
+        culturalFacilities.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy(), event.getContentid(), event.getContenttypeid())));
+        shoppingEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy(), event.getContentid(), event.getContenttypeid())));
+        touristAttractions.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy(), event.getContentid(), event.getContenttypeid())));
+        localEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy(), event.getContentid(), event.getContenttypeid())));
         //leisureSportsEvents.forEach(event -> eventList.add(createEventMap(event.getTitle(), event.getFirstimage(), event.getAddr1(), event.getMapx(), event.getMapy())));
 
         return eventList;
@@ -485,13 +487,15 @@ public class OpenAIService {
     }
 
     // 이벤트 데이터를 맵으로 변환하는 유틸리티 메서드
-    private Map<String, String> createEventMap(String title, String imageUrl, String addr1, String mapx, String mapy) {
+    private Map<String, String> createEventMap(String title, String imageUrl, String addr1, String mapx, String mapy, String contentid, String contenttypeid) {
         Map<String, String> eventMap = new HashMap<>();
         eventMap.put("title", title);
         eventMap.put("image", imageUrl != null ? imageUrl : "이미지 없음");
         eventMap.put("addr1", addr1);
         eventMap.put("mapx", mapx != null ? mapx : "0");
         eventMap.put("mapy", mapy != null ? mapy : "0");
+        eventMap.put("contentid", contentid);
+        eventMap.put("contenttypeid", contenttypeid);
         return eventMap;
     }
 
