@@ -403,7 +403,6 @@ public class OpenAIService {
                 .collect(Collectors.toList());
     }
 
-
     // 가까운 거리로 이벤트를 그룹화하는 메서드
     private List<Map<String, String>> groupEventsByProximity(List<Map<String, String>> events, double maxDistance) {
         List<Map<String, String>> groupedEvents = new ArrayList<>();
