@@ -7,10 +7,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.util.UriUtils;
 import side.side.config.JwtUtils;
 import side.side.model.*;
 import side.side.service.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -264,7 +266,7 @@ public class CommentController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
-
+    //기존 로직
     @GetMapping("/{category}/{contentid}/{contenttypeid}/detail")
     public ResponseEntity<List<Comment>> getCommentsByCategory(@PathVariable String category, @PathVariable String contentid) {
         try {
@@ -307,6 +309,79 @@ public class CommentController {
         }
     }
 
+    // AI 플래너 전용 엔드포인트
+    @GetMapping("/aiplaner/{category}/{contentid}/{contenttypeid}/detail")
+    public ResponseEntity<List<Comment>> getCommentsForAIPlaner(
+            @PathVariable String category,
+            @PathVariable String contentid,
+            @PathVariable String contenttypeid) {
+
+        // 한글 카테고리를 영어로 변환
+        String decodedCategory = UriUtils.decode(category, StandardCharsets.UTF_8);
+        String englishCategory = convertToEnglishCategory(decodedCategory);
+        System.out.println("Converted Category: " + englishCategory + ", ContentID: " + contentid + ", ContentTypeID: " + contenttypeid);
+
+        try {
+            List<Comment> comments = fetchCommentsByCategory(englishCategory, contentid, contenttypeid);
+
+            if (comments == null || comments.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+            }
+            return ResponseEntity.ok(comments);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
+
+    // 한글 카테고리를 영어로 변환하는 메서드
+    private String convertToEnglishCategory(String category) {
+        switch (category) {
+            case "관광지":
+                return "tourist-attractions";
+            case "문화시설":
+                return "cultural-facilities";
+            case "행사":
+                return "events";
+            case "여행코스":
+                return "travel-courses";
+            case "레포츠":
+                return "leisure-sports";
+            case "숙박":
+                return "local-events";
+            case "쇼핑":
+                return "shopping-events";
+            case "음식":
+                return "food-events";
+            default:
+                return category;
+        }
+    }
+
+    // 카테고리와 contentid에 따라 Comment를 가져오는 메서드 (contenttypeid 필터 제거)
+    private List<Comment> fetchCommentsByCategory(String category, String contentid, String contenttypeid) {
+        switch (category) {
+            case "tourist-attractions":
+                return commentService.getCommentByTouristAttraction(contentid);
+            case "cultural-facilities":
+                return commentService.getCommentByCulturalFacility(contentid);
+            case "events":
+                return commentService.getCommentByEventId(contentid);
+            case "travel-courses":
+                return commentService.getCommentByTravelCourse(contentid);
+            case "leisure-sports":
+                return commentService.getCommentByLeisureSports(contentid);
+            case "local-events":
+                return commentService.getCommentByAccommodation(contentid);
+            case "shopping-events":
+                return commentService.getCommentByShopping(contentid);
+            case "food-events":
+                return commentService.getCommentByFood(contentid);
+            default:
+                return null;
+        }
+    }
     // 이미지 업로드
     @PostMapping("/upload-comment-image")
     public ResponseEntity<?> uploadCommentImage(@RequestParam("file") MultipartFile file) {

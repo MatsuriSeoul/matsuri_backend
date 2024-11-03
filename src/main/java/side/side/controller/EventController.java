@@ -219,15 +219,12 @@ public class EventController {
         return paidEvents;
     }
 
-    // 진행 중인 행사 및 예정된 행사 가져오기
     @GetMapping("/scheduled")
-    public List<?> getScheduledEvents(@RequestParam("region") String region) {
-        if ("경기도".equals(region)) {
-            return eventService.getGyeonggiScheduledEvents();
-        } else if ("서울특별시".equals(region)) {
-            return eventService.getSeoulScheduledEvents();
-        }
-        return Collections.emptyList();
+    public List<?> getScheduledEvents() {
+        List<Object> events = new ArrayList<>();
+        events.addAll(eventService.getGyeonggiScheduledEvents());
+        events.addAll(eventService.getSeoulScheduledEvents());
+        return events;
     }
 
 
