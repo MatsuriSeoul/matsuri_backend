@@ -53,8 +53,12 @@ public class UserClickLogService {
 
     // 특정 사용자의 가장 많이 조회한 카테고리 반환
     public String findMostViewedCategoryByUser(Long userId) {
-        // 여기서는 클릭 로그에서 가장 많이 조회한 카테고리(contenttypeid)를 찾는 로직을 구현
-        return userClickLogRepository.findTopCategoryByUserId(userId).get(0)[0].toString();
+        List<Object[]> result = userClickLogRepository.findTopCategoryByUserId(userId);
+        if (result.isEmpty()) {
+            // 리스트가 비어 있는 경우 처리 - 기본값을 반환하거나 예외 처리
+            return "조회된 카테고리가 없습니다.";
+        }
+        return result.get(0)[0].toString();
     }
 
     //  인기있는 행사 메서드에서 새로운 메서드 호출
