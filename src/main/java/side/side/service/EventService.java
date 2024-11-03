@@ -1,6 +1,7 @@
 package side.side.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -84,9 +85,14 @@ public class EventService {
 
 
     // 키 값 절대 건들이면 안됨
-    private final String gyeonggiApiKey = "77b3011d245e4ca68e85caec7fd610ae";
-    private final String seoulApiKey = "754578757270626739386969624e71";
-    private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
+    @Value("${gyeonggi.api.key}")
+    private String gyeonggiApiKey;
+
+    @Value("${seoul.api.key}")
+    private  String seoulApiKey;
+
+    @Value("${service.api.key}")
+    private String serviceKey;
 
 //    // 경기도 행사 API
 //    public void fetchAndSaveGyeonggiEvents() {
