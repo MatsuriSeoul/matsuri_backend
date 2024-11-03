@@ -594,26 +594,27 @@ public class EventService {
 
 
     public List<TourEvent> getRandomEventsByRegion(String region) {
-        return tourEventRepository.findRandomEventsByRegion(region, 4);
+        return tourEventRepository.findRandomEventsByRegion(region);
     }
+
     // 경기도 무료 행사 가져오기
     public List<GyeonggiEvent> getGyeonggiFreeEvents() {
-        return gyeonggiEventRepository.findFreeEventsInGyeonggi(4);
+        return gyeonggiEventRepository.findFreeEventsInGyeonggi();
     }
 
     // 서울특별시 무료 행사 가져오기
     public List<SeoulEvent> getSeoulFreeEvents() {
-        return seoulEventRepository.findFreeEventsInSeoul(4);
+        return seoulEventRepository.findFreeEventsInSeoul();
     }
 
     // 경기도 유료 행사 가져오기
     public List<GyeonggiEvent> getGyeonggiPaidEvents() {
-        return gyeonggiEventRepository.findPaidEventsInGyeonggi(4);
+        return gyeonggiEventRepository.findPaidEventsInGyeonggi();
     }
 
     // 서울특별시 유료 행사 가져오기
     public List<SeoulEvent> getSeoulPaidEvents() {
-        return seoulEventRepository.findPaidEventsInSeoul(4);
+        return seoulEventRepository.findPaidEventsInSeoul();
     }
 
 

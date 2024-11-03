@@ -29,15 +29,16 @@ public interface SeoulEventRepository extends JpaRepository<SeoulEvent, Long> {
     List<SeoulEvent> findByEventInCategory(@Param("category") String category);
 
     // 서울특별시의 무료 행사 가져오기
-    @Query(value = "SELECT * FROM seoul_event WHERE PAYATNM = '무료' ORDER BY RAND() LIMIT :limit", nativeQuery = true)
-    List<SeoulEvent> findFreeEventsInSeoul(@Param("limit") int limit);
+    @Query(value = "SELECT * FROM seoul_event WHERE PAYATNM = '무료' ORDER BY RAND()", nativeQuery = true)
+    List<SeoulEvent> findFreeEventsInSeoul();
 
     // 서울특별시의 유료 행사 가져오기
-    @Query(value = "SELECT * FROM seoul_event WHERE (PAYATNM != '무료' OR PAYATNM IS NULL) ORDER BY RAND() LIMIT :limit", nativeQuery = true)
-    List<SeoulEvent> findPaidEventsInSeoul(@Param("limit") int limit);
+    @Query(value = "SELECT * FROM seoul_event WHERE (PAYATNM != '무료' OR PAYATNM IS NULL) ORDER BY RAND()", nativeQuery = true)
+    List<SeoulEvent> findPaidEventsInSeoul();
 
     // 서울에서 개최 예정 or 중인 행사 가져오기
     @Query("SELECT e FROM SeoulEvent e WHERE e.rcptbgndt <= :today AND e.rcptenddt >= :today OR e.rcptbgndt > :today")
     List<SeoulEvent> findScheduledEvents(@Param("today") String today);
+
 
 }

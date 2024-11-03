@@ -166,23 +166,23 @@ public class DataLoader implements ApplicationRunner {
         int numOfRows = EventFetchConfig.DEFAULT_NUM_OF_ROWS;
 
         // 지역별로 관광 정보를 가져와 저장
-//        fetchAndSaveLocalGyeonggiEvents(numOfRows);
-//        fetchAndSaveLocalSeoulEvents(numOfRows);
-//        fetchAndSaveLocalGangwonEvents(numOfRows);
-//        fetchAndSaveLocalInchoenEvents(numOfRows);
-//        fetchAndSaveLocalChungbukEvents(numOfRows);
-//        fetchAndSaveLocalChungnamEvents(numOfRows);
-//        fetchAndSaveLocalDaejeonEvents(numOfRows);
-//        fetchAndSaveLocalDaeguEvents(numOfRows);
-//        fetchAndSaveLocalGyeongbukEvents(numOfRows);
-//        fetchAndSaveLocalGyeongnamEvents(numOfRows);
-//        fetchAndSaveLocalGwangjuEvents(numOfRows);
-//        fetchAndSaveLocalJeonnamEvents(numOfRows);
-//        fetchAndSaveLocalJeonbukEvents(numOfRows);
-//        fetchAndSaveLocalUlsanEvents(numOfRows);
-//        fetchAndSaveLocalSejongEvents(numOfRows);
-//        fetchAndSaveLocalJejuEvents(numOfRows);
-//        fetchAndSaveLocalBusanEvents(numOfRows);
+        fetchAndSaveLocalGyeonggiEvents(numOfRows);   //경기
+        fetchAndSaveLocalSeoulEvents(numOfRows);      //서울
+        fetchAndSaveLocalGangwonEvents(numOfRows);    //강원
+        fetchAndSaveLocalInchoenEvents(numOfRows);    //인천
+        fetchAndSaveLocalChungbukEvents(numOfRows);   //청북
+        fetchAndSaveLocalChungnamEvents(numOfRows);   //청남
+        fetchAndSaveLocalDaejeonEvents(numOfRows);    //대전
+        fetchAndSaveLocalDaeguEvents(numOfRows);      //대구
+        fetchAndSaveLocalGyeongbukEvents(numOfRows);  //경북
+        fetchAndSaveLocalGyeongnamEvents(numOfRows);  //경남
+        fetchAndSaveLocalGwangjuEvents(numOfRows);    //광주
+        fetchAndSaveLocalJeonnamEvents(numOfRows);    //전남
+        fetchAndSaveLocalJeonbukEvents(numOfRows);    //전북
+        fetchAndSaveLocalUlsanEvents(numOfRows);      //울산
+        fetchAndSaveLocalSejongEvents(numOfRows);     //세종
+        fetchAndSaveLocalJejuEvents(numOfRows);       //제주
+        fetchAndSaveLocalBusanEvents(numOfRows);      //부산
 
     }
 
@@ -197,7 +197,7 @@ public class DataLoader implements ApplicationRunner {
         }
     }
     public class EventFetchConfig {
-        public static final int DEFAULT_NUM_OF_ROWS = 20; // 기본 최대 데이터 수
+        public static final int DEFAULT_NUM_OF_ROWS = 50; // 기본 최대 데이터 수
     }
 
 
@@ -244,7 +244,6 @@ public class DataLoader implements ApplicationRunner {
             e.printStackTrace();
         }
     }
-
     private void fetchAndSaveLocalSeoulEvents(int numOfRows) {
         try {
             String region = "seoul";
