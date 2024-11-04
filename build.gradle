@@ -38,7 +38,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.13.3'
-	implementation 'io.github.cdimascio:dotenv-java:2.2.4'
+	implementation 'io.github.cdimascio:java-dotenv:5.2.2'
+
 
 	// JWT
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
@@ -73,17 +74,17 @@ sourceSets {
 	}
 }
 
-processResources { dependsOn "copyReactBuildFiles" }
+processResources {
+	dependsOn "copyReactBuildFiles"
+}
+
+def npmPath = "/usr/local/bin/npm"
 
 task installReact(type: Exec) {
 	workingDir "$frontendDir"
 	inputs.dir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine "npm.cmd", "install"
-	} else {
-		commandLine "npm", "install"
-	}
+	commandLine npmPath, "install"
 }
 
 task buildReact(type: Exec) {
@@ -91,11 +92,7 @@ task buildReact(type: Exec) {
 	workingDir "$frontendDir"
 	inputs.dir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine "npm.cmd", "run-script", "build"
-	} else {
-		commandLine "npm", "run-script", "build"
-	}
+	commandLine npmPath, "run-script", "build"
 }
 
 task copyReactBuildFiles(type: Copy) {
@@ -107,13 +104,10 @@ task copyReactBuildFiles(type: Copy) {
 task watchReact(type: Exec) {
 	workingDir "$frontendDir"
 	group = BasePlugin.BUILD_GROUP
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine "npm.cmd", "run", "watch"
-	} else {
-		commandLine "npm", "run", "watch"
-	}
+	commandLine npmPath, "run", "watch"
 }
 
 tasks.withType(JavaCompile) {
 	options.compilerArgs << '-parameters'
+
 }

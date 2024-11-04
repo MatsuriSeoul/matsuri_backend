@@ -1,5 +1,6 @@
 package side.side.service;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -30,14 +31,12 @@ public class NaverBlogService {
 
     private final WebClient webClient;
 
-    @Value("${naver.client.id}")
-    private String clientId;
 
-    @Value("${naver.client.secret}")
-    private String clientSecret;
+    private final String clientId;
 
-    @Value("${naver.api.uri}")
-    private String apiUrl;
+    private final String clientSecret;
+
+    private final String apiUrl;
 
     public NaverBlogService(WebClient.Builder webClientBuilder) {
         HttpClient httpClient = HttpClient.create()
@@ -48,6 +47,11 @@ public class NaverBlogService {
         this.webClient = webClientBuilder
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .build();
+
+        Dotenv dotenv = Dotenv.load();
+        this.clientId = dotenv.get("NAVER_CLIENT_ID");
+        this.clientSecret = dotenv.get("NAVER_CLIENT_SECRET");
+        this.apiUrl = dotenv.get("NAVER_API_URL");
     }
 
     public List<Map<String, String>> getBlogReviews(String query) {

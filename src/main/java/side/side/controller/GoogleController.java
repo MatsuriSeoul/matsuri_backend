@@ -3,6 +3,7 @@ package side.side.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,15 +22,21 @@ import java.net.URI;
 @RestController
 public class GoogleController {
 
-    @Value("${google.client.id}")
-    private String googleClientId;
 
-    @Value("${google.client.secret}")
-    private String googleClientSecret;
+    private final String googleClientId;
 
-    @Value("${google.redirect.uri}")
-    private String googleRedirectUri;
 
+    private final String googleClientSecret;
+
+
+    private final String googleRedirectUri;
+
+    public GoogleController() {
+        Dotenv dotenv = Dotenv.load();
+        this.googleClientId = dotenv.get("GOOGLE_CLIENT_ID");
+        this.googleClientSecret = dotenv.get("GOOGLE_CLIENT_SECRET");
+        this.googleRedirectUri = dotenv.get("GOOGLE_REDIRECT_URI");
+    }
 
     @Autowired
     private JwtUtils jwtUtils;

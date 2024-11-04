@@ -1,5 +1,6 @@
 package side.side.service;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -85,14 +86,18 @@ public class EventService {
 
 
     // 키 값 절대 건들이면 안됨
-    @Value("${gyeonggi.api.key}")
-    private String gyeonggiApiKey;
+    private final String gyeonggiApiKey;
 
-    @Value("${seoul.api.key}")
-    private  String seoulApiKey;
+    private final  String seoulApiKey;
 
-    @Value("${service.api.key}")
-    private String serviceKey;
+    private final String serviceKey;
+
+    public EventService() {
+        Dotenv dotenv = Dotenv.load();
+        this.gyeonggiApiKey = dotenv.get("GYEONGGI_API_KEY");
+        this.seoulApiKey = dotenv.get("SEOUL_API_KEY");
+        this.serviceKey = dotenv.get("SERVICE_API_KEY");
+    }
 
 //    // 경기도 행사 API
 //    public void fetchAndSaveGyeonggiEvents() {
