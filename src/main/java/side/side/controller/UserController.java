@@ -388,6 +388,7 @@ public class UserController {
 
         // 댓글을 CommentDTO로 매핑하면서 contenttypeid를 설정
         List<CommentDTO> authoredCommentsWithContentTypeId = authoredComments.stream()
+                .filter(comment -> comment.getNotice() == null) // 공지사항 댓글 제외
                 .map(comment -> {
                     String contenttypeid = null;
                     String contentid = null;
@@ -395,9 +396,7 @@ public class UserController {
                     Long id = null;
 
                     // 각 댓글에 달린 콘텐츠나 이벤트에서 contenttypeid 가져오기
-                    if (comment.getNotice() != null) {
-                        contenttypeid = "Notice";  // 공지사항에 대한 댓글일 경우
-                    } else if (comment.getCategory() != null) {
+                    if (comment.getCategory() != null) {
                         // 카테고리에 따른 contenttypeid 설정
                         switch (comment.getCategory()) {
                             case "seoul-events":
