@@ -233,7 +233,7 @@ public class OpenAIService {
     }
 
     // 사용자가 입력한 지역, 여러 카테고리, 기간에 맞는 일정을 생성
-    public Map<String, Object> generateAIPlan(String region, List<String> categories, String duration) {
+    public Map<String, Object> generateAIPlan(String region, List<String> categories, String duration, boolean isRefresh) {
         String mappedRegion = regionMap.getOrDefault(region, null);
         if (mappedRegion == null) {
             throw new IllegalArgumentException("잘못된 지역입니다.");
@@ -242,13 +242,21 @@ public class OpenAIService {
         // 선택된 카테고리에서 이벤트를 조회
         // 카테고리별로 이벤트 수집 후 이미지가 있는 것을 우선으로 정렬
         List<Map<String, String>> eventList = new ArrayList<>();
+
         for (String category : categories) {
             String mappedCategory = categoryMap.getOrDefault(category, null);
             if (mappedCategory != null) {
                 List<Map<String, String>> events = fetchEventsForCategory(mappedRegion, mappedCategory);
-                eventList.addAll(prioritizeEventsWithImages(events));  // 이미지 우선 정렬
+
+                // 새로고침 요청 시에만 이벤트 리스트를 무작위로 섞음
+                if (isRefresh) {
+                    Collections.shuffle(events);
+                }
+
+                eventList.addAll(prioritizeEventsWithImages(events));
             }
         }
+
 
 
         // 가까운 거리로 이벤트를 그룹화
