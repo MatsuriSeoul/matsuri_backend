@@ -21,8 +21,8 @@ public interface TourEventRepository extends JpaRepository<TourEvent, Long> {
 
     Optional<TourEvent> findFirstByContentid(String contentid);
 
-    @Query(value = "SELECT * FROM tour_event WHERE addr1 LIKE CONCAT('%', :region, '%') ORDER BY RAND() LIMIT :limit", nativeQuery = true)
-    List<TourEvent> findRandomEventsByRegion(@Param("region") String region, @Param("limit") int limit);
+    @Query(value = "SELECT * FROM tour_event WHERE addr1 LIKE CONCAT('%', :region, '%') ORDER BY RAND()", nativeQuery = true)
+    List<TourEvent> findRandomEventsByRegion(@Param("region") String region);
 
     //여행톡
     @Lock(LockModeType.PESSIMISTIC_WRITE)

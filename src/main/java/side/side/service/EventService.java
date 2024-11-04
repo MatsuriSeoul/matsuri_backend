@@ -1,6 +1,7 @@
 package side.side.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -84,9 +85,14 @@ public class EventService {
 
 
     // 키 값 절대 건들이면 안됨
-    private final String gyeonggiApiKey = "77b3011d245e4ca68e85caec7fd610ae";
-    private final String seoulApiKey = "754578757270626739386969624e71";
-    private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
+    @Value("${gyeonggi.api.key}")
+    private String gyeonggiApiKey;
+
+    @Value("${seoul.api.key}")
+    private  String seoulApiKey;
+
+    @Value("${service.api.key}")
+    private String serviceKey;
 
 //    // 경기도 행사 API
 //    public void fetchAndSaveGyeonggiEvents() {
@@ -594,26 +600,27 @@ public class EventService {
 
 
     public List<TourEvent> getRandomEventsByRegion(String region) {
-        return tourEventRepository.findRandomEventsByRegion(region, 4);
+        return tourEventRepository.findRandomEventsByRegion(region);
     }
+
     // 경기도 무료 행사 가져오기
     public List<GyeonggiEvent> getGyeonggiFreeEvents() {
-        return gyeonggiEventRepository.findFreeEventsInGyeonggi(4);
+        return gyeonggiEventRepository.findFreeEventsInGyeonggi();
     }
 
     // 서울특별시 무료 행사 가져오기
     public List<SeoulEvent> getSeoulFreeEvents() {
-        return seoulEventRepository.findFreeEventsInSeoul(4);
+        return seoulEventRepository.findFreeEventsInSeoul();
     }
 
     // 경기도 유료 행사 가져오기
     public List<GyeonggiEvent> getGyeonggiPaidEvents() {
-        return gyeonggiEventRepository.findPaidEventsInGyeonggi(4);
+        return gyeonggiEventRepository.findPaidEventsInGyeonggi();
     }
 
     // 서울특별시 유료 행사 가져오기
     public List<SeoulEvent> getSeoulPaidEvents() {
-        return seoulEventRepository.findPaidEventsInSeoul(4);
+        return seoulEventRepository.findPaidEventsInSeoul();
     }
 
 

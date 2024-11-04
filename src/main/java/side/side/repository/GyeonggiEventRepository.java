@@ -35,16 +35,17 @@ public interface GyeonggiEventRepository extends JpaRepository<GyeonggiEvent, Lo
 
 
     // 경기도의 무료 행사 가져오기
-    @Query(value = "SELECT * FROM gyeonggi_event WHERE partcpt_expn_info LIKE '%무료%' ORDER BY RAND() LIMIT :limit", nativeQuery = true)
-    List<GyeonggiEvent> findFreeEventsInGyeonggi(@Param("limit") int limit);
+    @Query(value = "SELECT * FROM gyeonggi_event WHERE partcpt_expn_info LIKE '%무료%' ORDER BY RAND()", nativeQuery = true)
+    List<GyeonggiEvent> findFreeEventsInGyeonggi();
 
     // 경기도의 유료 행사 가져오기
-    @Query(value = "SELECT * FROM gyeonggi_event WHERE (partcpt_expn_info NOT LIKE '%무료%' OR partcpt_expn_info IS NULL) ORDER BY RAND() LIMIT :limit", nativeQuery = true)
-    List<GyeonggiEvent> findPaidEventsInGyeonggi(@Param("limit") int limit);
+    @Query(value = "SELECT * FROM gyeonggi_event WHERE (partcpt_expn_info NOT LIKE '%무료%' OR partcpt_expn_info IS NULL) ORDER BY RAND()", nativeQuery = true)
+    List<GyeonggiEvent> findPaidEventsInGyeonggi();
 
     // 경기도의 개최 예정 or 중인 행사 가져오기
     @Query("SELECT e FROM GyeonggiEvent e WHERE e.beginDe <= :today AND e.endDe >= :today OR e.beginDe > :today")
     List<GyeonggiEvent> findScheduledEvents(@Param("today") String today);
+
 
 
 
