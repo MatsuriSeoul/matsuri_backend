@@ -319,7 +319,6 @@ public class CommentController {
         // 한글 카테고리를 영어로 변환
         String decodedCategory = UriUtils.decode(category, StandardCharsets.UTF_8);
         String englishCategory = convertToEnglishCategory(decodedCategory);
-        System.out.println("Converted Category: " + englishCategory + ", ContentID: " + contentid + ", ContentTypeID: " + contenttypeid);
 
         try {
             List<Comment> comments = fetchCommentsByCategory(englishCategory, contentid, contenttypeid);
