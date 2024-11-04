@@ -44,9 +44,7 @@ public class AIPlanerController {
             @PathVariable String encodedCategory,
             @PathVariable String contentid) {
 
-        System.out.println("인코딩" + encodedCategory);
         String decodedCategory = getDecodedCategory(encodedCategory);
-        System.out.println("디코딩" + decodedCategory);
         String endpoint = getEndpointByCategory(decodedCategory);
 
         Map<String, Object> response = new HashMap<>();
@@ -65,9 +63,7 @@ public class AIPlanerController {
             @PathVariable String contenttypeid) {
 
 
-        System.out.println("인코딩" + encodedCategory);
         String decodedCategory = getDecodedCategory(encodedCategory);
-        System.out.println("디코딩" + decodedCategory);
         String endpoint = getEndpointByCategory(decodedCategory);
 
         Map<String, Object> response = new HashMap<>();
@@ -85,9 +81,7 @@ public class AIPlanerController {
             @PathVariable String encodedCategory,
             @PathVariable String contentid) {
 
-        System.out.println("인코딩" + encodedCategory);
         String decodedCategory = getDecodedCategory(encodedCategory);
-        System.out.println("디코딩" + decodedCategory);
         String endpoint = getEndpointByCategory(decodedCategory);
 
         Map<String, Object> response = new HashMap<>();

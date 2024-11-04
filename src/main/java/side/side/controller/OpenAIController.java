@@ -44,6 +44,7 @@ public class OpenAIController {
         // 결과를 Map으로 리턴
         return ResponseEntity.ok(Map.of("recommendation", recommendation));
     }
+
     // 사용자별 맞춤 추천 데이터 제공하는 API
     @GetMapping("/personalized-recommendation/{userId}")
     public ResponseEntity<List<Map<String, Object>>> getPersonalizedRecommendations(@PathVariable Long userId) {
@@ -88,14 +89,21 @@ public class OpenAIController {
         List<String> categories = (List<String>) request.get("categories"); // 다중 카테고리
         String duration = (String) request.get("duration");
 
-        // 로그 추가 (사용자가 선택한 지역, 카테고리, 기간)
-        logger.info("요청된 지역: {}", region);
-        logger.info("요청된 카테고리: {}", categories);
-        logger.info("요청된 기간: {}", duration);
-
         // OpenAIService를 호출하여 결과 생성
-        Map<String, Object> aiPlanResult = openAIService.generateAIPlan(region, categories, duration);
+        Map<String, Object> aiPlanResult = openAIService.generateAIPlan(region, categories, duration, true);
 
         return ResponseEntity.ok(aiPlanResult);
+    }
+
+    @PostMapping("/refresh-plan")
+    public ResponseEntity<Map<String, Object>> refreshAIPlan(@RequestBody Map<String, Object> request) {
+        String region = (String) request.get("region");
+        List<String> categories = (List<String>) request.get("categories"); // category 배열로 받아 처리
+        String duration = (String) request.get("duration");
+
+        // OpenAIService를 호출하여 새로운 여행 계획 생성
+        Map<String, Object> refreshedPlan = openAIService.generateAIPlan(region, categories, duration, true);
+
+        return ResponseEntity.ok(refreshedPlan);
     }
 }
