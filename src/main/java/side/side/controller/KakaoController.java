@@ -2,6 +2,7 @@ package side.side.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,14 +24,21 @@ import java.util.Collections;
 @RestController
 public class KakaoController {
 
-    @Value("${kakao.client.id}")
-    private String kakaoClientId;
 
-    @Value("${kakao.redirect.uri}")
-    private String kakaoRedirectUri;
+    private final String kakaoClientId;
 
-    @Value("${kakao.client.secret}")
-    private String kakaoClientSecret; // 클라이언트 시크릿을 불러오기 위한 필드 추가
+
+    private final String kakaoRedirectUri;
+
+
+    private final String kakaoClientSecret; // 클라이언트 시크릿을 불러오기 위한 필드 추가
+
+    public KakaoController() {
+        Dotenv dotenv = Dotenv.load();
+        kakaoClientId = dotenv.get("KAKAO_CLIENT_ID");
+        kakaoRedirectUri = dotenv.get("KAKAO_REDIRECT_URI");
+        kakaoClientSecret = dotenv.get("KAKAO_CLIENT_SECRET");
+    }
 
     @Autowired
     private JwtUtils jwtUtils;

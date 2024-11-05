@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import side.side.model.*;
 import side.side.repository.*;
-
+import io.github.cdimascio.dotenv.Dotenv;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -45,13 +45,15 @@ public class OpenAIService {
     @Autowired
     private LocalEventRepository localEventRepository;
 
-    @Value("${openai.api.key}")
-    private String openaiApiKey;
+    private final String openaiApiKey;
+
 
     private final RestTemplate restTemplate;
 
     public OpenAIService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
+        Dotenv dotenv = Dotenv.load();
+        openaiApiKey = dotenv.get("OPENAI_API_KEY");
     }
 
     // 지역과 contenttypeid를 매핑하는 맵

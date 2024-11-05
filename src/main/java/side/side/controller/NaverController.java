@@ -3,6 +3,7 @@ package side.side.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,13 +34,21 @@ public class NaverController {
     @Autowired
     private UserService userService;
 
-    @Value("${naver.client.id}")
-    private String clientId; // 네이버 클라이언트 ID
 
-    @Value("${naver.client.secret}")
-    private String clientSecret; // 네이버 클라이언트 시크릿
+    private final String clientId; // 네이버 클라이언트 ID
 
-    private String redirectUri = "http://localhost:8080/api/naver/login"; // 리다이렉트 URI
+
+    private final String clientSecret; // 네이버 클라이언트 시크릿
+
+
+    private final String redirectUri; // 리다이렉트 URI
+
+    public NaverController() {
+        Dotenv dotenv = Dotenv.load();
+        clientId = dotenv.get("NAVER_CLIENT_ID");
+        clientSecret = dotenv.get("NAVER_CLIENT_SECRET");
+        redirectUri = dotenv.get("NAVER_REDIRECT_URI");
+    }
 
     @GetMapping("/api/naver/login")
     public ResponseEntity<?> naverCallback(@RequestParam String code, @RequestParam String state) {

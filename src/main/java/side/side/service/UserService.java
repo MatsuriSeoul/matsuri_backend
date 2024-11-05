@@ -3,6 +3,7 @@ package side.side.service;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,24 +36,28 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class UserService {
 
-    @Value("${twilio.account_sid}")
-    private String accountSid;
+    private final String accountSid;
 
-    @Value("${twilio.auth_token}")
-    private String authToken;
+    private final String authToken;
 
-    @Value("${twilio.phone_number}")
-    private String fromPhoneNumber;
+    private final String fromPhoneNumber;
+
+    public UserService() {
+        Dotenv dotenv = Dotenv.load();
+        accountSid = dotenv.get("TWILIO_ACCOUNT_SID");
+        authToken = dotenv.get("TWILIO_AUTH_TOKEN");
+        fromPhoneNumber = dotenv.get("TWILIO_PHONE_NUMBER");
+    }
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private static final int VERIFICATION_CODE_LENGTH = 6;
 
     @Autowired
-    private final UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    private final PasswordHistoryRepository passwordHistoryRepository;
+    private PasswordHistoryRepository passwordHistoryRepository;
 
     @Autowired
     private JavaMailSender mailSender;
