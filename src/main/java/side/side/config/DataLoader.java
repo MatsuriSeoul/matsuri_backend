@@ -166,23 +166,23 @@ public class DataLoader implements ApplicationRunner {
         int numOfRows = EventFetchConfig.DEFAULT_NUM_OF_ROWS;
 
         // 지역별로 관광 정보를 가져와 저장
-        fetchAndSaveLocalGyeonggiEvents(numOfRows);   //경기
-        fetchAndSaveLocalSeoulEvents(numOfRows);      //서울
-        fetchAndSaveLocalGangwonEvents(numOfRows);    //강원
-        fetchAndSaveLocalInchoenEvents(numOfRows);    //인천
-        fetchAndSaveLocalChungbukEvents(numOfRows);   //청북
-        fetchAndSaveLocalChungnamEvents(numOfRows);   //청남
-        fetchAndSaveLocalDaejeonEvents(numOfRows);    //대전
-        fetchAndSaveLocalDaeguEvents(numOfRows);      //대구
-        fetchAndSaveLocalGyeongbukEvents(numOfRows);  //경북
-        fetchAndSaveLocalGyeongnamEvents(numOfRows);  //경남
-        fetchAndSaveLocalGwangjuEvents(numOfRows);    //광주
-        fetchAndSaveLocalJeonnamEvents(numOfRows);    //전남
-        fetchAndSaveLocalJeonbukEvents(numOfRows);    //전북
-        fetchAndSaveLocalUlsanEvents(numOfRows);      //울산
-        fetchAndSaveLocalSejongEvents(numOfRows);     //세종
-        fetchAndSaveLocalJejuEvents(numOfRows);       //제주
-        fetchAndSaveLocalBusanEvents(numOfRows);      //부산
+//        fetchAndSaveLocalGyeonggiEvents(numOfRows);   //경기
+//        fetchAndSaveLocalSeoulEvents(numOfRows);      //서울
+//        fetchAndSaveLocalGangwonEvents(numOfRows);    //강원
+//        fetchAndSaveLocalInchoenEvents(numOfRows);    //인천
+//        fetchAndSaveLocalChungbukEvents(numOfRows);   //청북
+//        fetchAndSaveLocalChungnamEvents(numOfRows);   //청남
+//        fetchAndSaveLocalDaejeonEvents(numOfRows);    //대전
+//        fetchAndSaveLocalDaeguEvents(numOfRows);      //대구
+//        fetchAndSaveLocalGyeongbukEvents(numOfRows);  //경북
+//        fetchAndSaveLocalGyeongnamEvents(numOfRows);  //경남
+//        fetchAndSaveLocalGwangjuEvents(numOfRows);    //광주
+//        fetchAndSaveLocalJeonnamEvents(numOfRows);    //전남
+//        fetchAndSaveLocalJeonbukEvents(numOfRows);    //전북
+//        fetchAndSaveLocalUlsanEvents(numOfRows);      //울산
+//        fetchAndSaveLocalSejongEvents(numOfRows);     //세종
+//        fetchAndSaveLocalJejuEvents(numOfRows);       //제주
+//        fetchAndSaveLocalBusanEvents(numOfRows);      //부산
 
     }
 

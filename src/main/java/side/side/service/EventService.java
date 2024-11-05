@@ -1,7 +1,6 @@
 package side.side.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -85,14 +84,9 @@ public class EventService {
 
 
     // 키 값 절대 건들이면 안됨
-    @Value("${gyeonggi.api.key}")
-    private String gyeonggiApiKey;
-
-    @Value("${seoul.api.key}")
-    private  String seoulApiKey;
-
-    @Value("${service.api.key}")
-    private String serviceKey;
+    private final String gyeonggiApiKey = "77b3011d245e4ca68e85caec7fd610ae";
+    private final String seoulApiKey = "754578757270626739386969624e71";
+    private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
 
 //    // 경기도 행사 API
 //    public void fetchAndSaveGyeonggiEvents() {
@@ -170,10 +164,10 @@ public class EventService {
             JsonNode rootNode = objectMapper.readTree(response);
             JsonNode dataNode = rootNode.path("ListPublicReservationCulture").path("row");
 
-                // 최대 10개의 데이터를 가져오기 위해, API 호출 후 처음 10개의 데이터만 추가
+// 최대 10개의 데이터를 가져오기 위해, API 호출 후 처음 10개의 데이터만 추가
 
-                if (dataNode.isArray()) {
-                    List<SeoulEvent> events = new ArrayList<>();
+            if (dataNode.isArray()) {
+                List<SeoulEvent> events = new ArrayList<>();
                 for (JsonNode node : dataNode) {
                     SeoulEvent event = new SeoulEvent();
                     event.setGubun(node.path("GUBUN").asText());
@@ -202,7 +196,7 @@ public class EventService {
                     event.setRevstdday(node.path("REVSTDDAY").asText());
                     events.add(event);
 
-                    // 데이터를 10개만 가져오기 위해 조건 추가
+// 데이터를 10개만 가져오기 위해 조건 추가
                     if (events.size() >= 50) break;
                 }
                 seoulEventRepository.saveAll(events);
@@ -217,6 +211,7 @@ public class EventService {
     public List<TourEvent> fetchAndSaveEvents(String numOfRows, String pageNo, String eventStartDate) {
         List<TourEvent> allEvents = new ArrayList<>();
         boolean moreData = true;
+        numOfRows = "100";  // 호출되는 데이터의 개수를 10개로 제한
         numOfRows = "15";  // 호출되는 데이터의 개수를 10개로 제한
 
         RestTemplate restTemplate = new RestTemplate();
@@ -254,13 +249,13 @@ public class EventService {
                         event.setContentid(node.path("contentid").asText());
                         event.setContenttypeid(node.path("contenttypeid").asText());
 
-                        // 데이터에 락 걸기
+// 데이터에 락 걸기
                         Optional<TourEvent> existingDetail = tourEventRepository.findByContentidForUpdate(event.getContentid());
                         if (existingDetail.isPresent()) {
                             continue;
                         }
 
-                        // Upsert 사용하여 데이터 삽입 또는 업데이트
+// Upsert 사용하여 데이터 삽입 또는 업데이트
                         tourEventRepository.upsertTourEvent(
                                 event.getContentid(),
                                 event.getTitle(),
@@ -288,7 +283,7 @@ public class EventService {
     }
 
 
-        //모든 데이터 요청
+//모든 데이터 요청
 //        while (moreData) {
 //            String url = UriComponentsBuilder.fromHttpUrl("http://apis.data.go.kr/B551011/KorService1/searchFestival1")
 //                    .queryParam("serviceKey", serviceKey)
@@ -402,13 +397,13 @@ public class EventService {
                 eventDetail.setMlevel(itemNode.path("mlevel").asText());
                 eventDetail.setOverview(itemNode.path("overview").asText());
 
-                // 데이터에 락 걸기
+// 데이터에 락 걸기
                 Optional<TourEventDetail> existingDetail = tourEventDetailRepository.findByContentidForUpdate(contentid);
                 if (existingDetail.isPresent()) {
                     return;
                 }
 
-                // Upsert 사용하여 데이터 삽입 또는 업데이트
+// Upsert 사용하여 데이터 삽입 또는 업데이트
                 tourEventDetailRepository.upsertTourEventDetail(
                         eventDetail.getContentid(),
                         eventDetail.getContenttypeid(),
@@ -568,7 +563,7 @@ public class EventService {
     // 경기 이벤트 필터링 로직
     public List<GyeonggiEvent> getGyeonggiEventsByCategory(String category) {
         if (category != null && !category.isEmpty()) {
-            // category_nm 필드를 기준으로 필터링
+// category_nm 필드를 기준으로 필터링
             return gyeonggiEventRepository.findByCategoryNm(category);
         }
         return gyeonggiEventRepository.findAll();  // 카테고리가 없으면 전체 조회
@@ -577,7 +572,7 @@ public class EventService {
     // 서울 이벤트 필터링 로직
     public List<SeoulEvent> getSeoulEventsByCategory(String category) {
         if (category != null && !category.isEmpty()) {
-            // minclassnm 필드를 기준으로 필터링
+// minclassnm 필드를 기준으로 필터링
             return seoulEventRepository.findByMinclassnm(category);
         }
         return seoulEventRepository.findAll();  // 카테고리가 없으면 전체 조회
@@ -585,16 +580,16 @@ public class EventService {
 
     // 월과 카테고리에 맞는 데이터를 조회
     public List<SeoulEvent> getSeoulEventsByMonthAndCategory(String month, String category) {
-        // 월 정보가 있는 경우 "MM" 형식으로 생성
+// 월 정보가 있는 경우 "MM" 형식으로 생성
         String beginDatePattern = String.format("%02d", Integer.parseInt(month));
 
-        // 리포지토리 메소드 호출하여 월과 카테고리에 맞는 데이터 조회
+// 리포지토리 메소드 호출하여 월과 카테고리에 맞는 데이터 조회
         return seoulEventRepository.findByCategoryAndMonth(beginDatePattern, category);
     }
 
     // 카테고리에 맞는 모든 데이터를 조회
     public List<SeoulEvent> getSeoulEventsByCategoryMonthNull(String category) {
-        // 리포지토리 메소드 호출하여 해당 카테고리의 모든 데이터 조회
+// 리포지토리 메소드 호출하여 해당 카테고리의 모든 데이터 조회
         return seoulEventRepository.findByEventInCategory(category);
     }
 
@@ -602,7 +597,6 @@ public class EventService {
     public List<TourEvent> getRandomEventsByRegion(String region) {
         return tourEventRepository.findRandomEventsByRegion(region);
     }
-
     // 경기도 무료 행사 가져오기
     public List<GyeonggiEvent> getGyeonggiFreeEvents() {
         return gyeonggiEventRepository.findFreeEventsInGyeonggi();
@@ -642,16 +636,16 @@ public class EventService {
 
     // 월과 카테고리에 맞는 데이터를 조회
     public List<GyeonggiEvent> getGyeonggiEventsByMonthAndCategory(String month, String category) {
-        // 월 정보가 있는 경우 "MM" 형식으로 생성
+// 월 정보가 있는 경우 "MM" 형식으로 생성
         String beginDatePattern = String.format("%02d", Integer.parseInt(month));
 
-        // 리포지토리 메소드 호출하여 월과 카테고리에 맞는 데이터 조회
+// 리포지토리 메소드 호출하여 월과 카테고리에 맞는 데이터 조회
         return gyeonggiEventRepository.findByCategoryAndMonth(beginDatePattern, category);
     }
 
     // 카테고리에 맞는 모든 데이터를 조회
     public List<GyeonggiEvent> getGyeonggiEventsByCategoryMonthNull(String category) {
-        // 리포지토리 메소드 호출하여 해당 카테고리의 모든 데이터 조회
+// 리포지토리 메소드 호출하여 해당 카테고리의 모든 데이터 조회
         return gyeonggiEventRepository.findByEventInCategory(category);
     }
 
@@ -665,7 +659,7 @@ public class EventService {
         String overview = null;
         String contenttypeid = null;
 
-        // CulturalFacilityDetail 조회
+// CulturalFacilityDetail 조회
         CulturalFacilityDetail facilityDetail = culturalFacilityDetailRepository.findByContentid(contentId);
         if (facilityDetail != null) {
             CulturalFacility facility = culturalFacilityRepository.findFirstByContentid(contentId).orElse(null);
@@ -677,7 +671,7 @@ public class EventService {
             return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
         }
 
-        // FoodEventDetail 조회
+// FoodEventDetail 조회
         FoodEventDetail foodDetail = foodEventDetailRepository.findByContentid(contentId);
         if (foodDetail != null) {
             FoodEvent foodEvent = foodEventRepository.findFirstByContentid(contentId).orElse(null);
@@ -688,7 +682,7 @@ public class EventService {
             return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
         }
 
-        // LeisureSportsEventDetail 조회
+// LeisureSportsEventDetail 조회
         LeisureSportsEventDetail leisureDetail = leisureSportsEventDetailRepository.findByContentid(contentId);
         if (leisureDetail != null) {
             LeisureSportsEvent leisureEvent = leisureSportsEventRepository.findFirstByContentid(contentId).orElse(null);
@@ -699,7 +693,7 @@ public class EventService {
             return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
         }
 
-        // LocalEventDetail 조회
+// LocalEventDetail 조회
         LocalEventDetail localEvent = localEventDetailRepository.findByContentid(contentId);
         if (localEvent != null) {
             LocalEvent local = localEventRepository.findFirstByContentid(contentId).orElse(null);
@@ -710,7 +704,7 @@ public class EventService {
             return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
         }
 
-        // ShoppingEventDetail 조회
+// ShoppingEventDetail 조회
         ShoppingEventDetail shoppingEvent = shoppingEventDetailRepository.findByContentid(contentId);
         if (shoppingEvent != null) {
             ShoppingEvent shopping = shoppingEventRepository.findFirstByContentid(contentId).orElse(null);
@@ -721,7 +715,7 @@ public class EventService {
             return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
         }
 
-        // TourEventDetail 조회
+// TourEventDetail 조회
         TourEventDetail tourEvent = tourEventDetailRepository.findByContentid(contentId);
         if (tourEvent != null) {
             TourEvent tour = tourEventRepository.findFirstByContentid(contentId).orElse(null);
@@ -732,7 +726,7 @@ public class EventService {
             return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
         }
 
-        // TouristAttractionDetail 조회
+// TouristAttractionDetail 조회
         TouristAttractionDetail touristAttraction = touristAttractionDetailRepository.findByContentid(contentId);
         if (touristAttraction != null) {
             TouristAttraction attraction = touristAttractionRepository.findFirstByContentid(contentId).orElse(null);
@@ -743,7 +737,7 @@ public class EventService {
             return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
         }
 
-        // TravelCourse 조회
+// TravelCourse 조회
         TravelCourseDetail travelCourse = travelCourseDetailRepository.findByContentid(contentId);
         if (travelCourse != null) {
             TravelCourse course = travelCourseRepository.findFirstByContentid(contentId).orElse(null);
@@ -754,7 +748,7 @@ public class EventService {
             return new EventDTO(contentId, contenttypeid, title, firstImage, imgurl, imageUrl, overview, null, null);
         }
 
-        // 서울 이벤트 조회
+// 서울 이벤트 조회
         SeoulEvent seoulEvent = seoulEventRepository.findBySvcid(contentId);
         if (seoulEvent != null) {
             title = seoulEvent.getSvcnm();
@@ -764,7 +758,7 @@ public class EventService {
             return new EventDTO(contentId, contenttypeid, title, null, imgurl, null, overview, seoulEvent.getSvcid(), null);
         }
 
-        // 경기 이벤트 조회
+// 경기 이벤트 조회
         GyeonggiEvent gyeonggiEvent = gyeonggiEventRepository.findById(Long.parseLong(contentId)).orElse(null);
         if (gyeonggiEvent != null) {
             title = gyeonggiEvent.getTitle();
@@ -778,8 +772,3 @@ public class EventService {
 
 
 }
-
-
-
-
-
