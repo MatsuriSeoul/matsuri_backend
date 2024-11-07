@@ -51,7 +51,7 @@ public class NaverBlogService {
         Dotenv dotenv = Dotenv.load();
         this.clientId = dotenv.get("NAVER_CLIENT_ID");
         this.clientSecret = dotenv.get("NAVER_CLIENT_SECRET");
-        this.apiUrl = dotenv.get("NAVER_API_URL");
+        this.apiUrl = dotenv.get("NAVER_API_URI");
     }
 
     public List<Map<String, String>> getBlogReviews(String query) {
