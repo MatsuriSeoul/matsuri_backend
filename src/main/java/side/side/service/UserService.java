@@ -541,6 +541,10 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public boolean isUsernameTaken(String userName) {
+        return userRepository.existsByUserName(userName);
+    }
+
     public String getUserEmailById(Long userId) {
         return userRepository.findById(userId)
                 .map(UserInfo::getUserEmail)  // 유저 이메일 반환
