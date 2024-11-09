@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -153,6 +154,13 @@ public class UserController {
     public ResponseEntity<CheckResponse> checkUserPhone(@PathVariable String userPhone) {
         boolean exists = userService.checkUserPhoneExists(userPhone);
         return ResponseEntity.ok(new CheckResponse(exists));
+    }
+
+    // 마이페이지 닉네임 변경
+    @GetMapping("/check-username")
+    public ResponseEntity<?> checkUsername(@RequestParam String userName) {
+        boolean isDuplicate = userService.isUsernameTaken(userName);
+        return ResponseEntity.ok(Collections.singletonMap("isDuplicate", isDuplicate));
     }
 
     //  인증번호 전송
