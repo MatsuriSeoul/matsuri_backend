@@ -2,6 +2,7 @@ package side.side.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -31,8 +32,12 @@ public class TravelCourseService {
     @Autowired
     private TravelCourseDetailRepository travelCourseDetailRepository;
 
-    private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
+    private final String serviceKey;
 
+    public TravelCourseService(){
+        Dotenv dotenv = Dotenv.load();
+        this.serviceKey = dotenv.get("CATEGORY_API_KEY");
+    }
     // contenttypeid가 25인 여행 코스를 가져와서 DB에 저장하는 메소드
     @Transactional(propagation = Propagation.REQUIRED)
     public List<TravelCourse> fetchAndSaveTravelCourses(String numOfRows, String pageNo) {

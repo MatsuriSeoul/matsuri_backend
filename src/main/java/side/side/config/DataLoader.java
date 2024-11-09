@@ -87,7 +87,7 @@ public class DataLoader implements ApplicationRunner {
         String token = jwtUtils.generateToken(user.getUserName(), user.getId(), user.getRole());
         System.out.println("Test User Token: " + token);
 
-//         eventService.fetchAndSaveGyeonggiEvents();
+         eventService.fetchAndSaveGyeonggiEvents();
          eventService.fetchAndSaveSeoulEvents();
 
         // 서버 시작 시 지역별 관광정보를 가져와 저장

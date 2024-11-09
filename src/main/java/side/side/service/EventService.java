@@ -99,61 +99,61 @@ public class EventService {
         this.serviceKey = dotenv.get("SERVICE_API_KEY");
     }
 
-//    // 경기도 행사 API
-//    public void fetchAndSaveGyeonggiEvents() {
-//        int pageSize = 50;  // 가져올 데이터 개수를 10개로 설정
-//        int startIndex = 1;
-//        boolean moreData = true;
-//        RestTemplate restTemplate = new RestTemplate();
-//
-//        while (moreData) {
-//            String url = String.format("https://openapi.gg.go.kr/GGCULTUREVENTSTUS?KEY=%s&Type=json&pIndex=%d&pSize=%d",
-//                    gyeonggiApiKey, startIndex, pageSize);
-//            try {
-//                String response = restTemplate.getForObject(url, String.class);
-//                System.out.println("경기도 API 응답" + response);
-//
-//                if (response.startsWith("<")) {
-//                    throw new IllegalArgumentException("존재하지 않는 응답 API");
-//                }
-//
-//                ObjectMapper objectMapper = new ObjectMapper();
-//                JsonNode rootNode = objectMapper.readTree(response);
-//                JsonNode dataNode = rootNode.path("GGCULTUREVENTSTUS").path(1).path("row");
-//
-//                if (dataNode.isArray()) {
-//                    List<GyeonggiEvent> events = new ArrayList<>();
-//                    for (JsonNode node : dataNode) {
-//                        GyeonggiEvent event = new GyeonggiEvent();
-//                        event.setInstNm(node.path("INST_NM").asText());
-//                        event.setTitle(node.path("TITLE").asText());
-//                        event.setCategoryNm(node.path("CATEGORY_NM").asText());
-//                        event.setUrl(node.path("URL").asText());
-//                        event.setImageUrl(node.path("IMAGE_URL").asText());
-//                        event.setBeginDe(node.path("BEGIN_DE").asText());
-//                        event.setEndDe(node.path("END_DE").asText());
-//                        event.setAddr(node.path("ADDR").asText());
-//                        event.setEventTmInfo(node.path("EVENT_TM_INFO").asText());
-//                        event.setPartcptExpnInfo(node.path("PARTCPT_EXPN_INFO").asText());
-//                        event.setTelnoInfo(node.path("TELNO_INFO").asText());
-//                        event.setHostInstNm(node.path("HOST_INST_NM").asText());
-//                        event.setHmpgUrl(node.path("HMPG_URL").asText());
-//                        event.setWritngDe(node.path("WRITNG_DE").asText());
-//                        events.add(event);
-//                    }
-//                    gyeonggiEventRepository.saveAll(events);
-//
-//                    // 10개씩 가져오는 것으로 설정했으므로 한 번만 가져오고 종료
-//                    moreData = false;
-//                } else {
-//                    moreData = false;
-//                }
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                moreData = false;
-//            }
-//        }
-//    }
+    // 경기도 행사 API
+    public void fetchAndSaveGyeonggiEvents() {
+        int pageSize = 50;  // 가져올 데이터 개수를 10개로 설정
+        int startIndex = 1;
+        boolean moreData = true;
+        RestTemplate restTemplate = new RestTemplate();
+
+        while (moreData) {
+            String url = String.format("https://openapi.gg.go.kr/GGCULTUREVENTSTUS?KEY=%s&Type=json&pIndex=%d&pSize=%d",
+                    gyeonggiApiKey, startIndex, pageSize);
+            try {
+                String response = restTemplate.getForObject(url, String.class);
+                System.out.println("경기도 API 응답" + response);
+
+                if (response.startsWith("<")) {
+                    throw new IllegalArgumentException("존재하지 않는 응답 API");
+                }
+
+                ObjectMapper objectMapper = new ObjectMapper();
+                JsonNode rootNode = objectMapper.readTree(response);
+                JsonNode dataNode = rootNode.path("GGCULTUREVENTSTUS").path(1).path("row");
+
+                if (dataNode.isArray()) {
+                    List<GyeonggiEvent> events = new ArrayList<>();
+                    for (JsonNode node : dataNode) {
+                        GyeonggiEvent event = new GyeonggiEvent();
+                        event.setInstNm(node.path("INST_NM").asText());
+                        event.setTitle(node.path("TITLE").asText());
+                        event.setCategoryNm(node.path("CATEGORY_NM").asText());
+                        event.setUrl(node.path("URL").asText());
+                        event.setImageUrl(node.path("IMAGE_URL").asText());
+                        event.setBeginDe(node.path("BEGIN_DE").asText());
+                        event.setEndDe(node.path("END_DE").asText());
+                        event.setAddr(node.path("ADDR").asText());
+                        event.setEventTmInfo(node.path("EVENT_TM_INFO").asText());
+                        event.setPartcptExpnInfo(node.path("PARTCPT_EXPN_INFO").asText());
+                        event.setTelnoInfo(node.path("TELNO_INFO").asText());
+                        event.setHostInstNm(node.path("HOST_INST_NM").asText());
+                        event.setHmpgUrl(node.path("HMPG_URL").asText());
+                        event.setWritngDe(node.path("WRITNG_DE").asText());
+                        events.add(event);
+                    }
+                    gyeonggiEventRepository.saveAll(events);
+
+                    // 10개씩 가져오는 것으로 설정했으므로 한 번만 가져오고 종료
+                    moreData = false;
+                } else {
+                    moreData = false;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                moreData = false;
+            }
+        }
+    }
 
     // 서울 행사 API
     public void fetchAndSaveSeoulEvents() {

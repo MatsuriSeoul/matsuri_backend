@@ -1,5 +1,6 @@
 package side.side.service;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -31,8 +32,12 @@ public class LeisureSportsEventService {
     @Autowired
     private LeisureSportsEventDetailRepository leisureSportsEventDetailRepository;
 
-    private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
+    private final String serviceKey;
 
+    public LeisureSportsEventService(){
+        Dotenv dotenv = Dotenv.load();
+        this.serviceKey = dotenv.get("CATEGORY_API_KEY");
+    }
     // ContentypeId 28인 레포츠 불러와 저장하기
     @Transactional(propagation = Propagation.REQUIRED)
     public List<LeisureSportsEvent> fetchAndSaveLeisureSportsEvents(String numOfRows, String pageNo) {

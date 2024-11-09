@@ -2,6 +2,7 @@ package side.side.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.cdimascio.dotenv.Dotenv;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -23,7 +24,12 @@ public class LocalBasedService {
     @Autowired
     private LocalBasedRepository localBasedRepository;
 
-    private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
+    private final String serviceKey;
+
+    public LocalBasedService(){
+        Dotenv dotenv = Dotenv.load();
+        this.serviceKey = dotenv.get("CATEGORY_API_KEY");
+    }
     private final String baseUrl = "http://apis.data.go.kr/B551011/KorService1/areaBasedList1";
 
     // API를 호출하고 결과를 저장하는 메소드

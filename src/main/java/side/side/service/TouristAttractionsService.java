@@ -1,5 +1,6 @@
 package side.side.service;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -32,8 +33,12 @@ public class TouristAttractionsService {
     @Autowired
     private TouristAttractionDetailRepository  touristAttractionDetailRepository;
 
-    private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
+    private final String serviceKey;
 
+    public TouristAttractionsService(){
+        Dotenv dotenv = Dotenv.load();
+        this.serviceKey = dotenv.get("CATEGORY_API_KEY");
+    }
     // contentTypeId 12인 관광지 db 저장하기
     @Transactional(propagation = Propagation.REQUIRED)
     public List<TouristAttraction> fetchAndSaveTouristAttractions(String numOfRows, String pageNo) {

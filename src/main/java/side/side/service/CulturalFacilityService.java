@@ -2,6 +2,7 @@ package side.side.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -31,8 +32,12 @@ public class CulturalFacilityService {
     @Autowired
     private CulturalFacilityDetailRepository culturalFacilityDetailRepository;
 
-    private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
+    private final String serviceKey;
 
+    public CulturalFacilityService(){
+        Dotenv dotenv = Dotenv.load();
+        this.serviceKey = dotenv.get("CATEGORY_API_KEY");
+    }
     // 문화시설 API 호출 및 데이터 저장
     @Transactional(propagation = Propagation.REQUIRED)
     public List<CulturalFacility> fetchAndSaveCulturalFacilities(String numOfRows, String pageNo) {

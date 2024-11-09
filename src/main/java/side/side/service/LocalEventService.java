@@ -1,5 +1,6 @@
 package side.side.service;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +32,12 @@ public class LocalEventService {
     private LocalEventDetailRepository localEventDetailRepository;
 
 
-    private final String serviceKey = "13jkaARutXp/OwAHynRnYjP7BJuMVGIZx2Ki3dRMaDlcBqrfZHC9Zk97LCCuLyKfiR2cVhyWy59t96rPwyWioA==";
+    private final String serviceKey;
 
+    public LocalEventService(){
+        Dotenv dotenv = Dotenv.load();
+        this.serviceKey = dotenv.get("CATEGORY_API_KEY");
+    }
     // 지역 기반 관광 정보 API - 로컬 데이터 저장 / LocalEvent
     @Transactional(propagation = Propagation.REQUIRED)
     public List<LocalEvent> fetchAndSaveEventsLocal(String numOfRows, String pageNo) {
