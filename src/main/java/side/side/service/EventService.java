@@ -3,6 +3,7 @@ package side.side.service;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -579,21 +580,19 @@ public class EventService {
         return gyeonggiEventRepository.findAll();  // 카테고리가 없으면 전체 조회
     }
 
-    // 서울 이벤트 필터링 로직
+    // 서울 카테고리별 이벤트 조회
+    @Cacheable(value = "seoulEventsByCategory", key = "#category")
     public List<SeoulEvent> getSeoulEventsByCategory(String category) {
         if (category != null && !category.isEmpty()) {
-            // minclassnm 필드를 기준으로 필터링
             return seoulEventRepository.findByMinclassnm(category);
         }
-        return seoulEventRepository.findAll();  // 카테고리가 없으면 전체 조회
+        return seoulEventRepository.findAll();
     }
 
-    // 월과 카테고리에 맞는 데이터를 조회
+    // 서울 월별 및 카테고리별 이벤트 조회
+    @Cacheable(value = "seoulEventsByMonthAndCategory", key = "{#month, #category}")
     public List<SeoulEvent> getSeoulEventsByMonthAndCategory(String month, String category) {
-        // 월 정보가 있는 경우 "MM" 형식으로 생성
         String beginDatePattern = String.format("%02d", Integer.parseInt(month));
-
-        // 리포지토리 메소드 호출하여 월과 카테고리에 맞는 데이터 조회
         return seoulEventRepository.findByCategoryAndMonth(beginDatePattern, category);
     }
 
@@ -640,7 +639,8 @@ public class EventService {
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         return seoulEventRepository.findScheduledEvents(today);
     }
-    // 유사한 여행지 정보 가져오기
+    // 유사한 여행지 정보 조회
+    @Cacheable(value = "similarTourEvents", key = "#contenttypeid")
     public List<TourEvent> getSimilarTourEvent(String contenttypeid) {
         return tourEventRepository.findByContenttypeid(contenttypeid);
     }
