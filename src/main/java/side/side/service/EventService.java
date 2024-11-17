@@ -609,22 +609,26 @@ public class EventService {
 
     // 경기도 무료 행사 가져오기
     public List<GyeonggiEvent> getGyeonggiFreeEvents() {
-        return gyeonggiEventRepository.findFreeEventsInGyeonggi();
+        List<GyeonggiEvent> events = gyeonggiEventRepository.findFreeEventsInGyeonggi();
+        return events != null ? events : new ArrayList<>();
     }
 
     // 서울특별시 무료 행사 가져오기
     public List<SeoulEvent> getSeoulFreeEvents() {
-        return seoulEventRepository.findFreeEventsInSeoul();
+        List<SeoulEvent> events = seoulEventRepository.findFreeEventsInSeoul();
+        return events != null ? events : new ArrayList<>();
     }
 
     // 경기도 유료 행사 가져오기
     public List<GyeonggiEvent> getGyeonggiPaidEvents() {
-        return gyeonggiEventRepository.findPaidEventsInGyeonggi();
+        List<GyeonggiEvent> events = gyeonggiEventRepository.findPaidEventsInGyeonggi();
+        return events != null ? events : new ArrayList<>();
     }
 
     // 서울특별시 유료 행사 가져오기
     public List<SeoulEvent> getSeoulPaidEvents() {
-        return seoulEventRepository.findPaidEventsInSeoul();
+        List<SeoulEvent> events = seoulEventRepository.findPaidEventsInSeoul();
+        return events != null ? events : new ArrayList<>();
     }
 
 
